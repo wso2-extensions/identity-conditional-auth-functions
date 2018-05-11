@@ -24,14 +24,22 @@
         <artifactId>wso2</artifactId>
         <version>1</version>
     </parent>
-    <groupId>org.wso2.carbon</groupId>
-    <artifactId>org.wso2.carbon.conditional.auth.functions</artifactId>
+    <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+    <artifactId>identity-conditional-auth-functions</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - IAM Conditional Authentication Functions</name>
     <description>
     </description>
     <url>http://wso2.org</url>
+
+    <scm>
+        <url>https://github.com/wso2-extensions/identity-conditional-auth-functions.git</url>
+        <developerConnection>scm:git:https://github.com/wso2-extensions/identity-conditional-auth-functions.git</developerConnection>
+        <connection>scm:git:https://github.com/wso2-extensions/identity-conditional-auth-functions.git</connection>
+        <tag>HEAD</tag>
+    </scm>
+
     <repositories>
         <repository>
             <id>wso2-nexus</id>
@@ -54,6 +62,7 @@
                 <checksumPolicy>ignore</checksumPolicy>
             </releases>
         </repository>
+
         <repository>
             <id>wso2.snapshots</id>
             <name>Apache Snapshot Repository</name>
@@ -66,7 +75,9 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
+
     </repositories>
+
     <pluginRepositories>
         <pluginRepository>
             <id>wso2.releases</id>
@@ -78,6 +89,7 @@
                 <checksumPolicy>ignore</checksumPolicy>
             </releases>
         </pluginRepository>
+
         <pluginRepository>
             <id>wso2.snapshots</id>
             <name>WSO2 Snapshot Repository</name>
@@ -167,8 +179,8 @@
                 <inherited>true</inherited>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
