@@ -147,7 +147,33 @@
                             org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.internal
                         </Private-Package>
                         <Import-Package>
-                            *
+                            org.apache.axis2.transport.http;version="${org.apache.axis2.transport.version.range}",
+                            org.apache.commons.codec.binary;version="${org.apache.commons.codec.version.range}",
+                            org.apache.commons.httpclient;version="${org.apache.commons.version.range}",
+                            org.apache.commons.logging;version="${org.apache.commons.logging.version.range}",
+                            org.apache.commons.ssl;version="${org.apache.commons.version.range}",
+                            org.apache.http;version="${org.apache.http.version.range}",
+                            org.apache.http.client;version="${org.apache.http.version.range}",
+                            org.apache.http.client.methods;version="${org.apache.http.version.range}",
+                            org.apache.http.entity;version="${org.apache.http.version.range}",
+                            org.apache.http.impl.client;version="${org.apache.http.version.range}",
+                            org.json;version="${org.json.version.range}",
+                            org.osgi.service.component;version="${org.osgi.service.component.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework;
+                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.context;
+                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.exception;
+                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.model;
+                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.services;
+                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
+                            org.wso2.carbon.identity.core.util;
+                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
+                            org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.internal,

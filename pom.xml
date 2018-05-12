@@ -408,5 +408,15 @@
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <commons-codec.version>1.4.0.wso2v1</commons-codec.version>
+        <org.apache.axis2.transport.version.range>[1.6,2)</org.apache.axis2.transport.version.range>
+        <org.wso2.carbon.identity.application.authentication.framework.version.range>
+            [5.11,6)
+        </org.wso2.carbon.identity.application.authentication.framework.version.range>
+        <org.apache.http.version.range>[4.3,5)</org.apache.http.version.range>
+        <org.apache.commons.codec.version.range>[1.4,2)</org.apache.commons.codec.version.range>
+        <org.apache.commons.version.range>[3.1,4)</org.apache.commons.version.range>
+        <org.osgi.service.component.version.range>[1.2,2)</org.osgi.service.component.version.range>
+        <org.json.version.range>[3.0,4)</org.json.version.range>
+        <org.apache.commons.logging.version.range>[1.2,2)</org.apache.commons.logging.version.range>
     </properties>
 </project>
