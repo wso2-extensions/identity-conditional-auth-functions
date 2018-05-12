@@ -44,8 +44,6 @@ import java.nio.charset.StandardCharsets;
  */
 public class SessionValidationUtil {
 
-
-
     /**
      * Method to retrieve session data from session data source
      *

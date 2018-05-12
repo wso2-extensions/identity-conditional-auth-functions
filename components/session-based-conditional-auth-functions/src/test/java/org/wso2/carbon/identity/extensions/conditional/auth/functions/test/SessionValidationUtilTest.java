@@ -49,10 +49,9 @@ public class SessionValidationUtilTest {
     @Mock
     AuthenticatedUser authenticatedUserMock;
 
-
-
     @BeforeClass
     public void setup() {
+
         initMocks(this);
         when(authenticatedUserMock.getUserName()).thenReturn(
                 TestUtils.getRandomString(10, true, false));
@@ -91,20 +90,19 @@ public class SessionValidationUtilTest {
         Assert.assertEquals("Basic " + authHeader, header.getValue());
 
     }
+
     //Test for JSON response is []
-    @Test (expectedExceptions = {SessionValidationException.class,NullPointerException.class})
+    @Test(expectedExceptions = {SessionValidationException.class, NullPointerException.class})
     public void testGetSessionDetails() throws IOException, SessionValidationException {
+
         JSONArray respond = SessionValidationUtil.getSessionDetails(authenticatedUserMock);
         Assert.assertEquals(respond.toString().charAt(0), '[');
         Assert.assertEquals(respond.toString().charAt(respond.toString().length() - 1), ']');
     }
 
-
-
-
-
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 

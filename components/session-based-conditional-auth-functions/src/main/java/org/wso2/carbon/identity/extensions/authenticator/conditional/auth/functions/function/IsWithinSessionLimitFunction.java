@@ -53,7 +53,6 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
 
     private static final Log log = LogFactory.getLog(IsWithinSessionLimitFunction.class);
 
-
     /**
      * Method to validate user session a given the authentication context and set of required attributes
      *
@@ -119,8 +118,8 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
                 SessionValidationUtil.getQuery(authenticatedUser.getTenantDomain(),
                         authenticatedUser.getUserName(),
                         authenticatedUser.getUserStoreDomain()));
-        if(log.isDebugEnabled()){
-            log.debug("JSON payload for retrieving data :"+ paramMap.toString());
+        if (log.isDebugEnabled()) {
+            log.debug("JSON payload for retrieving data :" + paramMap.toString());
         }
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
         StringEntity entity = new StringEntity(paramMap.toString(), ContentType.APPLICATION_JSON);
@@ -144,8 +143,8 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
                     while ((line = bufferedReader.readLine()) != null) {
                         responseResult.append(line);
                     }
-                    if(log.isDebugEnabled()){
-                        log.debug("Response from the data source :"+ responseResult.toString());
+                    if (log.isDebugEnabled()) {
+                        log.debug("Response from the data source :" + responseResult.toString());
                     }
                     sessionCount = parseInt(responseResult.toString());
                     return sessionCount;

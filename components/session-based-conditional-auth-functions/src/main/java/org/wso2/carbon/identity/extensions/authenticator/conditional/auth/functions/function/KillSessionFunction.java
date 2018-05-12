@@ -30,19 +30,22 @@ import java.util.Map;
  * Represents javascript function provided in conditional authentication to terminate a session with given sessionID
  */
 public class KillSessionFunction implements ExecuteActionFunction {
+
     private static final Log log = LogFactory.getLog(KillSessionFunction.class);
+
     @Override
     public Boolean execute(JsAuthenticationContext context, Map<String, String> map) {
+
         String sessionId = map.get(SessionValidationConstants.TERMINATION_SESSION_ID);
         try {
             SessionManagementService sessionManagementService = new SessionManagementService();
-            if(log.isDebugEnabled()){
-                log.debug("Session with session id :"+sessionId+ " is requested to kill");
+            if (log.isDebugEnabled()) {
+                log.debug("Session with session id :" + sessionId + " is requested to kill");
             }
             sessionManagementService.removeSession(sessionId);
         } catch (NullPointerException e) {
-            if(log.isDebugEnabled()){
-                log.debug("Session with provided session ID :"+ sessionId +" not found.");
+            if (log.isDebugEnabled()) {
+                log.debug("Session with provided session ID :" + sessionId + " not found.");
             }
             return false;
         }

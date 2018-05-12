@@ -60,8 +60,9 @@ public class ConditionalAuthFunctionTest {
 
         initMocks(this);
     }
+
     //Test for isWithinSessionLimitFunction with mock authenticatedUser
-    @Test (expectedExceptions = {AuthenticationFailedException.class,NullPointerException.class})
+    @Test(expectedExceptions = {AuthenticationFailedException.class, NullPointerException.class})
     public void testIsWithinSessionLimitFunction() throws AuthenticationFailedException {
 
         when(jsAuthenticationContext.getWrapped()).thenReturn(authenticationContext);
@@ -72,12 +73,13 @@ public class ConditionalAuthFunctionTest {
         isWithinSessionLimitFunction.validate(jsAuthenticationContext, map);
     }
 
-    @Test (expectedExceptions = NullPointerException.class)
-    public void testGetSessionData() throws AuthenticationFailedException{
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testGetSessionData() throws AuthenticationFailedException {
+
         when(jsAuthenticationContext.getWrapped()).thenReturn(authenticationContext);
         when(authenticationContext.getLastAuthenticatedUser()).thenReturn(authenticatedUser);
         Map<String, String> map = new HashMap<>();
-        getSessionDataFunction.getData(jsAuthenticationContext,map);
+        getSessionDataFunction.getData(jsAuthenticationContext, map);
 
     }
 
