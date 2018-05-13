@@ -130,7 +130,7 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
         request = SessionValidationUtil.setAuthorizationHeader(request,
                 IdentityUtil.getProperty(SessionValidationConstants.USERNAME_CONFIG_NAME),
                 IdentityUtil.getProperty(SessionValidationConstants.PASSWORD_CONFIG_NAME));
-        request.addHeader(SessionValidationConstants.CONTENT_TYPE_TAG, "application/json");
+        request.addHeader(SessionValidationConstants.CONTENT_TYPE_TAG, ContentType.APPLICATION_JSON.toString());
         request.setEntity(entity);
         try {
             HttpResponse response = httpClient.execute(request);

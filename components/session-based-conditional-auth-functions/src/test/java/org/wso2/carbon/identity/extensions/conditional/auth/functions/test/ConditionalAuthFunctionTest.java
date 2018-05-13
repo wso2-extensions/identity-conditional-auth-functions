@@ -80,7 +80,6 @@ public class ConditionalAuthFunctionTest {
         when(authenticationContext.getLastAuthenticatedUser()).thenReturn(authenticatedUser);
         Map<String, String> map = new HashMap<>();
         getSessionDataFunction.getData(jsAuthenticationContext, map);
-
     }
 
 }
