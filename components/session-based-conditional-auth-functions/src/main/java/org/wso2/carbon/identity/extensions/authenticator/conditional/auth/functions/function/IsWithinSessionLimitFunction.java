@@ -155,11 +155,8 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
                 throw new FrameworkException("Failed to retrieve data from endpoint.Response status code :" +
                         response.getStatusLine().getStatusCode());
             }
-
         } catch (IOException e) {
             throw new FrameworkException("Failed to execute the HTTP Post request");
         }
-
     }
-
 }

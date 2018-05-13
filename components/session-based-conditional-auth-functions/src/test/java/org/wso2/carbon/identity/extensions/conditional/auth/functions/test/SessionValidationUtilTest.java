@@ -60,7 +60,6 @@ public class SessionValidationUtilTest {
                 TestUtils.getRandomString(10, true, false));
         when(authenticatedUserMock.getUserStoreDomain()).thenReturn(
                 TestUtils.getRandomString(10, true, false));
-
     }
 
     @Test
@@ -71,7 +70,6 @@ public class SessionValidationUtilTest {
         String userStoreDomain = TestUtils.getRandomString(5, true, false);
         String actual = "tenantDomain:" + tenantDomain + " AND username:" + username + " AND userstoreDomain:" + userStoreDomain;
         Assert.assertEquals(actual, SessionValidationUtil.getQuery(tenantDomain, username, userStoreDomain));
-
     }
 
     @Test
@@ -84,12 +82,10 @@ public class SessionValidationUtilTest {
         byte[] encoding = org.apache.commons.codec.binary.Base64.encodeBase64(
                 toEncode.getBytes(Charset.forName(StandardCharsets.UTF_8.name())));
         String authHeader = new String(encoding, Charset.defaultCharset());
-
         httpPost = SessionValidationUtil.setAuthorizationHeader(httpPost, username, password);
         Header header = httpPost.getFirstHeader(HTTPConstants.HEADER_AUTHORIZATION);
 
         Assert.assertEquals("Basic " + authHeader, header.getValue());
-
     }
 
     //Test for JSON response is []
@@ -106,5 +102,4 @@ public class SessionValidationUtilTest {
 
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
-
 }

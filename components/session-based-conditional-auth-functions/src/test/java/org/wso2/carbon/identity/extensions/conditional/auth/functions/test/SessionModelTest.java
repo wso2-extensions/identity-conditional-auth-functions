@@ -44,7 +44,5 @@ public class SessionModelTest {
                 "\"timestamp\":\"" + timeStamp + "\"" +
                 "}";
         Assert.assertEquals(actual, session.getJSONObject().toString());
-
     }
-
 }

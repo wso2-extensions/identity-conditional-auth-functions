@@ -81,5 +81,4 @@ public class ConditionalAuthFunctionTest {
         Map<String, String> map = new HashMap<>();
         getSessionDataFunction.getData(jsAuthenticationContext, map);
     }
-
 }

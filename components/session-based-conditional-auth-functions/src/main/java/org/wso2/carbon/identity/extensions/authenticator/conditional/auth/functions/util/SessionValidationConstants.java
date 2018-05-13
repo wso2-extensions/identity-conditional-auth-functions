@@ -26,7 +26,7 @@ public class SessionValidationConstants {
     //Integer constants
     public static final int START_INDEX = 0;
     public static final int SESSION_COUNT_MAX = 100;
-
+    //String constants
     public static final String USERNAME_TAG = "username";
     public static final String USER_STORE_TAG = "userstoreDomain";
     public static final String TENANT_DOMAIN_TAG = "tenantDomain";
@@ -54,5 +54,4 @@ public class SessionValidationConstants {
     public static final String IP_TAG = "remoteIp";
     public static final String SERVICE_PROVIDER_TAG = "serviceProvider";
     public static final String SESSIONS_TAG = "sessions";
-
 }

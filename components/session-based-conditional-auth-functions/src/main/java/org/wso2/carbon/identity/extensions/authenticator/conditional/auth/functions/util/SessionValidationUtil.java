@@ -152,5 +152,4 @@ public class SessionValidationUtil {
                 SessionValidationConstants.AUTH_TYPE_KEY + authHeader);
         return httpMethod;
     }
-
 }

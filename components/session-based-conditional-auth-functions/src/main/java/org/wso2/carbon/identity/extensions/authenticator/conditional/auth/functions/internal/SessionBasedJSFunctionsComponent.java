@@ -61,7 +61,6 @@ public class SessionBasedJSFunctionsComponent {
                     (ExecuteActionFunction) killSessionFunction::execute);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getSessionData",
                     (GetDataFunction) getSessionDataFunction::getData);
-
             if (log.isDebugEnabled()) {
                 log.info("Session based conditional authentication component bundle activated");
             }
