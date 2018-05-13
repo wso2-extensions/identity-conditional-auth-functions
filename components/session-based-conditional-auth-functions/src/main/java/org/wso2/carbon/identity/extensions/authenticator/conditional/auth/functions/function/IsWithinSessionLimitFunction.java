@@ -54,7 +54,7 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
     private static final Log log = LogFactory.getLog(IsWithinSessionLimitFunction.class);
 
     /**
-     * Method to validate user session a given the authentication context and set of required attributes
+     * Method to validate user session a given the authentication context and set of required attributes.
      *
      * @param context Authentication context
      * @param map     Hash map of attributes required for validation
@@ -67,7 +67,12 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
 
         boolean state = false;
         int sessionLimit = getSessionLimitFromMap(map);
-        AuthenticatedUser authenticatedUser = context.getWrapped().getLastAuthenticatedUser();
+        AuthenticatedUser authenticatedUser;
+        try{
+            authenticatedUser = context.getWrapped().getLastAuthenticatedUser();
+        } catch (NullPointerException e){
+            throw new AuthenticationFailedException("Failed to identify the Authenticated user from the context",e);
+        }
         if (authenticatedUser == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Unable to find the authenticated user from the Authentication context.");
@@ -83,15 +88,17 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
                 state = true;
             }
         } catch (FrameworkException e) {
-            throw new AuthenticationFailedException("Problem occurred in session data retrieving", e);
+            throw new AuthenticationFailedException("Problem occurred retrieving session data for the user " +
+                    authenticatedUser.getUserName(), e);
         } catch (NumberFormatException e) {
-            throw new AuthenticationFailedException("Failed to retrieve session count from response", e);
+            throw new AuthenticationFailedException("Failed to retrieve session count from response for the user " +
+                    authenticatedUser.getUserName(), e);
         }
         return state;
     }
 
     /**
-     * Method for retrieving user defined maximum session limit from parameter map
+     * Method for retrieving user defined maximum session limit from parameter map.
      *
      * @param map parameter map passed from JS
      * @return inter indicating the maximum session Limit
@@ -102,7 +109,7 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
     }
 
     /**
-     * Method to retrieve active session count for the given authenticated user
+     * Method to retrieve active session count for the given authenticated user.
      *
      * @param authenticatedUser Authenticated user object
      * @return current active session count
