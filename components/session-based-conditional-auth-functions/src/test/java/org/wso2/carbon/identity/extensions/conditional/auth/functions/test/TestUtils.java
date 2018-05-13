@@ -28,13 +28,10 @@ import java.util.Random;
 public class TestUtils {
     //Method for generating random string for testing purposes
     public static String getRandomString(int size, boolean useLetters, boolean useNumbers) {
-
         return RandomStringUtils.random(size, useLetters, useNumbers);
-
     }
     //method for generating random integer in a given range for testing methods
     public static int getRandomInt(int start, int end) {
-
         Random rand = new Random();
         return rand.nextInt(end) + start;
     }
