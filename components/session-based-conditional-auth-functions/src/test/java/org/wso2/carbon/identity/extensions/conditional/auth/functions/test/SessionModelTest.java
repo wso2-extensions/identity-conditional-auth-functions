@@ -22,6 +22,9 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.model.Session;
 
+/**
+ * Contains methods for testing Session Model class methods
+ */
 public class SessionModelTest {
 
     @Test

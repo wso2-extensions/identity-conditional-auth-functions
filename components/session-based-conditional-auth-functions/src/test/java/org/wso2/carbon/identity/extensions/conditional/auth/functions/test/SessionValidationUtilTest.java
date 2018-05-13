@@ -41,7 +41,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * TODO:Class level comment
+ * Contains methods for testing functions in SessionValidationUtil class
+ *
  */
 
 public class SessionValidationUtilTest {

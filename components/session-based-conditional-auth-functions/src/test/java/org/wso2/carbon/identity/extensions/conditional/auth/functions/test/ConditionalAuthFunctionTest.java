@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * TODO:Class level comment
+ * Contains methods for testing Conditional authentication functions
  */
 
 public class ConditionalAuthFunctionTest {
