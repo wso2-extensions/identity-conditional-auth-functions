@@ -28,5 +28,12 @@ import java.util.Map;
 @FunctionalInterface
 public interface ExecuteActionFunction {
 
+    /**
+     * This method will contain the implementation of execute action.
+     *
+     * @param context AuthenticationContext passed from Javascript
+     * @param map     parameter map
+     * @return boolean value indicating the success or failure state of process
+     */
     Boolean execute(JsAuthenticationContext context, Map<String, String> map);
 }

@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Contains methods for testing Conditional authentication functions
+ * Contains methods for testing Conditional authentication functions.
  */
 
 public class ConditionalAuthFunctionTest {
@@ -61,7 +61,7 @@ public class ConditionalAuthFunctionTest {
         initMocks(this);
     }
 
-    //Test for isWithinSessionLimitFunction with mock authenticatedUser
+    //Test for isWithinSessionLimitFunction with mock authenticatedUser.
     @Test(expectedExceptions = {AuthenticationFailedException.class, NullPointerException.class})
     public void testIsWithinSessionLimitFunction() throws AuthenticationFailedException {
 
@@ -72,7 +72,7 @@ public class ConditionalAuthFunctionTest {
         map.put("sessionLimit", sessionLimit);
         isWithinSessionLimitFunction.validate(jsAuthenticationContext, map);
     }
-
+    //Test for GetSessionDataFunction
     @Test(expectedExceptions = NullPointerException.class)
     public void testGetSessionData() throws AuthenticationFailedException {
 

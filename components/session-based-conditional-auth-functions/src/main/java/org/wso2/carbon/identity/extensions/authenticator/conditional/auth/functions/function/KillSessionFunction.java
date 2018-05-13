@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functi
 import java.util.Map;
 
 /**
- * Represents javascript function provided in conditional authentication to terminate a session with given sessionID
+ * Represents javascript function provided in conditional authentication to terminate a session with given sessionID.
  */
 public class KillSessionFunction implements ExecuteActionFunction {
 

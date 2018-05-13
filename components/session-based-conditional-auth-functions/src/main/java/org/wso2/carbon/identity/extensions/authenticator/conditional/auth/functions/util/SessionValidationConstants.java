@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.util;
 
 /**
- * Class for storing Constants used in the session validation conditional authentication functions
+ * Class for storing Constants used in the session validation conditional authentication functions.
  */
 public class SessionValidationConstants {
 

@@ -40,12 +40,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Utility methods used in the session validation conditional authentication functions
+ * Utility methods used in the session validation conditional authentication functions.
  */
 public class SessionValidationUtil {
 
     /**
-     * Method to retrieve session data from session data source
+     * Method to retrieve session data from session data source.
      *
      * @param authenticatedUser AuthenticatedUser object that represent the user
      * @return JSON array with each element describing active session
@@ -80,7 +80,7 @@ public class SessionValidationUtil {
     }
 
     /**
-     * Method to create HTTP Request
+     * Method to create HTTP Request.
      *
      * @param authenticatedUser AuthenticatedUser object for the user
      * @return HttpPost request object
@@ -113,7 +113,7 @@ public class SessionValidationUtil {
     }
 
     /**
-     * Method to get Query string from the user details
+     * Method to get Query string from the user details.
      *
      * @param tenantDomain Tenant domain of the user
      * @param username     username of the user

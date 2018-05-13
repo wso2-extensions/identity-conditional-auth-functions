@@ -23,10 +23,10 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.model.Session;
 
 /**
- * Contains methods for testing Session Model class methods
+ * Contains methods for testing Session Model class methods.
  */
 public class SessionModelTest {
-
+    //Test for model object's getJSONObject function
     @Test
     public void testGetJSONObject() {
 
@@ -46,3 +46,4 @@ public class SessionModelTest {
         Assert.assertEquals(actual, session.getJSONObject().toString());
     }
 }
+

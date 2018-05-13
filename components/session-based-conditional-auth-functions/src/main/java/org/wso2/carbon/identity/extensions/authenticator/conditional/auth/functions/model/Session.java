@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.funct
 import org.json.JSONObject;
 
 /**
- * Model class to store details about a active sessions of user
+ * Model class to store details about a active sessions of user.
  */
 public class Session {
 
@@ -32,7 +32,7 @@ public class Session {
     private String serviceProvider;
 
     /**
-     * Constructor of the model class
+     * Constructor of the model class.
      *
      * @param sessionId       ID of the session
      * @param startTimeStamp  Timestamp  representing the creation time of session
@@ -50,7 +50,7 @@ public class Session {
     }
 
     /**
-     * Method for retrieving session details as a JSON Object
+     * Method for retrieving session details as a JSON Object.
      *
      * @return A JSON Object with session details
      */

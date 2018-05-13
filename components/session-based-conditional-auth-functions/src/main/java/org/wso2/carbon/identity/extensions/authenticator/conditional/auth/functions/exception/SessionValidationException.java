@@ -20,10 +20,18 @@ package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.funct
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
+/**
+ * Exception class for indicating the exceptions in session count validation process.
+ */
 public class SessionValidationException extends AuthenticationFailedException {
 
     private static final long serialVersionUID = -476728056175361072L;
 
+    /**
+     * Constructor for exception class.
+     *
+     * @param message exception message
+     */
     public SessionValidationException(String message) {
 
         super(message);

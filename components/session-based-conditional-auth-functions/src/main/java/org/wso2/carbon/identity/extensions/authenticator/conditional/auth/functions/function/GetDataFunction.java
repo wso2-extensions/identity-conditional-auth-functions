@@ -25,10 +25,18 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import java.util.Map;
 
 /**
- * Function definition for retrieving data
+ * Function definition for retrieving data.
  */
 @FunctionalInterface
 public interface GetDataFunction {
 
+    /**
+     * This function will contain the implementation for retrieving data.
+     *
+     * @param context AuthenticationContext object passed from Javascript
+     * @param map     parameter map
+     * @return JSONObject with requested data
+     * @throws AuthenticationFailedException
+     */
     JSONObject getData(JsAuthenticationContext context, Map<String, String> map) throws AuthenticationFailedException;
 }
