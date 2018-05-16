@@ -34,7 +34,8 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
- * OSGi declarative services component which handled registration and unregistration of user conditional auth functions.
+ * OSGi declarative services component which handles registration and de-registration of user conditional auth
+ * functions.
  */
 
 @Component(
