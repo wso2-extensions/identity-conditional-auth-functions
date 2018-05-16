@@ -42,6 +42,7 @@
     <modules>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.user</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.http</module>
     </modules>
 
     <dependencyManagement>
@@ -261,5 +262,7 @@
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
+
+        <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
     </properties>
 </project>
