@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http.internal;
+package org.wso2.carbon.identity.conditional.auth.functions.cookie.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,27 +29,27 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.http.GetCookieFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.http.SetCookieFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.cookie.CookieFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.cookie.GetCookieFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.cookie.SetCookieFunction;
 
 /**
- * OSGi declarative services component which handle request and response related conditional auth functions.
+ * OSGi declarative services component which handle cookie related conditional auth functions.
  */
 
 @Component(
-        name = "identity.conditional.auth.functions.http.component",
+        name = "identity.conditional.auth.functions.cookie.component",
         immediate = true
 )
-public class HttpFunctionsServiceComponent {
+public class CookieFunctionsServiceComponent {
 
-    private static final Log LOG = LogFactory.getLog(HttpFunctionsServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(CookieFunctionsServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext ctxt) {
 
         CookieFunctionImpl cookieFunction = new CookieFunctionImpl();
-        JsFunctionRegistry jsFunctionRegistry = HttpFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
+        JsFunctionRegistry jsFunctionRegistry = CookieFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "setCookie",
                 (SetCookieFunction) cookieFunction::setCookie);
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getCookieValue",
@@ -59,7 +59,7 @@ public class HttpFunctionsServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
 
-        JsFunctionRegistry jsFunctionRegistry = HttpFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
+        JsFunctionRegistry jsFunctionRegistry = CookieFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "setCookie");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getCookieValue");
@@ -74,11 +74,11 @@ public class HttpFunctionsServiceComponent {
     )
     public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
-        HttpFunctionsServiceHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
+        CookieFunctionsServiceHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
     }
 
     public void unsetJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
-        HttpFunctionsServiceHolder.getInstance().setJsFunctionRegistry(null);
+        CookieFunctionsServiceHolder.getInstance().setJsFunctionRegistry(null);
     }
 }

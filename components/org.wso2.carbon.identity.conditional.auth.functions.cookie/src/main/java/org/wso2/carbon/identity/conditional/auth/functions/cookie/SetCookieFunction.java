@@ -17,26 +17,25 @@
  *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http;
+package org.wso2.carbon.identity.conditional.auth.functions.cookie;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 
 import java.util.Map;
 
 /**
- * Function definition for getcookie value from the context request.
+ * Function definition for add cookie to the context response.
  */
 @FunctionalInterface
-public interface GetCookieFunction {
+public interface SetCookieFunction {
 
     /**
-     * Retrieve cookie value for the respective name from the request object.
+     * Set the cookie in the response.
      *
-     * @param request    request object
-     * @param name       name of the cookie saved
-     * @param properties {"decrypt" : true,"validateSignature" : true }
-     * @return cookieValue
+     * @param response   response object
+     * @param name       name of the cookie
+     * @param value      value of the cookie
+     * @param properties optional parameter of cookie with two additional parameters encrypt and sign.
      */
-    String getCookieValue(JsServletRequest request, String name, Map<String, Object> properties);
-
+    void setCookie(JsServletResponse response, String name, String value, Map<String, Object> properties);
 }

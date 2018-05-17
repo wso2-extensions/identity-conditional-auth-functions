@@ -17,24 +17,22 @@
  *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http.internal;
+package org.wso2.carbon.identity.conditional.auth.functions.cookie.internal;
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.user.core.service.RealmService;
 
-public class HttpFunctionsServiceHolder {
+public class CookieFunctionsServiceHolder {
 
-    private static HttpFunctionsServiceHolder instance = new HttpFunctionsServiceHolder();
+    private static CookieFunctionsServiceHolder instance = new CookieFunctionsServiceHolder();
 
     private JsFunctionRegistry jsFunctionRegistry;
 
-    public static HttpFunctionsServiceHolder getInstance() {
+    public static CookieFunctionsServiceHolder getInstance() {
 
         return instance;
     }
 
-    private HttpFunctionsServiceHolder(){
+    private CookieFunctionsServiceHolder(){
 
     }
 

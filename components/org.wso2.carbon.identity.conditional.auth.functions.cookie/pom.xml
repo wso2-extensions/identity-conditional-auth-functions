@@ -27,12 +27,12 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>0.1.1-SNAPSHOT</version>
+        <version>0.1.2-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>org.wso2.carbon.identity.conditional.auth.functions.http</artifactId>
-    <name>Conditional Authentication - Http Response and Request Related Functions</name>
+    <artifactId>org.wso2.carbon.identity.conditional.auth.functions.cookie</artifactId>
+    <name>Conditional Authentication - Cookie Related Functions</name>
     <packaging>bundle</packaging>
 
     <dependencies>
@@ -51,6 +51,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json.wso2</groupId>
+            <artifactId>json</artifactId>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
@@ -83,22 +87,24 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.conditional.auth.functions.http.internal
+                            org.wso2.carbon.identity.conditional.auth.functions.cookie.internal
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.conditional.auth.functions.http.internal,
-                            org.wso2.carbon.identity.conditional.auth.functions.http
+                            !org.wso2.carbon.identity.conditional.auth.functions.cookie.internal,
+                            org.wso2.carbon.identity.conditional.auth.functions.cookie
                         </Export-Package>
                         <Import-Package>
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
+                            org.apache.commons.io,
                             org.apache.commons.lang,
                             org.apache.commons.logging,
+                            org.apache.axiom.om.util,
+                            org.json;version="${json.wso2.version.range}",
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
                             org.wso2.carbon.core.util,
                             org.wso2.carbon.identity.application.authentication.framework,
-                            org.wso2.carbon.identity.application.authentication.framework.exception,
                             org.wso2.carbon.identity.application.authentication.framework.model,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
                             org.wso2.carbon.identity.application.authentication.framework.context,
