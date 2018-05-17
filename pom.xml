@@ -43,6 +43,7 @@
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.user</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.cookie</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.siddhi</module>
     </modules>
 
     <dependencyManagement>
@@ -258,7 +259,7 @@
     </build>
     <properties>
         <carbon.kernel.version>4.4.27</carbon.kernel.version>
-        <carbon.identity.framework.version>5.11.207</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.11.212</carbon.identity.framework.version>
 
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
@@ -268,6 +269,8 @@
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
+        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+        <jacoco.version>0.7.9</jacoco.version>
 
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
