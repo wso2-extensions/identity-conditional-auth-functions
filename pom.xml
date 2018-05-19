@@ -42,6 +42,7 @@
     <modules>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.user</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.cookie</module>
     </modules>
 
     <dependencyManagement>
@@ -75,6 +76,11 @@
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.event</artifactId>
                 <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json.wso2</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.wso2.version}</version>
             </dependency>
 
             <!-- Test related dependencies -->
@@ -255,11 +261,15 @@
         <carbon.identity.framework.version>5.11.207</carbon.identity.framework.version>
 
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
+        <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
         <org.powermock.version>1.7.3</org.powermock.version>
 
         <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
+
+        <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
+        <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
     </properties>
 </project>
