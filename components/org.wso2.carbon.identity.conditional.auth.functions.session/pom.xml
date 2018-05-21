@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>0.1.2-SNAPSHOT</version>
+        <version>0.1.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -28,62 +28,16 @@
     <name>Conditional Authentication - Session Based Conditional Authentication Functions</name>
     <dependencies>
         <dependency>
-            <groupId>commons-httpclient.wso2</groupId>
-            <artifactId>commons-httpclient</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.base</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.core.services</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.core.services</artifactId>
-            <version>${carbon.kernel.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec.wso2</groupId>
-            <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jacoco</groupId>
@@ -101,21 +55,12 @@
             <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.testutil</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
-            <artifactId>org.eclipse.osgi.services</artifactId>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-                <version>${maven.scr.plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -129,32 +74,25 @@
                             org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.internal
                         </Private-Package>
                         <Import-Package>
-                            org.apache.axis2.transport.http;version="${org.apache.axis2.transport.version.range}",
-                            org.apache.commons.codec.binary;version="${org.apache.commons.codec.version.range}",
-                            org.apache.commons.httpclient;version="${org.apache.commons.version.range}",
-                            org.apache.commons.logging;version="${org.apache.commons.logging.version.range}",
-                            org.apache.commons.ssl;version="${org.apache.commons.version.range}",
-                            org.apache.http;version="${org.apache.http.version.range}",
-                            org.apache.http.client;version="${org.apache.http.version.range}",
-                            org.apache.http.client.methods;version="${org.apache.http.version.range}",
-                            org.apache.http.entity;version="${org.apache.http.version.range}",
-                            org.apache.http.impl.client;version="${org.apache.http.version.range}",
                             org.json;version="${org.json.version.range}",
-                            org.osgi.service.component;version="${org.osgi.service.component.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework;
-                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
-                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.context;
-                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.exception;
-                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.model;
-                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.services;
-                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
-                            org.wso2.carbon.identity.core.util;
-                            version="${org.wso2.carbon.identity.application.authentication.framework.version.range}",
+                            org.apache.axis2.transport.http;version="${org.apache.axis2.transport.version.range}",
+                            org.apache.commons.codec.binary,
+                            org.apache.commons.httpclient,
+                            org.apache.commons.logging,
+                            org.apache.commons.ssl,
+                            org.apache.http,
+                            org.apache.http.client,
+                            org.apache.http.client.methods,
+                            org.apache.http.entity,
+                            org.apache.http.impl.client,
+                            org.osgi.service.component,
+                            org.wso2.carbon.identity.application.authentication.framework,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
+                            org.wso2.carbon.identity.application.authentication.framework.context,
+                            org.wso2.carbon.identity.application.authentication.framework.exception,
+                            org.wso2.carbon.identity.application.authentication.framework.model,
+                            org.wso2.carbon.identity.application.authentication.framework.services,
+                            org.wso2.carbon.identity.core.util,
                             org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function
                         </Import-Package>
                         <Export-Package>
@@ -233,8 +171,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>${source.version}</source>
-                    <target>${target.version}</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
         </plugins>
