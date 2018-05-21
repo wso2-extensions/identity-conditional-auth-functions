@@ -22,14 +22,13 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Function to check if the given user has the given role.
- * The purpose is to perform dynamic authentication selection based on user role.
+ * Function to publish events to analytics engine and get the output event synchronously.
  */
 @FunctionalInterface
 public interface CallSiddhiFunction {
 
     /**
-     *  Call siddhi to get decision.
+     *  Publish data to analytics engine and get the decision.
      *
      * @param siddhiAppName Siddhi application name.
      * @param inStreamName input stream name.

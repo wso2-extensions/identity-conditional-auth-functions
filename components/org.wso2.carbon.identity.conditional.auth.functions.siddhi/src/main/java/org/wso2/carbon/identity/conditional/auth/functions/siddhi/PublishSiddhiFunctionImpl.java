@@ -35,7 +35,7 @@ import java.util.Map;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 /**
- * Implementation of the {@link CallSiddhiFunction}
+ * Implementation of the {@link PublishSiddhiFunction}
  */
 public class PublishSiddhiFunctionImpl implements PublishSiddhiFunction {
 

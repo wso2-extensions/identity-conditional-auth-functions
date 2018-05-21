@@ -42,7 +42,7 @@ import static javax.ws.rs.core.HttpHeaders.ACCEPT;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 /**
- * Implementation of the {@link CallSiddhiFunction}
+ * Implementation of the {@link CallHTTPFunction}
  */
 public class CallHTTPFunctionImpl implements CallHTTPFunction {
 

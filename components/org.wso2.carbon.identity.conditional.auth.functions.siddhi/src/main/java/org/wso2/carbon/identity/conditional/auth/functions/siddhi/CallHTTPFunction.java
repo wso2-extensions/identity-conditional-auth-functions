@@ -22,14 +22,13 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Function to check if the given user has the given role.
- * The purpose is to perform dynamic authentication selection based on user role.
+ * Function to call http endpoints. Function will post to the given endpoint reference with payload data as a json.
  */
 @FunctionalInterface
 public interface CallHTTPFunction {
 
     /**
-     *  Call siddhi to get decision.
+     *  POST data to the given endpoint.
      *
      * @param epUrl Endpoint url.
      * @param payloadData payload data.
