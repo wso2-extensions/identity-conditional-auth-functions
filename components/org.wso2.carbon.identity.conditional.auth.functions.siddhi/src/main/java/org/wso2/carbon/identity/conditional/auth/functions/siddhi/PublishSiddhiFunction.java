@@ -22,22 +22,17 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Function to publish events to analytics engine and get the output event synchronously.
+ * Function to publish events to analytics engine.
  */
 @FunctionalInterface
-public interface CallSiddhiFunction {
+public interface PublishSiddhiFunction {
 
     /**
-     *  Publish data to analytics engine and get the decision.
+     *  Publish data to analytics engine.
      *
      * @param siddhiAppName Siddhi application name.
      * @param inStreamName input stream name.
-     * @param outStreamName output stream name.
      * @param payloadData payload data.
-     * @param callback callback function.
-     * @param eventHandlers event handlers.
      */
-    void callSiddhi(String siddhiAppName, String inStreamName, String outStreamName,
-                       Map<String, Object> payloadData,
-                       Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers);
+    void publishSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData);
 }
