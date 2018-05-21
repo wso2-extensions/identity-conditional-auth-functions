@@ -23,6 +23,7 @@
         <artifactId>wso2</artifactId>
         <version>1</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
     <artifactId>identity-conditional-auth-functions</artifactId>
@@ -30,12 +31,14 @@
     <packaging>pom</packaging>
     <name>WSO2 Carbon - IAM Conditional Authentication Functions</name>
     <url>http://wso2.org</url>
+
     <scm>
         <url>https://github.com/wso2-extensions/identity-conditional-auth-functions.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-conditional-auth-functions.git</developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-conditional-auth-functions.git</connection>
         <tag>HEAD</tag>
     </scm>
+
     <modules>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.user</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
@@ -43,150 +46,13 @@
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.siddhi</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.session</module>
     </modules>
+
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.utils</artifactId>
-                <version>${carbon.kernel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.osgi</groupId>
-                <artifactId>org.eclipse.osgi.services</artifactId>
-                <version>${equinox.osgi.services.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
-                <version>${org.apache.felix.scr.ds.annotations.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.ui</artifactId>
-                <version>${carbon.kernel.version}</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <!-- Identity Framework dependencies -->
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.core</artifactId>
-                <version>${carbon.identity.framework.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.base</artifactId>
-                <version>${carbon.identity.framework.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>jcl-over-slf4j</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>log4j-over-slf4j</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-                <version>${carbon.identity.framework.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>jcl-over-slf4j</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>log4j-over-slf4j</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.application.common</artifactId>
-                <version>${carbon.identity.framework.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.json.wso2</groupId>
-                <artifactId>json</artifactId>
-                <version>${json.wso2.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.wso2.carbon.analytics-common</groupId>
-                <artifactId>org.wso2.carbon.event.stream.core</artifactId>
-                <version>${carbon.analytics-common.version}</version>
-            </dependency>
             <dependency>
                 <groupId>commons-lang.wso2</groupId>
                 <artifactId>commons-lang</artifactId>
                 <version>${commons-lang.wso2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-codec.wso2</groupId>
-                <artifactId>commons-codec</artifactId>
-                <version>${commons-codec.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jacoco</groupId>
-                <artifactId>org.jacoco.agent</artifactId>
-                <classifier>runtime</classifier>
-                <scope>test</scope>
-                <version>${jacoco.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.testng</groupId>
-                <artifactId>testng</artifactId>
-                <scope>test</scope>
-                <version>${testng.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-testng</artifactId>
-                <scope>test</scope>
-                <version>${org.powermock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito</artifactId>
-                <scope>test</scope>
-                <version>${org.powermock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>${org.slf4j.verison}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${org.slf4j.verison}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.testutil</artifactId>
-                <version>${org.wso2.carbon.identity.testutil.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>commons-httpclient.wso2</groupId>
-                <artifactId>commons-httpclient</artifactId>
-                <version>${commons-httpclient.wso2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.json.wso2</groupId>
-                <artifactId>json</artifactId>
-                <version>${json.wso2.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
@@ -205,13 +71,47 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.event</artifactId>
                 <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json.wso2</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.wso2.version}</version>
+            </dependency>
+
+            <!-- Test related dependencies -->
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-testng</artifactId>
+                <version>${org.powermock.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>${org.powermock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-module-testng-common</artifactId>
                 <version>${org.powermock.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.agent</artifactId>
+                <classifier>runtime</classifier>
+                <scope>test</scope>
+                <version>${jacoco.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -227,6 +127,7 @@
                 <checksumPolicy>ignore</checksumPolicy>
             </releases>
         </repository>
+
         <repository>
             <id>wso2.releases</id>
             <name>WSO2 internal Repository</name>
@@ -237,6 +138,7 @@
                 <checksumPolicy>ignore</checksumPolicy>
             </releases>
         </repository>
+
         <repository>
             <id>wso2.snapshots</id>
             <name>Apache Snapshot Repository</name>
@@ -249,7 +151,9 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
+
     </repositories>
+
     <pluginRepositories>
         <pluginRepository>
             <id>wso2.releases</id>
@@ -351,8 +255,8 @@
                 <inherited>true</inherited>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>${source.version}</source>
-                    <target>${target.version}</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -362,61 +266,20 @@
         </plugins>
     </build>
     <properties>
-        <identity.application.auth.basicauth.exp.pkg.version>${project.version}
-        </identity.application.auth.basicauth.exp.pkg.version>
-        <identity.application.auth.basicauth.imp.pkg.version.range>[5.0.0, 6.0.0)
-        </identity.application.auth.basicauth.imp.pkg.version.range>
-        <carbon.kernel.version>4.4.11</carbon.kernel.version>
-        <carbon.identity.framework.version>5.11.181</carbon.identity.framework.version>
-        <carbon.analytics-common.version>5.0.11</carbon.analytics-common.version>
-        <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
-        <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
-        <testng.version>6.9.10</testng.version>
-        <org.slf4j.verison>1.6.1</org.slf4j.verison>
-        <org.powermock.version>1.6.6</org.powermock.version>
-        <org.wso2.carbon.identity.testutil.version>5.10.0</org.wso2.carbon.identity.testutil.version>
-        <org.apache.felix.scr.ds.annotations.version>1.2.8</org.apache.felix.scr.ds.annotations.version>
-        <equinox.osgi.services.version>3.5.100.v20160504-1419</equinox.osgi.services.version>
-        <carbon.kernel.version>4.4.23</carbon.kernel.version>
-        <equinox.osgi.services.version>3.5.100.v20160504-1419</equinox.osgi.services.version>
-        <apache.felix.scr.ds.annotations.version>1.2.8</apache.felix.scr.ds.annotations.version>
-        <carbon.commons.version>4.5.2</carbon.commons.version>
-        <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
-        <commons-codec.version>1.4.0.wso2v1</commons-codec.version>
-        <org.apache.axis2.transport.version.range>[1.6,2)</org.apache.axis2.transport.version.range>
-        <org.wso2.carbon.identity.application.authentication.framework.version.range>
-            [5.11,6)
-        </org.wso2.carbon.identity.application.authentication.framework.version.range>
-        <org.apache.http.version.range>[4.3,5)</org.apache.http.version.range>
-        <org.apache.commons.codec.version.range>[1.4,2)</org.apache.commons.codec.version.range>
-        <org.apache.commons.version.range>[3.1,4)</org.apache.commons.version.range>
-        <org.osgi.service.component.version.range>[1.2,2)</org.osgi.service.component.version.range>
-        <org.json.version.range>[3.0,4)</org.json.version.range>
-        <org.apache.commons.logging.version.range>[1.2,2)</org.apache.commons.logging.version.range>
-        <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
-        <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
-        <commons-httpclient.wso2.version>3.1.0.wso2v2</commons-httpclient.wso2.version>
-        <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
-        <carbon.consent.mgt.imp.pkg.version.range>[1.0.0, 2.0.0)</carbon.consent.mgt.imp.pkg.version.range>
-        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
-        <jacoco.version>0.7.9</jacoco.version>
         <carbon.kernel.version>4.4.27</carbon.kernel.version>
         <carbon.identity.framework.version>5.11.215</carbon.identity.framework.version>
-
-        <carbon.identity.framework.version>5.11.207</carbon.identity.framework.version>
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
         <org.powermock.version>1.7.3</org.powermock.version>
+        <org.json.version.range>[3.0,4)</org.json.version.range>
         <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
         <jacoco.version>0.7.9</jacoco.version>
-
+        <org.apache.axis2.transport.version.range>[1.6,2)</org.apache.axis2.transport.version.range>
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
-        <source.version>1.8</source.version>
-        <target.version>1.8</target.version>
     </properties>
 </project>
