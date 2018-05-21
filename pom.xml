@@ -41,7 +41,7 @@
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.cookie</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.siddhi</module>
-        <module>components/session-based-conditional-auth-functions</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.session</module>
     </modules>
     <dependencyManagement>
         <dependencies>
