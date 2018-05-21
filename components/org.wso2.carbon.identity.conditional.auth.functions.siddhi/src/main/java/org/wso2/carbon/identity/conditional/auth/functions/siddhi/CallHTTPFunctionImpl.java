@@ -44,42 +44,33 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 /**
  * Implementation of the {@link CallSiddhiFunction}
  */
-public class CallSiddhiFunctionImpl implements CallSiddhiFunction {
+public class CallHTTPFunctionImpl implements CallHTTPFunction {
 
-    private static final Log LOG = LogFactory.getLog(CallSiddhiFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(CallHTTPFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
     private static final String OUTCOME_OK = "ok";
     private static final String OUTCOME_FAIL = "fail";
 
     private HttpClient client = HttpClientBuilder.create().disableAutomaticRetries().build();
-    private String receiverEp;
-
-    public CallSiddhiFunctionImpl() {
-
-        this.receiverEp = IdentityUtil.getProperty("AdaptiveAuth.EventPublisher.receiverURL");
-    }
 
     @Override
-    public void callSiddhi(String siddhiAppName, String inStreamName, String outStreamName,
-                              Map<String, Object> payloadData,
-                              Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers) {
+    public void callHTTP(String epUrl, Map<String, Object> payloadData,
+                         Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers) {
 
         AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
             JSONObject json = null;
             int responseCode;
             String outcome;
 
-            HttpPost request = new HttpPost(receiverEp + siddhiAppName + "/" + inStreamName);
+            HttpPost request = new HttpPost(epUrl);
             try {
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
                 JSONObject jsonObject = new JSONObject();
-                JSONObject event = new JSONObject();
                 for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                    event.put(dataElements.getKey(), dataElements.getValue());
+                    jsonObject.put(dataElements.getKey(), dataElements.getValue());
                 }
-                jsonObject.put("event", event);
                 request.setEntity(new StringEntity(jsonObject.toJSONString()));
 
                 HttpResponse response = client.execute(request);
@@ -95,7 +86,7 @@ public class CallSiddhiFunctionImpl implements CallSiddhiFunction {
                 }
 
             } catch (IOException e) {
-                LOG.error("Error while calling siddhi. ", e);
+                LOG.error("Error while calling endpoint. ", e);
                 outcome = OUTCOME_FAIL;
             } catch (ParseException e) {
                 LOG.error("Error while parsing response. ", e);

@@ -28,8 +28,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.conditional.auth.functions.siddhi.CallHTTPFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.siddhi.CallHTTPFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.siddhi.CallSiddhiFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.siddhi.CallSiddhiFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.siddhi.PublishSiddhiFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.siddhi.PublishSiddhiFunctionImpl;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -44,13 +48,22 @@ import org.wso2.carbon.user.core.service.RealmService;
 public class SiddhiFunctionsServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(SiddhiFunctionsServiceComponent.class);
+    public static final String FUNC_CALL_SIDDHI = "callSiddhi";
+    public static final String FUNC_PUBLISH_SIDDHI = "publishSiddhi";
+    public static final String FUNC_CALL_HTTP = "callHTTP";
 
     @Activate
     protected void activate(ComponentContext ctxt) {
 
-        CallSiddhiFunction callSiddhiFunctionImpl = new CallSiddhiFunctionImpl();
         JsFunctionRegistry jsFunctionRegistry = SiddhiFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "callSiddhi", callSiddhiFunctionImpl);
+        CallSiddhiFunction callSiddhi = new CallSiddhiFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_SIDDHI, callSiddhi);
+        PublishSiddhiFunction publishSiddhi = new PublishSiddhiFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_PUBLISH_SIDDHI,
+                publishSiddhi);
+        CallHTTPFunction callHTTP = new CallHTTPFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_HTTP,
+                callHTTP);
     }
 
     @Deactivate
@@ -58,7 +71,9 @@ public class SiddhiFunctionsServiceComponent {
 
         JsFunctionRegistry jsFunctionRegistry = SiddhiFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "callSiddhi");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_SIDDHI);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_PUBLISH_SIDDHI);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_HTTP);
         }
     }
 
