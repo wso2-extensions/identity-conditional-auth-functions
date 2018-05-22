@@ -66,6 +66,14 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.governance</groupId>
+            <artifactId>org.wso2.carbon.identity.recovery</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -87,7 +95,7 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.conditional.auth.functions.user.internal,
-                            org.wso2.carbon.identity.conditional.auth.functions.user
+                            org.wso2.carbon.identity.conditional.auth.functions.user.*
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang,
@@ -96,13 +104,25 @@
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
                             org.wso2.carbon.core.util,
+                            org.wso2.carbon.identity.core.util,
                             org.wso2.carbon.identity.application.authentication.framework,
                             org.wso2.carbon.identity.application.authentication.framework.exception,
                             org.wso2.carbon.identity.application.authentication.framework.model,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
+                            org.wso2.carbon.identity.application.authentication.framework.util,
+                            org.wso2.carbon.identity.mgt.util,
+                            org.wso2.carbon.identity.base,
                             org.wso2.carbon.registry.core.service,
                             org.wso2.carbon.user.core,
-                            org.wso2.carbon.user.core.service
+                            org.wso2.carbon.user.core.util,
+                            org.wso2.carbon.user.api,
+                            org.wso2.carbon.user.core.service,
+                            org.wso2.carbon.identity.application.common.model,
+                            org.wso2.carbon.identity.event,
+                            org.wso2.carbon.identity.recovery,
+                            org.wso2.carbon.context,
+                            org.wso2.carbon.identity.user.profile.mgt.util,
+                            org.wso2.carbon.identity.user.profile.mgt
                         </Import-Package>
                     </instructions>
                 </configuration>

@@ -21,17 +21,16 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
 /**
- * Function to check if the given user has the given role.
- * The purpose is to perform dynamic authentication selection based on user role.
+ * Function to get associated local user of the federated user.
  */
 @FunctionalInterface
-public interface HasRoleFunction {
+public interface GetAssociatedLocalUserFunction {
 
     /**
-     * Checks if the given <code>user</code> has the given <code>roleName</code>
-     * @param user     Authenticated user. Ideally from a given step.
-     * @param roleName Role to be checked
-     * @return <code>true</code> if the user has the given role. <code>false</code> for any other case.
+     * Get associated local user {@literal unlockUserAccount} method.
+     *
+     * @param fuser            federated user
+     * @param identityProvider identity provider name
      */
-    boolean hasRole(JsAuthenticatedUser user, String roleName);
+    String getAssociatedLocalUser(JsAuthenticatedUser fuser, String identityProvider);
 }

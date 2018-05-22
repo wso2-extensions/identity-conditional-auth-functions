@@ -79,6 +79,16 @@
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.mgt</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.governance</groupId>
+                <artifactId>org.wso2.carbon.identity.recovery</artifactId>
+                <version>${carbon.identity.governance.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.json.wso2</groupId>
                 <artifactId>json</artifactId>
                 <version>${json.wso2.version}</version>
@@ -274,5 +284,6 @@
 
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
+        <carbon.identity.governance.version>1.0.2</carbon.identity.governance.version>
     </properties>
 </project>

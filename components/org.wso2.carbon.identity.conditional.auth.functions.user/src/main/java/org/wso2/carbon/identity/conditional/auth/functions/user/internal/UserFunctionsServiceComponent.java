@@ -28,8 +28,14 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.conditional.auth.functions.user.AssociateUserAccountFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.AssociateUserAccountFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.LockUserAccountFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.LockUserAccountFunctionImpl;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -50,8 +56,17 @@ public class UserFunctionsServiceComponent {
     protected void activate(ComponentContext ctxt) {
 
         HasRoleFunction hasRoleFunctionImpl = new HasRoleFunctionImpl();
+        LockUserAccountFunction lockUserAccountFunctionImpl = new LockUserAccountFunctionImpl();
+        AssociateUserAccountFunction associateUserAccountFunctionImpl = new AssociateUserAccountFunctionImpl();
+        GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
         JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "lockUserAccount",
+                lockUserAccountFunctionImpl);
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "associateUserAccount",
+                associateUserAccountFunctionImpl);
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser",
+                getAssociatedLocalUserFunctionImpl);
     }
 
     @Deactivate
@@ -60,6 +75,9 @@ public class UserFunctionsServiceComponent {
         JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "lockUserAccount");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "associateUserAccount");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser");
         }
     }
 

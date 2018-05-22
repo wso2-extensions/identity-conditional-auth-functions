@@ -35,7 +35,7 @@ public class UserFunctionsServiceHolder {
         return instance;
     }
 
-    private UserFunctionsServiceHolder(){
+    private UserFunctionsServiceHolder() {
 
     }
 

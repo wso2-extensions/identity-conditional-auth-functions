@@ -21,17 +21,15 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
 /**
- * Function to check if the given user has the given role.
- * The purpose is to perform dynamic authentication selection based on user role.
+ * Function to lock the user account.
  */
 @FunctionalInterface
-public interface HasRoleFunction {
+public interface LockUserAccountFunction {
 
     /**
-     * Checks if the given <code>user</code> has the given <code>roleName</code>
-     * @param user     Authenticated user. Ideally from a given step.
-     * @param roleName Role to be checked
-     * @return <code>true</code> if the user has the given role. <code>false</code> for any other case.
+     * lock the user account
+     *
+     * @param user the user whose account needs to be locked
      */
-    boolean hasRole(JsAuthenticatedUser user, String roleName);
+    void lockUserAccount(JsAuthenticatedUser user);
 }
