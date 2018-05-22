@@ -42,8 +42,8 @@
     <modules>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.user</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
-        <module>components/org.wso2.carbon.identity.conditional.auth.functions.cookie</module>
-        <module>components/org.wso2.carbon.identity.conditional.auth.functions.siddhi</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.http</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.analytics</module>
     </modules>
 
     <dependencyManagement>
@@ -104,6 +104,11 @@
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.testutil</artifactId>
                 <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.json-simple.wso2</groupId>
+                <artifactId>json-simple</artifactId>
+                <version>${com.googlecode.json-simple.wso2.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -273,6 +278,7 @@
         <jacoco.version>0.7.9</jacoco.version>
 
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
-        <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
+
+        <com.googlecode.json-simple.wso2.version>1.1.wso2v1</com.googlecode.json-simple.wso2.version>
     </properties>
 </project>
