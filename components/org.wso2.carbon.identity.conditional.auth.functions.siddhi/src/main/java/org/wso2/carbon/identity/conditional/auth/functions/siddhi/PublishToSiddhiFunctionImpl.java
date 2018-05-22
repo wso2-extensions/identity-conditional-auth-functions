@@ -21,39 +21,51 @@ package org.wso2.carbon.identity.conditional.auth.functions.siddhi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
+import org.wso2.carbon.identity.conditional.auth.functions.siddhi.internal.ConfigProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Map;
 
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 /**
- * Implementation of the {@link PublishSiddhiFunction}
+ * Implementation of the {@link PublishToSiddhiFunction}
  */
-public class PublishSiddhiFunctionImpl implements PublishSiddhiFunction {
+public class PublishToSiddhiFunctionImpl implements PublishToSiddhiFunction {
 
-    private static final Log LOG = LogFactory.getLog(PublishSiddhiFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(PublishToSiddhiFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
 
-    private HttpClient client = HttpClientBuilder.create().disableAutomaticRetries().build();
+    private CloseableHttpClient client;
     private String receiverEp;
 
-    public PublishSiddhiFunctionImpl() {
+    public PublishToSiddhiFunctionImpl() {
 
-        this.receiverEp = IdentityUtil.getProperty("AdaptiveAuth.EventPublisher.receiverURL");
+        this.receiverEp = IdentityUtil.getProperty(Constants.RECEIVER_URL);
+
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
+                .setConnectionRequestTimeout(ConfigProvider.getInstance().getConnectionRequestTimeout())
+                .setSocketTimeout(ConfigProvider.getInstance().getReadTimeout())
+                .build();
+        client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
     }
 
     @Override
-    public void publishSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData) {
+    public void publishToSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData) {
 
-        HttpPost request = new HttpPost(receiverEp + siddhiAppName + "/" + inStreamName);
+        String epUrl = receiverEp + siddhiAppName + "/" + inStreamName;
+        HttpPost request = new HttpPost(epUrl);
         try {
             request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
@@ -68,6 +80,10 @@ public class PublishSiddhiFunctionImpl implements PublishSiddhiFunction {
             HttpResponse response = client.execute(request);
             EntityUtils.consume(response.getEntity());
 
+        }  catch (ConnectTimeoutException e) {
+            LOG.error("Error while waiting to connect to " + epUrl, e);
+        } catch (SocketTimeoutException e) {
+            LOG.error("Error while waiting for data from " + epUrl, e);
         } catch (IOException e) {
             LOG.error("Error while calling siddhi. ", e);
         }
