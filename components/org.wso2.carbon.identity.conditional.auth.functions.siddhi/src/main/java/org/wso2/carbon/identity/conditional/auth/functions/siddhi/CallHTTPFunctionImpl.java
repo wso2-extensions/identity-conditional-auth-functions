@@ -21,9 +21,11 @@ package org.wso2.carbon.identity.conditional.auth.functions.siddhi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
@@ -31,8 +33,10 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.conditional.auth.functions.siddhi.internal.ConfigProvider;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -41,6 +45,7 @@ import static javax.ws.rs.core.HttpHeaders.ACCEPT;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static org.wso2.carbon.identity.conditional.auth.functions.siddhi.Constants.OUTCOME_FAIL;
 import static org.wso2.carbon.identity.conditional.auth.functions.siddhi.Constants.OUTCOME_SUCCESS;
+import static org.wso2.carbon.identity.conditional.auth.functions.siddhi.Constants.OUTCOME_TIMEOUT;
 
 /**
  * Implementation of the {@link CallHTTPFunction}
@@ -50,7 +55,17 @@ public class CallHTTPFunctionImpl implements CallHTTPFunction {
     private static final Log LOG = LogFactory.getLog(CallHTTPFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
 
-    private HttpClient client = HttpClientBuilder.create().disableAutomaticRetries().build();
+    private CloseableHttpClient client;
+
+    public CallHTTPFunctionImpl() {
+
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
+                .setConnectionRequestTimeout(ConfigProvider.getInstance().getConnectionRequestTimeout())
+                .setSocketTimeout(ConfigProvider.getInstance().getReadTimeout())
+                .build();
+        client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+    }
 
     @Override
     public void callHTTP(String epUrl, Map<String, Object> payloadData,
@@ -84,6 +99,12 @@ public class CallHTTPFunctionImpl implements CallHTTPFunction {
                     outcome = OUTCOME_FAIL;
                 }
 
+            } catch (ConnectTimeoutException e) {
+                LOG.error("Error while waiting to connect to " + epUrl, e);
+                outcome = OUTCOME_TIMEOUT;
+            } catch (SocketTimeoutException e) {
+                LOG.error("Error while waiting for data from " + epUrl, e);
+                outcome = OUTCOME_TIMEOUT;
             } catch (IOException e) {
                 LOG.error("Error while calling endpoint. ", e);
                 outcome = OUTCOME_FAIL;

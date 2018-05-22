@@ -19,6 +19,13 @@
 package org.wso2.carbon.identity.conditional.auth.functions.siddhi;
 
 public class Constants {
+
     public static final String OUTCOME_SUCCESS = "success";
     public static final String OUTCOME_FAIL = "fail";
+    public static final String OUTCOME_TIMEOUT = "timeout";
+
+    public static final String RECEIVER_URL = "AdaptiveAuth.EventPublisher.receiverURL";
+    public static final String HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.HTTPConnectionTimeout";
+    public static final String HTTP_READ_TIMEOUT = "AdaptiveAuth.HTTPReadTimeout";
+    public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.HTTPConnectionRequestTimeout";
 }
