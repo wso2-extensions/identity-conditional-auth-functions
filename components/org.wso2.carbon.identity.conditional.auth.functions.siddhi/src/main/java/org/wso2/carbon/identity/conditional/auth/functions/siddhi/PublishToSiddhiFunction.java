@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * Function to publish events to analytics engine.
  */
 @FunctionalInterface
-public interface PublishSiddhiFunction {
+public interface PublishToSiddhiFunction {
 
     /**
      *  Publish data to analytics engine.
@@ -34,5 +34,5 @@ public interface PublishSiddhiFunction {
      * @param inStreamName input stream name.
      * @param payloadData payload data.
      */
-    void publishSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData);
+    void publishToSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData);
 }

@@ -40,6 +40,8 @@ import java.util.function.Consumer;
 
 import static javax.ws.rs.core.HttpHeaders.ACCEPT;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static org.wso2.carbon.identity.conditional.auth.functions.siddhi.Constants.OUTCOME_FAIL;
+import static org.wso2.carbon.identity.conditional.auth.functions.siddhi.Constants.OUTCOME_SUCCESS;
 
 /**
  * Implementation of the {@link CallSiddhiFunction}
@@ -48,8 +50,7 @@ public class CallSiddhiFunctionImpl implements CallSiddhiFunction {
 
     private static final Log LOG = LogFactory.getLog(CallSiddhiFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
-    private static final String OUTCOME_OK = "ok";
-    private static final String OUTCOME_FAIL = "fail";
+
 
     private HttpClient client = HttpClientBuilder.create().disableAutomaticRetries().build();
     private String receiverEp;
@@ -86,7 +87,7 @@ public class CallSiddhiFunctionImpl implements CallSiddhiFunction {
                 responseCode = response.getStatusLine().getStatusCode();
 
                 if (responseCode == 200) {
-                    outcome = OUTCOME_OK;
+                    outcome = OUTCOME_SUCCESS;
                     String jsonString = EntityUtils.toString(response.getEntity());
                     JSONParser parser = new JSONParser();
                     json = (JSONObject) parser.parse(jsonString);

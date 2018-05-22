@@ -35,23 +35,23 @@ import java.util.Map;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 /**
- * Implementation of the {@link PublishSiddhiFunction}
+ * Implementation of the {@link PublishToSiddhiFunction}
  */
-public class PublishSiddhiFunctionImpl implements PublishSiddhiFunction {
+public class PublishToSiddhiFunctionImpl implements PublishToSiddhiFunction {
 
-    private static final Log LOG = LogFactory.getLog(PublishSiddhiFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(PublishToSiddhiFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
 
     private HttpClient client = HttpClientBuilder.create().disableAutomaticRetries().build();
     private String receiverEp;
 
-    public PublishSiddhiFunctionImpl() {
+    public PublishToSiddhiFunctionImpl() {
 
         this.receiverEp = IdentityUtil.getProperty("AdaptiveAuth.EventPublisher.receiverURL");
     }
 
     @Override
-    public void publishSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData) {
+    public void publishToSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData) {
 
         HttpPost request = new HttpPost(receiverEp + siddhiAppName + "/" + inStreamName);
         try {

@@ -32,8 +32,8 @@ import org.wso2.carbon.identity.conditional.auth.functions.siddhi.CallHTTPFuncti
 import org.wso2.carbon.identity.conditional.auth.functions.siddhi.CallHTTPFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.siddhi.CallSiddhiFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.siddhi.CallSiddhiFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.siddhi.PublishSiddhiFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.siddhi.PublishSiddhiFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.siddhi.PublishToSiddhiFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.siddhi.PublishToSiddhiFunctionImpl;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -49,7 +49,7 @@ public class SiddhiFunctionsServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(SiddhiFunctionsServiceComponent.class);
     public static final String FUNC_CALL_SIDDHI = "callSiddhi";
-    public static final String FUNC_PUBLISH_SIDDHI = "publishSiddhi";
+    public static final String FUNC_PUBLISH_SIDDHI = "publishToSiddhi";
     public static final String FUNC_CALL_HTTP = "callHTTP";
 
     @Activate
@@ -58,7 +58,7 @@ public class SiddhiFunctionsServiceComponent {
         JsFunctionRegistry jsFunctionRegistry = SiddhiFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         CallSiddhiFunction callSiddhi = new CallSiddhiFunctionImpl();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_SIDDHI, callSiddhi);
-        PublishSiddhiFunction publishSiddhi = new PublishSiddhiFunctionImpl();
+        PublishToSiddhiFunction publishSiddhi = new PublishToSiddhiFunctionImpl();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_PUBLISH_SIDDHI,
                 publishSiddhi);
         CallHTTPFunction callHTTP = new CallHTTPFunctionImpl();
