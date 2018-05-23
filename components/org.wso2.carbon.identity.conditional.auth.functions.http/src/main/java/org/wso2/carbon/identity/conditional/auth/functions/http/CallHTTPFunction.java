@@ -32,9 +32,7 @@ public interface CallHTTPFunction {
      *
      * @param epUrl Endpoint url.
      * @param payloadData payload data.
-     * @param callback callback function.
      * @param eventHandlers event handlers.
      */
-    void callHTTP(String epUrl, Map<String, Object> payloadData,
-                  Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers);
+    void callHTTP(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers);
 }

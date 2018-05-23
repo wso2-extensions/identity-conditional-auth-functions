@@ -34,10 +34,8 @@ public interface CallSiddhiFunction {
      * @param inStreamName input stream name.
      * @param outStreamName output stream name.
      * @param payloadData payload data.
-     * @param callback callback function.
      * @param eventHandlers event handlers.
      */
     void callSiddhi(String siddhiAppName, String inStreamName, String outStreamName,
-                       Map<String, Object> payloadData,
-                       Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers);
+                       Map<String, Object> payloadData, Map<String, Object> eventHandlers);
 }
