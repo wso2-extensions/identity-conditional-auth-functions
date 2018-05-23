@@ -21,18 +21,18 @@ package org.wso2.carbon.identity.conditional.auth.functions.http.internal;
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 
-public class CookieFunctionsServiceHolder {
+public class HTTPFunctionsServiceHolder {
 
-    private static CookieFunctionsServiceHolder instance = new CookieFunctionsServiceHolder();
+    private static HTTPFunctionsServiceHolder instance = new HTTPFunctionsServiceHolder();
 
     private JsFunctionRegistry jsFunctionRegistry;
 
-    public static CookieFunctionsServiceHolder getInstance() {
+    public static HTTPFunctionsServiceHolder getInstance() {
 
         return instance;
     }
 
-    private CookieFunctionsServiceHolder(){
+    private HTTPFunctionsServiceHolder() {
 
     }
 

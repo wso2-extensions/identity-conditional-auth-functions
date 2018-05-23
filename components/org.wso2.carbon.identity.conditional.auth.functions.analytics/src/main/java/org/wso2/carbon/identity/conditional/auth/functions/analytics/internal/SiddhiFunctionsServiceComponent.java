@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.analytics.CallSiddhiF
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.CallSiddhiFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.PublishToSiddhiFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.PublishToSiddhiFunctionImpl;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -132,4 +133,21 @@ public class SiddhiFunctionsServiceComponent {
         SiddhiFunctionsServiceHolder.getInstance().setJsFunctionRegistry(null);
     }
 
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService")
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
 }

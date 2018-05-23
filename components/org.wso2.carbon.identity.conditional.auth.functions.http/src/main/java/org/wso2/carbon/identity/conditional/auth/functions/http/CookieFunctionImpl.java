@@ -23,7 +23,6 @@ import org.apache.axiom.om.util.Base64;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -69,12 +68,9 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
             }
         }
         JSONObject cookieValueJson = new JSONObject();
-        try {
-            cookieValueJson.put(HTTPConstants.VALUE, value);
-            cookieValueJson.put(HTTPConstants.SIGNATURE, signature);
-        } catch (JSONException e) {
-            return;
-        }
+        cookieValueJson.put(HTTPConstants.VALUE, value);
+        cookieValueJson.put(HTTPConstants.SIGNATURE, signature);
+
         String cookieValue = cookieValueJson.toString();
 
         cookieValue = Base64.encode((cookieValue.getBytes(Charsets.UTF_8)));

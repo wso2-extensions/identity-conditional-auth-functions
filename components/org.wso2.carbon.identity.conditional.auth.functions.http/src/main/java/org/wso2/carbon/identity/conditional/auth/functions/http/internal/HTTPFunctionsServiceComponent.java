@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.http.CallHTTPFunction
 import org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.http.GetCookieFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.http.SetCookieFunction;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 
 /**
  * OSGi declarative services component which handle cookie related conditional auth functions.
@@ -43,9 +44,9 @@ import org.wso2.carbon.identity.conditional.auth.functions.http.SetCookieFunctio
         name = "identity.conditional.auth.functions.cookie.component",
         immediate = true
 )
-public class CookieFunctionsServiceComponent {
+public class HTTPFunctionsServiceComponent {
 
-    private static final Log LOG = LogFactory.getLog(CookieFunctionsServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(HTTPFunctionsServiceComponent.class);
 
     public static final String FUNC_CALL_HTTP = "callHTTP";
     public static final String FUNC_SET_COOKIE = "setCookie";
@@ -55,7 +56,7 @@ public class CookieFunctionsServiceComponent {
     protected void activate(ComponentContext ctxt) {
 
         CookieFunctionImpl cookieFunction = new CookieFunctionImpl();
-        JsFunctionRegistry jsFunctionRegistry = CookieFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
+        JsFunctionRegistry jsFunctionRegistry = HTTPFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "setCookie",
                 (SetCookieFunction) cookieFunction::setCookie);
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getCookieValue",
@@ -69,7 +70,7 @@ public class CookieFunctionsServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
 
-        JsFunctionRegistry jsFunctionRegistry = CookieFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
+        JsFunctionRegistry jsFunctionRegistry = HTTPFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_SET_COOKIE);
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_GET_COOKIE_VALUE);
@@ -85,11 +86,29 @@ public class CookieFunctionsServiceComponent {
     )
     public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
-        CookieFunctionsServiceHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
+        HTTPFunctionsServiceHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
     }
 
     public void unsetJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
-        CookieFunctionsServiceHolder.getInstance().setJsFunctionRegistry(null);
+        HTTPFunctionsServiceHolder.getInstance().setJsFunctionRegistry(null);
+    }
+
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService")
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
     }
 }
