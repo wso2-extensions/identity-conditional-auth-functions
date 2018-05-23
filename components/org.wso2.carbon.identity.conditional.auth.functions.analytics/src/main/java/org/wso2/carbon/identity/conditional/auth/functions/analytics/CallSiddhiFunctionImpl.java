@@ -75,10 +75,9 @@ public class CallSiddhiFunctionImpl implements CallSiddhiFunction {
 
     @Override
     public void callSiddhi(String siddhiAppName, String inStreamName, String outStreamName,
-                              Map<String, Object> payloadData,
-                              Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers) {
+                              Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
-        AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
+        AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
             JSONObject json = null;
             int responseCode;
             String outcome;
@@ -123,9 +122,8 @@ public class CallSiddhiFunctionImpl implements CallSiddhiFunction {
                 outcome = OUTCOME_FAIL;
             }
 
-            r.accept(ctx, json != null ? json : Collections.emptyMap(), outcome);
+            asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
-        callback.accept(payloadData);
     }
 }

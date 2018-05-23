@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static javax.ws.rs.core.HttpHeaders.ACCEPT;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
@@ -66,10 +65,9 @@ public class CallHTTPFunctionImpl implements CallHTTPFunction {
     }
 
     @Override
-    public void callHTTP(String epUrl, Map<String, Object> payloadData,
-                         Consumer<Map<String, Object>> callback, Map<String, Object> eventHandlers) {
+    public void callHTTP(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
-        AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
+        AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
             JSONObject json = null;
             int responseCode;
             String outcome;
@@ -111,9 +109,8 @@ public class CallHTTPFunctionImpl implements CallHTTPFunction {
                 outcome = HTTPConstants.OUTCOME_FAIL;
             }
 
-            r.accept(ctx, json != null ? json : Collections.emptyMap(), outcome);
+            asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
-        callback.accept(payloadData);
     }
 }
