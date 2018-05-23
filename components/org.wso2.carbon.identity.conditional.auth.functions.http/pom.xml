@@ -75,7 +75,7 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.conditional.auth.functions.http.internal,
-                            org.wso2.carbon.identity.conditional.auth.functions.http
+                            org.wso2.carbon.identity.conditional.auth.functions.http.*
                         </Export-Package>
                         <Import-Package>
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
