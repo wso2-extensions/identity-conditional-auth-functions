@@ -40,17 +40,19 @@ import java.util.Map;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 /**
- * Implementation of the {@link PublishToSiddhiFunction}
+ * Implementation of the {@link PublishToAnalyticsFunction}
  */
-public class PublishToSiddhiFunctionImpl implements PublishToSiddhiFunction {
+public class PublishToAnalyticsFunctionImpl implements PublishToAnalyticsFunction {
 
-    private static final Log LOG = LogFactory.getLog(PublishToSiddhiFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(PublishToAnalyticsFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
+    private static final String PARAM_APP_NAME = "Application";
+    private static final String PARAM_INPUT_STREAM = "InputStream";
 
     private CloseableHttpClient client;
     private String receiverEp;
 
-    public PublishToSiddhiFunctionImpl() {
+    public PublishToAnalyticsFunctionImpl() {
 
         this.receiverEp = IdentityUtil.getProperty(AnalyticsConstants.RECEIVER_URL);
 
@@ -63,9 +65,9 @@ public class PublishToSiddhiFunctionImpl implements PublishToSiddhiFunction {
     }
 
     @Override
-    public void publishToSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData) {
+    public void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData) {
 
-        String epUrl = receiverEp + siddhiAppName + "/" + inStreamName;
+        String epUrl = receiverEp + metadata.get(PARAM_APP_NAME) + "/" + metadata.get(PARAM_INPUT_STREAM);
         HttpPost request = new HttpPost(epUrl);
         try {
             request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);

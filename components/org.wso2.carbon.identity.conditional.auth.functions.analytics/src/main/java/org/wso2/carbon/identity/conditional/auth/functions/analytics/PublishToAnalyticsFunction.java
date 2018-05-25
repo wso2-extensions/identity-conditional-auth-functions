@@ -24,14 +24,13 @@ import java.util.Map;
  * Function to publish events to analytics engine.
  */
 @FunctionalInterface
-public interface PublishToSiddhiFunction {
+public interface PublishToAnalyticsFunction {
 
     /**
      *  Publish data to analytics engine.
      *
-     * @param siddhiAppName Siddhi application name.
-     * @param inStreamName input stream name.
+     * @param metadata Metadata to call the endpoint.
      * @param payloadData payload data.
      */
-    void publishToSiddhi(String siddhiAppName, String inStreamName, Map<String, Object> payloadData);
+    void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData);
 }

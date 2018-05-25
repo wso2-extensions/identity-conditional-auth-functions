@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
@@ -45,16 +46,16 @@ import static javax.ws.rs.core.HttpHeaders.ACCEPT;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 /**
- * Implementation of the {@link CallHTTPFunction}
+ * Implementation of the {@link HTTPGetFunction}
  */
-public class CallHTTPFunctionImpl implements CallHTTPFunction {
+public class HTTPGetFunctionImpl implements HTTPGetFunction {
 
-    private static final Log LOG = LogFactory.getLog(CallHTTPFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(HTTPGetFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
 
     private CloseableHttpClient client;
 
-    public CallHTTPFunctionImpl() {
+    public HTTPGetFunctionImpl() {
 
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
@@ -65,23 +66,16 @@ public class CallHTTPFunctionImpl implements CallHTTPFunction {
     }
 
     @Override
-    public void callHTTP(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
+    public void httpGet(String epUrl, Map<String, Object> eventHandlers) {
 
         AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
             JSONObject json = null;
             int responseCode;
             String outcome;
 
-            HttpPost request = new HttpPost(epUrl);
+            HttpGet request = new HttpGet(epUrl);
             try {
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-                request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
-
-                JSONObject jsonObject = new JSONObject();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                    jsonObject.put(dataElements.getKey(), dataElements.getValue());
-                }
-                request.setEntity(new StringEntity(jsonObject.toJSONString()));
 
                 HttpResponse response = client.execute(request);
                 responseCode = response.getStatusLine().getStatusCode();

@@ -25,17 +25,15 @@ import java.util.function.Consumer;
  * Function to publish events to analytics engine and get the output event synchronously.
  */
 @FunctionalInterface
-public interface CallSiddhiFunction {
+public interface CallAnalyticsFunction {
 
     /**
      *  Publish data to analytics engine and get the decision.
      *
-     * @param siddhiAppName Siddhi application name.
-     * @param inStreamName input stream name.
-     * @param outStreamName output stream name.
+     * @param metadata Metadata to call the endpoint.
      * @param payloadData payload data.
      * @param eventHandlers event handlers.
      */
-    void callSiddhi(String siddhiAppName, String inStreamName, String outStreamName,
-                       Map<String, Object> payloadData, Map<String, Object> eventHandlers);
+    void callAnalytics(Map<String, String> metadata, Map<String, Object> payloadData,
+                       Map<String, Object> eventHandlers);
 }
