@@ -29,8 +29,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.identity.conditional.auth.functions.http.CallHTTPFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.http.CallHTTPFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.http.GetCookieFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.http.SetCookieFunction;
@@ -48,7 +50,8 @@ public class HTTPFunctionsServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(HTTPFunctionsServiceComponent.class);
 
-    public static final String FUNC_CALL_HTTP = "callHTTP";
+    public static final String FUNC_HTTP_POST = "httpPost";
+    public static final String FUNC_HTTP_GET = "httpGet";
     public static final String FUNC_SET_COOKIE = "setCookie";
     public static final String FUNC_GET_COOKIE_VALUE = "getCookieValue";
 
@@ -57,14 +60,16 @@ public class HTTPFunctionsServiceComponent {
 
         CookieFunctionImpl cookieFunction = new CookieFunctionImpl();
         JsFunctionRegistry jsFunctionRegistry = HTTPFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "setCookie",
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_SET_COOKIE,
                 (SetCookieFunction) cookieFunction::setCookie);
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getCookieValue",
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_GET_COOKIE_VALUE,
                 (GetCookieFunction) cookieFunction::getCookieValue);
 
-        CallHTTPFunction callHTTP = new CallHTTPFunctionImpl();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_HTTP,
-                callHTTP);
+        HTTPPostFunction httpPost = new HTTPPostFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST, httpPost);
+
+        HTTPGetFunction httpGet = new HTTPGetFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_GET, httpGet);
     }
 
     @Deactivate
@@ -74,7 +79,7 @@ public class HTTPFunctionsServiceComponent {
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_SET_COOKIE);
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_GET_COOKIE_VALUE);
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_HTTP);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST);
         }
     }
 

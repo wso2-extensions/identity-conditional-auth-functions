@@ -28,10 +28,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.identity.conditional.auth.functions.analytics.CallSiddhiFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.analytics.CallSiddhiFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.analytics.PublishToSiddhiFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.analytics.PublishToSiddhiFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.analytics.CallAnalyticsFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.analytics.CallAnalyticsFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.analytics.PublishToAnalyticsFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.analytics.PublishToAnalyticsFunctionImpl;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -47,16 +47,16 @@ import org.wso2.carbon.user.core.service.RealmService;
 public class SiddhiFunctionsServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(SiddhiFunctionsServiceComponent.class);
-    public static final String FUNC_CALL_SIDDHI = "callSiddhi";
-    public static final String FUNC_PUBLISH_SIDDHI = "publishToSiddhi";
+    public static final String FUNC_CALL_SIDDHI = "callAnalytics";
+    public static final String FUNC_PUBLISH_SIDDHI = "publishToAnalytics";
 
     @Activate
     protected void activate(ComponentContext ctxt) {
 
         JsFunctionRegistry jsFunctionRegistry = SiddhiFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
-        CallSiddhiFunction callSiddhi = new CallSiddhiFunctionImpl();
+        CallAnalyticsFunction callSiddhi = new CallAnalyticsFunctionImpl();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_SIDDHI, callSiddhi);
-        PublishToSiddhiFunction publishSiddhi = new PublishToSiddhiFunctionImpl();
+        PublishToAnalyticsFunction publishSiddhi = new PublishToAnalyticsFunctionImpl();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_PUBLISH_SIDDHI,
                 publishSiddhi);
     }

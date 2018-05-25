@@ -19,20 +19,18 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
- * Function to call http endpoints. Function will post to the given endpoint reference with payload data as a json.
+ * Function to call http endpoints. Function will send get to the given endpoint reference.
  */
 @FunctionalInterface
-public interface CallHTTPFunction {
+public interface HTTPGetFunction {
 
     /**
      *  POST data to the given endpoint.
      *
      * @param epUrl Endpoint url.
-     * @param payloadData payload data.
      * @param eventHandlers event handlers.
      */
-    void callHTTP(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers);
+    void httpGet(String epUrl, Map<String, Object> eventHandlers);
 }

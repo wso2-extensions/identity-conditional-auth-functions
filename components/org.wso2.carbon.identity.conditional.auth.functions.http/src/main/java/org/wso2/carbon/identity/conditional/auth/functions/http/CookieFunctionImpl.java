@@ -96,6 +96,9 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
     public String getCookieValue(JsServletRequest request, String name, Map<String, Object> properties) {
 
         Cookie[] cookies = request.getWrapped().getWrapped().getCookies();
+        if (cookies == null) {
+            return null;
+        }
         for (Cookie cookie : cookies) {
             if (name.equals(cookie.getName())) {
                 boolean validateSignature = Optional.ofNullable((Boolean) properties.get(HTTPConstants.VALIDATE_SIGN))
