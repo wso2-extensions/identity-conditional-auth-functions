@@ -33,6 +33,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.utils.AnalyticsConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.utils.ConfigProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -57,7 +58,7 @@ public class CallAnalyticsFunctionImpl implements CallAnalyticsFunction {
     private static final String TYPE_APPLICATION_JSON = "application/json";
     private static final String PARAM_APP_NAME = "Application";
     private static final String PARAM_INPUT_STREAM = "InputStream";
-
+    private static final String PARAM_EP_URL = "ReceiverUrl";
 
     private CloseableHttpClient client;
     private String receiverEp;
@@ -82,8 +83,17 @@ public class CallAnalyticsFunctionImpl implements CallAnalyticsFunction {
             JSONObject json = null;
             int responseCode;
             String outcome;
-
-            String epUrl = receiverEp + metadata.get(PARAM_APP_NAME) + "/" + metadata.get(PARAM_INPUT_STREAM);
+            String appName = metadata.get(PARAM_APP_NAME);
+            String inputStream = metadata.get(PARAM_INPUT_STREAM);
+            String receiverUrl = metadata.get(PARAM_EP_URL);
+            String epUrl;
+            if (appName != null && inputStream != null) {
+                epUrl = receiverEp + appName + "/" + inputStream;
+            } else if (receiverUrl != null) {
+                epUrl = receiverUrl;
+            } else {
+                throw new FrameworkException("Receiver url cannot be found.");
+            }
             HttpPost request = new HttpPost(epUrl);
             try {
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
