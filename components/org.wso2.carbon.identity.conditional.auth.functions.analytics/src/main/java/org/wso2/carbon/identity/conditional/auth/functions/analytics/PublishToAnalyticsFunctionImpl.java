@@ -29,6 +29,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.utils.AnalyticsConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.utils.ConfigProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -48,6 +49,7 @@ public class PublishToAnalyticsFunctionImpl implements PublishToAnalyticsFunctio
     private static final String TYPE_APPLICATION_JSON = "application/json";
     private static final String PARAM_APP_NAME = "Application";
     private static final String PARAM_INPUT_STREAM = "InputStream";
+    private static final String PARAM_EP_URL = "ReceiverUrl";
 
     private CloseableHttpClient client;
     private String receiverEp;
@@ -67,7 +69,19 @@ public class PublishToAnalyticsFunctionImpl implements PublishToAnalyticsFunctio
     @Override
     public void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData) {
 
-        String epUrl = receiverEp + metadata.get(PARAM_APP_NAME) + "/" + metadata.get(PARAM_INPUT_STREAM);
+        String appName = metadata.get(PARAM_APP_NAME);
+        String inputStream = metadata.get(PARAM_INPUT_STREAM);
+        String receiverUrl = metadata.get(PARAM_EP_URL);
+        String epUrl;
+        if (appName != null && inputStream != null) {
+            epUrl = receiverEp + appName + "/" + inputStream;
+        } else if (receiverUrl != null) {
+            epUrl = receiverUrl;
+        } else {
+            LOG.error("Receiver url cannot be found.");
+            return;
+        }
+
         HttpPost request = new HttpPost(epUrl);
         try {
             request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
