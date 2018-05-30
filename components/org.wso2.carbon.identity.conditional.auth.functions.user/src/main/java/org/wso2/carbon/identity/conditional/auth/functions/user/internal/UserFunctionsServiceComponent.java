@@ -27,6 +27,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssociateUserAccountFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssociateUserAccountFunctionImpl;
@@ -141,6 +142,28 @@ public class UserFunctionsServiceComponent {
     public void unsetJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
         UserFunctionsServiceHolder.getInstance().setJsFunctionRegistry(null);
+    }
+
+    @Reference(
+            service = AbstractAdmin.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAbstractAdmin"
+    )
+    protected void setAbstractAdmin(AbstractAdmin abstractAdmin) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("AbstractAdmin is set in the conditional authentication user functions bundle");
+        }
+        UserFunctionsServiceHolder.getInstance().setAbstractAdmin(abstractAdmin);
+    }
+
+    protected void unsetAbstractAdmin(AbstractAdmin abstractAdmin) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("AbstractAdmin is unset in the conditional authentication user functions bundle");
+        }
+        UserFunctionsServiceHolder.getInstance().setAbstractAdmin(null);
     }
 
 }

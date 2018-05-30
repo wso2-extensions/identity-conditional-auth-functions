@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 
@@ -39,8 +39,8 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
 
         // start tenant flow
         FrameworkUtils.startTenantFlow(fuser.getWrapped().getTenantDomain());
-        UserProfileAdmin userProfileAdmin = (UserProfileAdmin) PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .getOSGiService(UserProfileAdmin.class);
+        UserProfileAdmin userProfileAdmin = (UserProfileAdmin) UserFunctionsServiceHolder.getInstance()
+                .getAbstractAdmin();
         try {
             associatedID = userProfileAdmin.getNameAssociatedWith(identityProvider,
                     originalExternalIdpSubjectValueForThisStep);
@@ -54,17 +54,14 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
         }
         if (StringUtils.isNotBlank(associatedID)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("User " + fuser.getWrapped().getUserName() +
-                        " has an associated account as " + associatedID + ". Hence continuing as " +
-                        associatedID);
+                LOG.debug("User " + fuser.getWrapped().getUserName() + " has an associated account as " +
+                        associatedID + ". Hence continuing as " + associatedID);
             }
             return associatedID;
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("User " + fuser.getWrapped().getUserName() +
-                        " doesn't have an associated" +
+                LOG.debug("User " + fuser.getWrapped().getUserName() + " doesn't have an associated" +
                         " account. Hence continuing as the same user.");
-
             }
             return fuser.getWrapped().getUserName();
         }

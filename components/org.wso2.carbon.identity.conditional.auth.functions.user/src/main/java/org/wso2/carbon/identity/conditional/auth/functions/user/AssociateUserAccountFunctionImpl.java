@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -49,8 +50,8 @@ public class AssociateUserAccountFunctionImpl implements AssociateUserAccountFun
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(usernameWithUserstoreDomain);
 
             if (!StringUtils.isEmpty(fidp) && !StringUtils.isEmpty(subject)) {
-                UserProfileAdmin userProfileAdmin = (UserProfileAdmin) PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                        .getOSGiService(UserProfileAdmin.class);
+                UserProfileAdmin userProfileAdmin = (UserProfileAdmin) UserFunctionsServiceHolder.getInstance()
+                        .getAbstractAdmin();
                 userProfileAdmin.associateID(fidp, subject);
 
                 if (LOG.isDebugEnabled()) {
