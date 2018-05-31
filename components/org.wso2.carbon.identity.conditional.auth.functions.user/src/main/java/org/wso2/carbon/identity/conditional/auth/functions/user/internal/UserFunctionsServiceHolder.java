@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.internal;
 
+import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -29,13 +30,14 @@ public class UserFunctionsServiceHolder {
     private RealmService realmService;
     private RegistryService registryService;
     private JsFunctionRegistry jsFunctionRegistry;
+    private AbstractAdmin abstractAdmin;
 
     public static UserFunctionsServiceHolder getInstance() {
 
         return instance;
     }
 
-    private UserFunctionsServiceHolder(){
+    private UserFunctionsServiceHolder() {
 
     }
 
@@ -68,4 +70,15 @@ public class UserFunctionsServiceHolder {
 
         this.jsFunctionRegistry = jsFunctionRegistry;
     }
+
+    public void setAbstractAdmin(AbstractAdmin abstractAdmin) {
+
+        this.abstractAdmin = abstractAdmin;
+    }
+
+    public AbstractAdmin getAbstractAdmin() {
+
+        return abstractAdmin;
+    }
+
 }

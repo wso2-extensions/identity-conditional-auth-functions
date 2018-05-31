@@ -22,43 +22,52 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.conditional.auth.functions.user.utils.AuthFunctionsUtil;
+import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.recovery.IdentityRecoveryConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 
-import java.util.Arrays;
+import java.util.HashMap;
+
+import static org.wso2.carbon.identity.conditional.auth.functions.user.utils.AuthFunctionsUtil.getUserRealm;
+import static org.wso2.carbon.identity.conditional.auth.functions.user.utils.AuthFunctionsUtil.getUserStoreManager;
 
 /**
- * Implementation of the {@link HasRoleFunction}
+ * Implementation of the {@link LockUserAccountFunction}
  */
-public class HasRoleFunctionImpl implements HasRoleFunction {
+public class LockUserAccountFunctionImpl implements LockUserAccountFunction {
 
-    private static final Log LOG = LogFactory.getLog(HasRoleFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(LockUserAccountFunctionImpl.class);
 
     @Override
-    public boolean hasRole(JsAuthenticatedUser user, String roleName) {
-
-        boolean result = false;
+    public void lockUserAccount(JsAuthenticatedUser user) {
 
         String tenantDomain = user.getWrapped().getTenantDomain();
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
-        String username = user.getWrapped().getUserName();
+        String userName = user.getWrapped().getUserName();
         try {
-            UserRealm userRealm = AuthFunctionsUtil.getUserRealm(user.getWrapped().getTenantDomain());
+            UserRealm userRealm = getUserRealm(user.getWrapped().getTenantDomain());
             if (userRealm != null) {
-                UserStoreManager userStore = AuthFunctionsUtil.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
-                if (userStore != null) {
-                    result = Arrays.stream(userStore.getRoleListOfUser(username)).anyMatch(r -> r.equals(roleName));
-                }
+                UserStoreManager userStoreManager = getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
+                setUserClaim(IdentityRecoveryConstants.ACCOUNT_LOCKED_CLAIM, Boolean.TRUE.toString(), userStoreManager,
+                        user.getWrapped());
+                LOG.info("User account locked: " + userName);
             }
         } catch (FrameworkException e) {
             LOG.error("Error in evaluating the function ", e);
-        } catch (UserStoreException e) {
-            LOG.error("Error in getting user from store at the function ", e);
         }
-
-        return result;
     }
 
+    private void setUserClaim(String claimName, String claimValue, UserStoreManager userStoreManager, User user) {
+
+        HashMap<String, String> userClaims = new HashMap<>();
+        userClaims.put(claimName, claimValue);
+        try {
+            userStoreManager.setUserClaimValues(user.getUserName(), userClaims, null);
+        } catch (UserStoreException e) {
+            LOG.error("Error while setting user claim value :" + user.getUserName(), e);
+        }
+
+    }
 }
