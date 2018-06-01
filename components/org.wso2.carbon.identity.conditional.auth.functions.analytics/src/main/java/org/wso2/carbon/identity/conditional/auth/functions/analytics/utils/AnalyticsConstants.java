@@ -20,9 +20,9 @@ package org.wso2.carbon.identity.conditional.auth.functions.analytics.utils;
 
 public class AnalyticsConstants {
 
-    public static final String OUTCOME_SUCCESS = "success";
-    public static final String OUTCOME_FAIL = "fail";
-    public static final String OUTCOME_TIMEOUT = "timeout";
+    public static final String OUTCOME_SUCCESS = "onSuccess";
+    public static final String OUTCOME_FAIL = "onFail";
+    public static final String OUTCOME_TIMEOUT = "onTimeout";
 
     public static final String RECEIVER_URL = "AdaptiveAuth.EventPublisher.receiverURL";
     public static final String HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.HTTPConnectionTimeout";
