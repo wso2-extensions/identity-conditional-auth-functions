@@ -20,12 +20,10 @@ package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -43,7 +41,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import static javax.ws.rs.core.HttpHeaders.ACCEPT;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 /**
  * Implementation of the {@link HTTPGetFunction}
@@ -77,16 +74,17 @@ public class HTTPGetFunctionImpl implements HTTPGetFunction {
             try {
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
 
-                HttpResponse response = client.execute(request);
-                responseCode = response.getStatusLine().getStatusCode();
+                try (CloseableHttpResponse response = client.execute(request)) {
+                    responseCode = response.getStatusLine().getStatusCode();
 
-                if (responseCode == 200) {
-                    outcome = HTTPConstants.OUTCOME_SUCCESS;
-                    String jsonString = EntityUtils.toString(response.getEntity());
-                    JSONParser parser = new JSONParser();
-                    json = (JSONObject) parser.parse(jsonString);
-                } else {
-                    outcome = HTTPConstants.OUTCOME_FAIL;
+                    if (responseCode == 200) {
+                        outcome = HTTPConstants.OUTCOME_SUCCESS;
+                        String jsonString = EntityUtils.toString(response.getEntity());
+                        JSONParser parser = new JSONParser();
+                        json = (JSONObject) parser.parse(jsonString);
+                    } else {
+                        outcome = HTTPConstants.OUTCOME_FAIL;
+                    }
                 }
 
             } catch (ConnectTimeoutException e) {
