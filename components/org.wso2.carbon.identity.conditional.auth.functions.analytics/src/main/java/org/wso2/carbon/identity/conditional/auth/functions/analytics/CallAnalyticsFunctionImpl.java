@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.conditional.auth.functions.analytics;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
@@ -107,16 +107,17 @@ public class CallAnalyticsFunctionImpl implements CallAnalyticsFunction {
                 jsonObject.put("event", event);
                 request.setEntity(new StringEntity(jsonObject.toJSONString()));
 
-                HttpResponse response = client.execute(request);
-                responseCode = response.getStatusLine().getStatusCode();
+                try (CloseableHttpResponse response = client.execute(request)) {
+                    responseCode = response.getStatusLine().getStatusCode();
 
-                if (responseCode == 200) {
-                    outcome = OUTCOME_SUCCESS;
-                    String jsonString = EntityUtils.toString(response.getEntity());
-                    JSONParser parser = new JSONParser();
-                    json = (JSONObject) parser.parse(jsonString);
-                } else {
-                    outcome = OUTCOME_FAIL;
+                    if (responseCode == 200) {
+                        outcome = OUTCOME_SUCCESS;
+                        String jsonString = EntityUtils.toString(response.getEntity());
+                        JSONParser parser = new JSONParser();
+                        json = (JSONObject) parser.parse(jsonString);
+                    } else {
+                        outcome = OUTCOME_FAIL;
+                    }
                 }
 
             }  catch (ConnectTimeoutException e) {

@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.conditional.auth.functions.analytics;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
@@ -29,7 +29,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.utils.AnalyticsConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.utils.ConfigProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -94,8 +93,9 @@ public class PublishToAnalyticsFunctionImpl implements PublishToAnalyticsFunctio
             jsonObject.put("event", event);
             request.setEntity(new StringEntity(jsonObject.toJSONString()));
 
-            HttpResponse response = client.execute(request);
-            EntityUtils.consume(response.getEntity());
+            try (CloseableHttpResponse response = client.execute(request)) {
+                EntityUtils.consume(response.getEntity());
+            }
 
         }  catch (ConnectTimeoutException e) {
             LOG.error("Error while waiting to connect to " + epUrl, e);
