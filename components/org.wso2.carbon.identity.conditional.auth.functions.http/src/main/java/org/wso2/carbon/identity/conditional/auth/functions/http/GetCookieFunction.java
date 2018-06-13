@@ -32,11 +32,10 @@ public interface GetCookieFunction {
     /**
      * Retrieve cookie value for the respective name from the request object.
      *
-     * @param request    request object
-     * @param name       name of the cookie saved
-     * @param properties {"decrypt" : true,"validateSignature" : true }
+     * @param request request object
+     * @param params  value mandatory and properties optional
      * @return cookieValue
      */
-    String getCookieValue(JsServletRequest request, String name, Map<String, Object> properties);
+    String getCookieValue(JsServletRequest request, Object... params);
 
 }

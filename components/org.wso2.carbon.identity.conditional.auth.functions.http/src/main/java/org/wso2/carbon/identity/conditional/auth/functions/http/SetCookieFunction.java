@@ -32,10 +32,10 @@ public interface SetCookieFunction {
     /**
      * Set the cookie in the response.
      *
-     * @param response   response object
-     * @param name       name of the cookie
-     * @param value      value of the cookie
-     * @param properties optional parameter of cookie with two additional parameters encrypt and sign.
+     * @param response response object
+     * @param name     name of the cookie
+     * @param params   value of the cookie mandatory and optional parameter of cookie with two additional parameters
+     *                 encrypt and sign.
      */
-    void setCookie(JsServletResponse response, String name, String value, Map<String, Object> properties);
+    void setCookie(JsServletResponse response, String name, Object... params);
 }

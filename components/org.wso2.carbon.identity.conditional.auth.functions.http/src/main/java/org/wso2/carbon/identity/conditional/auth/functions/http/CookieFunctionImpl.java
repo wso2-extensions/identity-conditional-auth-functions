@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.Cookie;
@@ -46,8 +47,18 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
     private static final Log log = LogFactory.getLog(CookieFunctionImpl.class);
 
     @Override
-    public void setCookie(JsServletResponse response, String name, String value, Map<String, Object> properties) {
+    public void setCookie(JsServletResponse response, String name, Object... params) {
 
+        Map<String, Object> properties = new HashMap<>();
+        if (params.length == 0 || params.length > 2) {
+            return;
+        }
+        if (params.length == 2) {
+            if (params[1] instanceof Map) {
+                properties = (Map<String, Object>) params[1];
+            }
+        }
+        String value = (String) params[0];
         boolean sign = Optional.ofNullable((Boolean) properties.get(HTTPConstants.SIGN)).orElse(false);
         boolean encrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.ENCRYPT)).orElse(false);
         String signature = null;
@@ -93,8 +104,18 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
     }
 
     @Override
-    public String getCookieValue(JsServletRequest request, String name, Map<String, Object> properties) {
+    public String getCookieValue(JsServletRequest request, Object... params) {
 
+        Map<String, Object> properties = new HashMap<>();
+        if (params.length == 0 || params.length > 2) {
+            return null;
+        }
+        if (params.length == 2) {
+            if (params[1] instanceof Map) {
+                properties = (Map<String, Object>) params[1];
+            }
+        }
+        String name = (String) params[0];
         Cookie[] cookies = request.getWrapped().getWrapped().getCookies();
         if (cookies == null) {
             return null;
