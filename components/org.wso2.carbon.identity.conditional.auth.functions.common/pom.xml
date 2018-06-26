@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
-  ~  WSO2 Inc. licenses this file to you under the Apache License,
-  ~  Version 2.0 (the "License"); you may not use this file except
-  ~  in compliance with the License.
-  ~  You may obtain a copy of the License at
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
   ~
-  ~  http://www.apache.org/licenses/LICENSE-2.0
+  ~ http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~  Unless required by applicable law or agreed to in writing,
-  ~  software distributed under the License is distributed on an
-  ~  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  ~  KIND, either express or implied.  See the License for the
-  ~  specific language governing permissions and limitations
-  ~  under the License.
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -23,19 +23,15 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>0.1.16-SNAPSHOT</version>
+        <version>0.1.14-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>org.wso2.carbon.identity.conditional.auth.functions.analytics</artifactId>
-    <name>Conditional Authentication - Analytics Related Functions</name>
+    <artifactId>org.wso2.carbon.identity.conditional.auth.functions.common</artifactId>
+    <name>Conditional Authentication - Functions Common</name>
     <packaging>bundle</packaging>
 
     <dependencies>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
-            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.common</artifactId>
-        </dependency>
         <dependency>
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
@@ -74,6 +70,10 @@
             <groupId>com.googlecode.json-simple.wso2</groupId>
             <artifactId>json-simple</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.governance</groupId>
+            <artifactId>org.wso2.carbon.identity.governance</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -91,48 +91,35 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.conditional.auth.functions.analytics.internal
+                            org.wso2.carbon.identity.conditional.auth.functions.common.internal
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.conditional.auth.functions.analytics.internal,
-                            org.wso2.carbon.identity.conditional.auth.functions.analytics.*
+                            !org.wso2.carbon.identity.conditional.auth.functions.common.internal,
+                            org.wso2.carbon.identity.conditional.auth.functions.common.*
                         </Export-Package>
                         <Import-Package>
+                            org.osgi.framework,
+                            org.apache.commons.lang,
                             org.apache.commons.logging,
-                            org.apache.http.entity,
                             org.apache.http.util,
-                            org.apache.http.client.methods,
-                            org.apache.http.client.config,
+                            org.apache.http.impl,
                             org.apache.http.impl.client,
-                            org.apache.http.conn,
-                            org.apache.http.conn.ssl,
-                            org.apache.http.conn.socket,
+                            org.apache.http.impl.conn,
+                            org.apache.http.message,
                             org.json.simple,
                             org.json.simple.parser,
                             org.apache.http,
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
+                            org.wso2.carbon,
                             org.wso2.carbon.core.util,
-                            org.wso2.carbon.identity.application.authentication.framework,
-                            org.wso2.carbon.identity.application.authentication.framework.context,
-                            org.wso2.carbon.identity.application.authentication.framework.exception,
-                            org.wso2.carbon.identity.application.authentication.framework.model,
-                            org.wso2.carbon.identity.application.authentication.framework.config.model,
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph,
-                            org.wso2.carbon.identity.application.common.model,
-                            org.wso2.carbon.identity.event,
                             org.wso2.carbon.identity.core.util,
                             org.wso2.carbon.registry.core.service,
-                            org.wso2.carbon.identity.governance,
-                            org.wso2.carbon.identity.governance.common,
+                            org.wso2.carbon.user.core,
                             org.wso2.carbon.user.core.service,
-                            org.wso2.carbon.identity.conditional.auth.functions.common.utils,
-                            org.wso2.carbon.identity.conditional.auth.functions.common.auth,
-                            javax.net.ssl,
-                            org.apache.http.impl.conn,
-                            org.osgi.framework,
-                            org.wso2.carbon.base.api,
+                            org.wso2.carbon.identity.governance,
+                            org.wso2.carbon.identity.event,
+                            org.wso2.carbon.identity.application.common.model,
                         </Import-Package>
                     </instructions>
                 </configuration>

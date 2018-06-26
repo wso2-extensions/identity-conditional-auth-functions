@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.analytics;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+
 import java.util.Map;
 
 /**
@@ -32,5 +34,6 @@ public interface PublishToAnalyticsFunction {
      * @param metadata Metadata to call the endpoint.
      * @param payloadData payload data.
      */
-    void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData);
+    void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData,
+                            JsAuthenticationContext context);
 }

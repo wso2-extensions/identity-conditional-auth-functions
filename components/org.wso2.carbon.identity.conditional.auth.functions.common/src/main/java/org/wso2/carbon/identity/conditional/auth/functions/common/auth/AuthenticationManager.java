@@ -14,20 +14,16 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http.util;
+package org.wso2.carbon.identity.conditional.auth.functions.common.auth;
 
-/**
- * Set of the constants used in the cookie related functions.
- */
-public class HTTPConstants {
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
 
-    public static final String SIGN = "sign";
-    public static final String ENCRYPT = "encrypt";
-    public static final String VALIDATE_SIGN = "validateSignature";
-    public static final String DECRYPT = "decrypt";
-    public static final String VALUE = "value";
-    public static final String SIGNATURE = "signature";
+public interface AuthenticationManager {
+
+    Header authenticate(
+            final Credentials credentials,
+            final HttpRequest request);
 }

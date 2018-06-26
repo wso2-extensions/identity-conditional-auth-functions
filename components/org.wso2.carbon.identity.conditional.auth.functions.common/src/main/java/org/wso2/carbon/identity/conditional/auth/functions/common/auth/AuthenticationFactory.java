@@ -14,20 +14,25 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http.util;
+package org.wso2.carbon.identity.conditional.auth.functions.common.auth;
 
 /**
- * Set of the constants used in the cookie related functions.
+ * Factory to get authentication manager.
  */
-public class HTTPConstants {
+public class AuthenticationFactory {
 
-    public static final String SIGN = "sign";
-    public static final String ENCRYPT = "encrypt";
-    public static final String VALIDATE_SIGN = "validateSignature";
-    public static final String DECRYPT = "decrypt";
-    public static final String VALUE = "value";
-    public static final String SIGNATURE = "signature";
+    /**
+     * Get the authentication manager
+     * @param authType authentication type.
+     * @return Authentication manager.
+     */
+    public AuthenticationManager getAuthenticationManager(String authType){
+        if ("Basic".equalsIgnoreCase(authType)) {
+            return new BasicAuthenticationManager();
+        } else {
+            throw new IllegalArgumentException("Unsupported Authentication type.");
+        }
+    }
 }

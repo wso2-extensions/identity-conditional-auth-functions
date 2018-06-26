@@ -16,11 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http.util;
+package org.wso2.carbon.identity.conditional.auth.functions.common.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_REQUEST_TIMEOUT;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_READ_TIMEOUT;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_TIMEOUT;
 
 public class ConfigProvider {
 
@@ -35,9 +39,9 @@ public class ConfigProvider {
     private ConfigProvider() {
 
         int defaultTimeout = 5000;
-        String connectionTimeoutString = IdentityUtil.getProperty(HTTPConstants.HTTP_CONNECTION_TIMEOUT);
-        String readTimeoutString = IdentityUtil.getProperty(HTTPConstants.HTTP_READ_TIMEOUT);
-        String connectionRequestTimeoutString = IdentityUtil.getProperty(HTTPConstants.HTTP_CONNECTION_REQUEST_TIMEOUT);
+        String connectionTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_TIMEOUT);
+        String readTimeoutString = IdentityUtil.getProperty(HTTP_READ_TIMEOUT);
+        String connectionRequestTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_REQUEST_TIMEOUT);
 
         connectionTimeout = defaultTimeout;
         readTimeout = defaultTimeout;
