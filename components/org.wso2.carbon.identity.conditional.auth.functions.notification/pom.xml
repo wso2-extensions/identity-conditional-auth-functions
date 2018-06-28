@@ -59,6 +59,15 @@
 
         <!--Test Dependencies-->
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.test.utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
             <scope>test</scope>
@@ -69,8 +78,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+            <groupId>com.h2database.wso2</groupId>
+            <artifactId>h2-database-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.utils</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -114,6 +129,10 @@
                         </Import-Package>
                     </instructions>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
