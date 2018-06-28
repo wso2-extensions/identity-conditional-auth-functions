@@ -142,6 +142,11 @@
                 <artifactId>org.wso2.carbon.utils</artifactId>
                 <version>${carbon.kernel.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.h2database.wso2</groupId>
+                <artifactId>h2-database-engine</artifactId>
+                <version>${com.h2database.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
