@@ -147,6 +147,12 @@
                 <artifactId>h2-database-engine</artifactId>
                 <version>${com.h2database.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+                <artifactId>org.wso2.carbon.identity.conditional.auth.functions.test.utils</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
