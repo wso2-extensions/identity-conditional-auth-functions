@@ -49,7 +49,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
     @Override
     public void setCookie(JsServletResponse response, String name, Object... params) {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = null;
         if (params.length == 0 || params.length > 2) {
             return;
         }
@@ -58,24 +58,27 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                 properties = (Map<String, Object>) params[1];
             }
         }
+
         String value = (String) params[0];
-        boolean sign = Optional.ofNullable((Boolean) properties.get(HTTPConstants.SIGN)).orElse(false);
-        boolean encrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.ENCRYPT)).orElse(false);
         String signature = null;
-        if (sign) {
-            try {
-                signature = Base64.encode(SignatureUtil.doSignature(value));
-            } catch (Exception e) {
-                log.error("Error occurred when signing the cookie value.", e);
-                return;
+        if (properties != null) {
+            boolean sign = Optional.ofNullable((Boolean) properties.get(HTTPConstants.SIGN)).orElse(false);
+            boolean encrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.ENCRYPT)).orElse(false);
+            if (sign) {
+                try {
+                    signature = Base64.encode(SignatureUtil.doSignature(value));
+                } catch (Exception e) {
+                    log.error("Error occurred when signing the cookie value.", e);
+                    return;
+                }
             }
-        }
-        if (encrypt) {
-            try {
-                value = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(Base64.decode(value));
-            } catch (CryptoException e) {
-                log.error("Error occurred when encrypting the cookie value.", e);
-                return;
+            if (encrypt) {
+                try {
+                    value = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(Base64.decode(value));
+                } catch (CryptoException e) {
+                    log.error("Error occurred when encrypting the cookie value.", e);
+                    return;
+                }
             }
         }
         JSONObject cookieValueJson = new JSONObject();
@@ -86,27 +89,29 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
 
         cookieValue = Base64.encode((cookieValue.getBytes(Charsets.UTF_8)));
         Cookie cookie = new Cookie(name, cookieValue);
-        Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN))
-                .ifPresent(cookie::setDomain);
-        Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_PATH))
-                .ifPresent(cookie::setPath);
-        Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT))
-                .ifPresent(cookie::setComment);
-        Optional.ofNullable((Integer) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE))
-                .ifPresent(cookie::setMaxAge);
-        Optional.ofNullable((Integer) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_VERSION))
-                .ifPresent(cookie::setVersion);
-        Optional.ofNullable((Boolean) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY))
-                .ifPresent(cookie::setHttpOnly);
-        Optional.ofNullable((Boolean) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_SECURE))
-                .ifPresent(cookie::setSecure);
+        if (properties != null) {
+            Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN))
+                    .ifPresent(cookie::setDomain);
+            Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_PATH))
+                    .ifPresent(cookie::setPath);
+            Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT))
+                    .ifPresent(cookie::setComment);
+            Optional.ofNullable((Integer) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE))
+                    .ifPresent(cookie::setMaxAge);
+            Optional.ofNullable((Integer) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_VERSION))
+                    .ifPresent(cookie::setVersion);
+            Optional.ofNullable((Boolean) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY))
+                    .ifPresent(cookie::setHttpOnly);
+            Optional.ofNullable((Boolean) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_SECURE))
+                    .ifPresent(cookie::setSecure);
+        }
         response.addCookie(cookie);
     }
 
     @Override
     public String getCookieValue(JsServletRequest request, Object... params) {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = null;
         if (params.length == 0 || params.length > 2) {
             return null;
         }
@@ -122,10 +127,6 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
         }
         for (Cookie cookie : cookies) {
             if (name.equals(cookie.getName())) {
-                boolean validateSignature = Optional.ofNullable((Boolean) properties.get(HTTPConstants.VALIDATE_SIGN))
-                        .orElse(false);
-                boolean decrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.DECRYPT))
-                        .orElse(false);
                 JSONObject cookieValueJSON;
                 try {
                     JSONParser jsonParser = new JSONParser();
@@ -136,26 +137,33 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                     return null;
                 }
                 String valueString = (String) cookieValueJSON.get(HTTPConstants.VALUE);
-                if (decrypt) {
-                    try {
-                        valueString = Base64.encode(CryptoUtil.getDefaultCryptoUtil()
-                                .base64DecodeAndDecrypt(valueString));
-                    } catch (CryptoException e) {
-                        log.error("Error occurred when decrypting the cookie value.", e);
-                        return null;
-                    }
-                }
-                if (validateSignature) {
-                    byte[] signature = Base64.decode((String) cookieValueJSON.get(HTTPConstants.SIGNATURE));
-                    try {
-                        boolean isValid = SignatureUtil.validateSignature(valueString, signature);
-                        if (!isValid) {
-                            log.error("Cookie signature didn't matched with the cookie value.");
+
+                if (properties != null) {
+                    boolean validateSignature = Optional.ofNullable((Boolean) properties.get(
+                            HTTPConstants.VALIDATE_SIGN)).orElse(false);
+                    boolean decrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.DECRYPT))
+                            .orElse(false);
+                    if (decrypt) {
+                        try {
+                            valueString = Base64.encode(CryptoUtil.getDefaultCryptoUtil()
+                                    .base64DecodeAndDecrypt(valueString));
+                        } catch (CryptoException e) {
+                            log.error("Error occurred when decrypting the cookie value.", e);
                             return null;
                         }
-                    } catch (Exception e) {
-                        log.error("Error occurred when validating signature of the cookie value.", e);
-                        return null;
+                    }
+                    if (validateSignature) {
+                        byte[] signature = Base64.decode((String) cookieValueJSON.get(HTTPConstants.SIGNATURE));
+                        try {
+                            boolean isValid = SignatureUtil.validateSignature(valueString, signature);
+                            if (!isValid) {
+                                log.error("Cookie signature didn't matched with the cookie value.");
+                                return null;
+                            }
+                        } catch (Exception e) {
+                            log.error("Error occurred when validating signature of the cookie value.", e);
+                            return null;
+                        }
                     }
                 }
                 return valueString;
