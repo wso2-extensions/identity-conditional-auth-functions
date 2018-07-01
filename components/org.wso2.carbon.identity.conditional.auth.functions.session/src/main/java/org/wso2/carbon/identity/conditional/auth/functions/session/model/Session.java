@@ -16,7 +16,7 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.model;
+package org.wso2.carbon.identity.conditional.auth.functions.session.model;
 
 import org.json.JSONObject;
 

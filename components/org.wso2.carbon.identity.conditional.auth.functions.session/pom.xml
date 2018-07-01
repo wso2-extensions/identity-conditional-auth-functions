@@ -73,7 +73,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.internal
+                            org.wso2.carbon.identity.conditional.auth.functions.session.internal
                         </Private-Package>
                         <Import-Package>
                             org.json;version="${org.json.version.range}",
@@ -95,11 +95,11 @@
                             org.wso2.carbon.identity.application.authentication.framework.model,
                             org.wso2.carbon.identity.application.authentication.framework.services,
                             org.wso2.carbon.identity.core.util,
-                            org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function
+                            org.wso2.carbon.identity.conditional.auth.functions.session.function
                         </Import-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.internal,
-                            org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.*
+                            !org.wso2.carbon.identity.conditional.auth.functions.session.internal,
+                            org.wso2.carbon.identity.conditional.auth.functions.session.*
                         </Export-Package>
                     </instructions>
                 </configuration>

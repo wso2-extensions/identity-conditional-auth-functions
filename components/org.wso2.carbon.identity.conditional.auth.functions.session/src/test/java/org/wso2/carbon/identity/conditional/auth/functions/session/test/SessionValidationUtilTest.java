@@ -16,7 +16,7 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.conditional.auth.functions.test;
+package org.wso2.carbon.identity.conditional.auth.functions.session.test;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.http.Header;
@@ -29,9 +29,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.exception.SessionValidationException;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.util.SessionValidationConstants;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.util.SessionValidationUtil;
+import org.wso2.carbon.identity.conditional.auth.functions.session.exception.SessionValidationException;
+import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
+import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationUtil;
 
 import java.io.IOException;
 import java.nio.charset.Charset;

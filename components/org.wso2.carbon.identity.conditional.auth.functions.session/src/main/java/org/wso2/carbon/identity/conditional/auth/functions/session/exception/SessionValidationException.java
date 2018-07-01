@@ -16,27 +16,24 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function;
+package org.wso2.carbon.identity.conditional.auth.functions.session.exception;
 
-import org.json.JSONObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-import java.util.Map;
-
 /**
- * Function definition for retrieving data.
+ * Exception class for indicating the exceptions in session count validation process.
  */
-@FunctionalInterface
-public interface GetDataFunction {
+public class SessionValidationException extends AuthenticationFailedException {
+
+    private static final long serialVersionUID = -476728056175361072L;
 
     /**
-     * This function will contain the implementation for retrieving data.
+     * Constructor for exception class.
      *
-     * @param context AuthenticationContext object passed from Javascript
-     * @param map     parameter map
-     * @return JSONObject with requested data
-     * @throws AuthenticationFailedException
+     * @param message exception message
      */
-    JSONObject getData(JsAuthenticationContext context, Map<String, String> map) throws AuthenticationFailedException;
+    public SessionValidationException(String message) {
+
+        super(message);
+    }
 }

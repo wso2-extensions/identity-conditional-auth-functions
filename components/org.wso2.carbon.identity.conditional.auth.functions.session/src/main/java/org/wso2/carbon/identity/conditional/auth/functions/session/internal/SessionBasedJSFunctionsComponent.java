@@ -16,7 +16,7 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.internal;
+package org.wso2.carbon.identity.conditional.auth.functions.session.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,12 +28,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.ExecuteActionFunction;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.GetDataFunction;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.GetSessionDataFunction;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.IsValidFunction;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.IsWithinSessionLimitFunction;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.KillSessionFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.ExecuteActionFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetDataFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.KillSessionFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetSessionDataFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsValidFunction;
 
 @Component(
         name = "session.based.conditional.authentication.function.component",

@@ -16,7 +16,7 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.conditional.auth.functions.test;
+package org.wso2.carbon.identity.conditional.auth.functions.session.test;
 
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -26,9 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.GetSessionDataFunction;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.IsWithinSessionLimitFunction;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function.KillSessionFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetSessionDataFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.KillSessionFunction;
 
 import java.util.HashMap;
 import java.util.Map;

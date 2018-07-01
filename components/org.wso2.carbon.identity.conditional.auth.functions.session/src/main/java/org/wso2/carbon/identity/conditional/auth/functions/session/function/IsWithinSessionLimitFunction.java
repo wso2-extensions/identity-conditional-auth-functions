@@ -16,7 +16,7 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function;
+package org.wso2.carbon.identity.conditional.auth.functions.session.function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,8 +33,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.util.SessionValidationConstants;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.util.SessionValidationUtil;
+import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
+import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;

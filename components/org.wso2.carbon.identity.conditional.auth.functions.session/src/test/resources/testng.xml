@@ -18,9 +18,9 @@
 <suite name="Identity-connector-session-validation-test-suite">
     <test name="session-validation-authenticator-all" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.extensions.conditional.auth.functions.test.SessionModelTest"/>
-            <class name="org.wso2.carbon.identity.extensions.conditional.auth.functions.test.ConditionalAuthFunctionTest"/>
-            <class name="org.wso2.carbon.identity.extensions.conditional.auth.functions.test.SessionValidationUtilTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.session.test.SessionModelTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.session.test.ConditionalAuthFunctionTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.session.test.SessionValidationUtilTest"/>
         </classes>
     </test>
 </suite>

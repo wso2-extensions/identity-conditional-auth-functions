@@ -16,7 +16,7 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.util;
+package org.wso2.carbon.identity.conditional.auth.functions.session.util;
 
 /**
  * Class for storing Constants used in the session validation conditional authentication functions.

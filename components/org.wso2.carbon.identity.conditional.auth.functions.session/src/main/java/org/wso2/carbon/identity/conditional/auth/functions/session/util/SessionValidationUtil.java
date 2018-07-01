@@ -16,7 +16,7 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.util;
+package org.wso2.carbon.identity.conditional.auth.functions.session.util;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.httpclient.HttpStatus;
@@ -30,8 +30,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.conditional.auth.functions.session.exception.SessionValidationException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.exception.SessionValidationException;
 
 import java.io.BufferedReader;
 import java.io.IOException;

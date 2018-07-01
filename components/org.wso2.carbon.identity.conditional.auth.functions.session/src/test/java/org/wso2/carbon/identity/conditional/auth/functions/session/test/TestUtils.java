@@ -16,7 +16,7 @@
  * under the License.
  *
  */
-package org.wso2.carbon.identity.extensions.conditional.auth.functions.test;
+package org.wso2.carbon.identity.conditional.auth.functions.session.test;
 
 import org.apache.commons.lang.RandomStringUtils;
 
