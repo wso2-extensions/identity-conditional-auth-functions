@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
     <artifactId>identity-conditional-auth-functions</artifactId>
-    <version>0.1.3-SNAPSHOT</version>
+    <version>0.1.14-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - IAM Conditional Authentication Functions</name>
     <url>http://wso2.org</url>
@@ -42,8 +42,8 @@
     <modules>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.user</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
-        <module>components/org.wso2.carbon.identity.conditional.auth.functions.cookie</module>
-        <module>components/org.wso2.carbon.identity.conditional.auth.functions.siddhi</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.http</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.analytics</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.session</module>
     </modules>
 
@@ -107,11 +107,9 @@
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.jacoco</groupId>
-                <artifactId>org.jacoco.agent</artifactId>
-                <classifier>runtime</classifier>
-                <scope>test</scope>
-                <version>${jacoco.version}</version>
+                <groupId>com.googlecode.json-simple.wso2</groupId>
+                <artifactId>json-simple</artifactId>
+                <version>${com.googlecode.json-simple.wso2.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -267,7 +265,8 @@
     </build>
     <properties>
         <carbon.kernel.version>4.4.27</carbon.kernel.version>
-        <carbon.identity.framework.version>5.11.215</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.11.236</carbon.identity.framework.version>
+
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
         <org.powermock.version>1.7.3</org.powermock.version>
@@ -281,5 +280,6 @@
         <org.apache.axis2.transport.version.range>[1.6,2)</org.apache.axis2.transport.version.range>
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
+        <com.googlecode.json-simple.wso2.version>1.1.wso2v1</com.googlecode.json-simple.wso2.version>
     </properties>
 </project>

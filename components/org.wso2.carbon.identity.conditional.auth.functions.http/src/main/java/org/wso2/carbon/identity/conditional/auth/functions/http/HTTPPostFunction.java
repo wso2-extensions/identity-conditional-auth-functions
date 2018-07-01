@@ -6,7 +6,7 @@
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -14,21 +14,25 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
-package org.wso2.carbon.identity.extensions.authenticator.conditional.auth.functions.function;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
- * Function definition for verify some defined requirement is fulfilled.
+ * Function to call http endpoints. Function will post to the given endpoint reference with payload data as a json.
  */
 @FunctionalInterface
-public interface IsValidFunction {
+public interface HTTPPostFunction {
 
-    boolean validate(JsAuthenticationContext context, Map<String, String> map)
-            throws AuthenticationFailedException;
+    /**
+     *  POST data to the given endpoint.
+     *
+     * @param epUrl Endpoint url.
+     * @param payloadData payload data.
+     * @param eventHandlers event handlers.
+     */
+    void httpPost(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers);
 }

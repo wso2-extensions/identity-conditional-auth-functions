@@ -62,7 +62,7 @@ public class IsWithinSessionLimitFunction implements IsValidFunction {
      * @throws AuthenticationFailedException when exception occurred in session retrieving method
      */
     @Override
-    public Boolean validate(JsAuthenticationContext context, Map<String, String> map)
+    public boolean validate(JsAuthenticationContext context, Map<String, String> map)
             throws AuthenticationFailedException {
 
         boolean state = false;
