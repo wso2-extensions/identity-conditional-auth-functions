@@ -27,7 +27,7 @@
 
     <artifactId>org.wso2.carbon.conditional.auth.functions.session</artifactId>
     <packaging>bundle</packaging>
-    <name>Conditional Authentication - Session Based Conditional Authentication Functions</name>
+    <name>Conditional Authentication - Session Related Functions</name>
     <dependencies>
         <dependency>
             <groupId>org.json.wso2</groupId>
@@ -44,8 +44,6 @@
         <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.agent</artifactId>
-            <classifier>runtime</classifier>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
