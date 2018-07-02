@@ -31,18 +31,15 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
-/**
- * Implementation of the {@link HasRoleFunction}
- * @deprecated
- */
-@Deprecated
-public class HasRoleFunctionImpl implements HasRoleFunction {
+public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
 
-    private static final Log LOG = LogFactory.getLog(HasRoleFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(HasAnyOfTheRolesFunctionImpl.class);
 
     @Override
-    public boolean hasRole(JsAuthenticatedUser user, String roleName) {
+    public boolean hasAnyOfTheRoles(JsAuthenticatedUser user, List<String> roleNames) {
 
         boolean result = false;
 
@@ -54,7 +51,8 @@ public class HasRoleFunctionImpl implements HasRoleFunction {
             if (userRealm != null) {
                 UserStoreManager userStore = getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                 if (userStore != null) {
-                    result = Arrays.stream(userStore.getRoleListOfUser(username)).anyMatch(r -> r.equals(roleName));
+                    String[] roleListOfUser = userStore.getRoleListOfUser(username);
+                    result = Arrays.stream(roleListOfUser).anyMatch(roleNames::contains);
                 }
             }
         } catch (FrameworkException e) {

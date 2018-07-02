@@ -28,6 +28,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImpl;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -50,8 +52,11 @@ public class UserFunctionsServiceComponent {
     protected void activate(ComponentContext ctxt) {
 
         HasRoleFunction hasRoleFunctionImpl = new HasRoleFunctionImpl();
+        HasAnyOfTheRolesFunction hasAnyOfTheRolesFunctionImpl = new HasAnyOfTheRolesFunctionImpl();
         JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
+                hasAnyOfTheRolesFunctionImpl);
     }
 
     @Deactivate
@@ -60,6 +65,7 @@ public class UserFunctionsServiceComponent {
         JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles");
         }
     }
 
