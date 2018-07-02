@@ -20,9 +20,22 @@ package org.wso2.carbon.identity.conditional.auth.functions.common.auth;
 
 import java.security.Principal;
 
+/**
+ * User credentials
+ */
 public interface Credentials {
 
+    /**
+     * Get the user principal of this credential.
+     *
+     * @return principal
+     */
     Principal getUserPrincipal();
 
+    /**
+     * Get the password of this credential.
+     *
+     * @return password
+     */
     String getPassword();
 }

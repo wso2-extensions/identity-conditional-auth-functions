@@ -39,9 +39,9 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     public static final String BASIC_AUTH_ENABLED = "adaptive_authentication.analytics.basicAuth.enabled";
     public static final String USERNAME = "adaptive_authentication.analytics.basicAuth.username";
     public static final String PASSWORD = "__secret__adaptive_authentication.analytics.basicAuth.password";
-    public static final String HTTPCONNECTION_TIMEOUT = "adaptive_authentication.analytics.HTTPConnectionTimeout";
-    public static final String HTTPREAD_TIMEOUT = "adaptive_authentication.analytics.HTTPReadTimeout";
-    public static final String HTTPCONNECTION_REQUEST_TIMEOUT = "adaptive_authentication.analytics" +
+    public static final String HTTP_CONNECTION_TIMEOUT = "adaptive_authentication.analytics.HTTPConnectionTimeout";
+    public static final String HTTP_READ_TIMEOUT = "adaptive_authentication.analytics.HTTPReadTimeout";
+    public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "adaptive_authentication.analytics" +
             ".HTTPConnectionRequestTimeout";
     public static final String HOSTNAME_VERIFIER = "adaptive_authentication.analytics.hostnameVerfier";
 
@@ -92,10 +92,10 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
         mapping.put(BASIC_AUTH_ENABLED, "Enable Basic Authentication");
         mapping.put(USERNAME, "User ID");
         mapping.put(PASSWORD, "Secret");
-        mapping.put(HTTPCONNECTION_TIMEOUT, "HTTP Connection Timeout");
-        mapping.put(HTTPREAD_TIMEOUT, "HTTP Read Timeout");
-        mapping.put(HTTPCONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout");
-        mapping.put(HOSTNAME_VERIFIER, "Hostname verifier");
+        mapping.put(HTTP_CONNECTION_TIMEOUT, "HTTP Connection Timeout");
+        mapping.put(HTTP_READ_TIMEOUT, "HTTP Read Timeout");
+        mapping.put(HTTP_CONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout");
+        mapping.put(HOSTNAME_VERIFIER, "Hostname verification");
 
         return mapping;
     }
@@ -109,10 +109,10 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
         mapping.put(BASIC_AUTH_ENABLED, "Enable Basic Authentication");
         mapping.put(USERNAME, "Target Host Secured User ID");
         mapping.put(PASSWORD, "Target Host Secured Secret");
-        mapping.put(HTTPCONNECTION_TIMEOUT, "HTTP Connection Timeout in milliseconds");
-        mapping.put(HTTPREAD_TIMEOUT, "HTTP Read Timeout in milliseconds");
-        mapping.put(HTTPCONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout in milliseconds");
-        mapping.put(HOSTNAME_VERIFIER, "Hostname verifier. (STRICT, ALLOW_ALL)");
+        mapping.put(HTTP_CONNECTION_TIMEOUT, "HTTP Connection Timeout in milliseconds");
+        mapping.put(HTTP_READ_TIMEOUT, "HTTP Read Timeout in milliseconds");
+        mapping.put(HTTP_CONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout in milliseconds");
+        mapping.put(HOSTNAME_VERIFIER, "Hostname verification. (STRICT, ALLOW_ALL)");
 
         return mapping;
     }
@@ -125,9 +125,9 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
         properties.add(BASIC_AUTH_ENABLED);
         properties.add(USERNAME);
         properties.add(PASSWORD);
-        properties.add(HTTPCONNECTION_TIMEOUT);
-        properties.add(HTTPREAD_TIMEOUT);
-        properties.add(HTTPCONNECTION_REQUEST_TIMEOUT);
+        properties.add(HTTP_CONNECTION_TIMEOUT);
+        properties.add(HTTP_READ_TIMEOUT);
+        properties.add(HTTP_CONNECTION_REQUEST_TIMEOUT);
         properties.add(HOSTNAME_VERIFIER);
         return properties.toArray(new String[0]);
     }
@@ -146,11 +146,11 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
         defaultProperties.put(USERNAME, username != null ? username : DEFAULT_USERNAME);
         String password = IdentityUtil.getProperty(Constants.AUTHENTICATION_PASSWORD);
         defaultProperties.put(PASSWORD, password != null ? password : DEFAULT_PASSWORD);
-        defaultProperties.put(HTTPCONNECTION_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
+        defaultProperties.put(HTTP_CONNECTION_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
                 .getConnectionTimeout()));
-        defaultProperties.put(HTTPREAD_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
+        defaultProperties.put(HTTP_READ_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
                 .getReadTimeout()));
-        defaultProperties.put(HTTPCONNECTION_REQUEST_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
+        defaultProperties.put(HTTP_CONNECTION_REQUEST_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
                 .getConnectionRequestTimeout()));
         String hostnameVerifier = IdentityUtil.getProperty(Constants.HOSTNAME_VERIFIER);
         if (!HOSTNAME_VERIFIER_STRICT.equalsIgnoreCase(hostnameVerifier)

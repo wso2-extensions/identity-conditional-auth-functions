@@ -125,7 +125,7 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
                 LOG.error("Error while waiting for data from " + targetPath, e);
                 outcome = OUTCOME_TIMEOUT;
             } catch (IOException e) {
-                LOG.error("Error while calling siddhi. ", e);
+                LOG.error("Error while calling analytics engine. ", e);
                 outcome = OUTCOME_FAIL;
             } catch (ParseException e) {
                 LOG.error("Error while parsing response. ", e);

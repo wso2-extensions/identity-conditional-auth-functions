@@ -21,8 +21,19 @@ package org.wso2.carbon.identity.conditional.auth.functions.common.auth;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 
+/**
+ * Authentication manager.
+ */
 public interface AuthenticationManager {
 
+    /**
+     * Create Authorization header with provided credentials.
+     *
+     * @param credentials Credentials to use for Authorization header.
+     * @param request HTTP request.
+     *
+     * @return Authorization header
+     */
     Header authenticate(
             final Credentials credentials,
             final HttpRequest request);

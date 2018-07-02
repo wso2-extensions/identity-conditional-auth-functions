@@ -29,6 +29,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.internal.AnalyticsFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 
 import javax.net.ssl.SSLContext;
@@ -51,11 +53,29 @@ public class ClientManager {
 
     private ClientManager() {
 
+        String maxConnectionsString = IdentityUtil.getProperty(Constants.CONNECTION_POOL_MAX_CONNECTIONS);
+        String maxConnectionsPerRouteString = IdentityUtil.getProperty(Constants
+                .CONNECTION_POOL_MAX_CONNECTIONS_PER_ROUTE);
+        int defaultMaxConnections = 20;
+        int maxConnections = defaultMaxConnections;
+        int maxConnectionsPerRoute = defaultMaxConnections;
+        try {
+            maxConnections = Integer.parseInt(maxConnectionsString);
+        } catch (NumberFormatException e) {
+            // Ignore. Default value is used.
+        }
+        try {
+            maxConnectionsPerRoute = Integer.parseInt(maxConnectionsPerRouteString);
+        } catch (NumberFormatException e) {
+            // Ignore. Default value is used.
+        }
+
+
         poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
         // Increase max total connection to 50
-        poolingHttpClientConnectionManager.setMaxTotal(50);
+        poolingHttpClientConnectionManager.setMaxTotal(maxConnections);
         // Increase default max connection per route to 50
-        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(50);
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
     }
 
     /**
@@ -74,19 +94,19 @@ public class ClientManager {
         String connectionRequestTimeoutString = null;
         try {
             connectionTimeoutString = CommonUtils.getConnectorConfig(AnalyticsEngineConfigImpl
-                    .HTTPCONNECTION_TIMEOUT, tenantDomain);
+                    .HTTP_CONNECTION_TIMEOUT, tenantDomain);
         } catch (IdentityEventException e) {
             // Ignore. If there was error while getting the property, continue with default value.
         }
         try {
             readTimeoutString = CommonUtils.getConnectorConfig(AnalyticsEngineConfigImpl
-                    .HTTPREAD_TIMEOUT, tenantDomain);
+                    .HTTP_READ_TIMEOUT, tenantDomain);
         } catch (IdentityEventException e) {
             // Ignore. If there was error while getting the property, continue with default value.
         }
         try {
             connectionRequestTimeoutString = CommonUtils.getConnectorConfig(AnalyticsEngineConfigImpl
-                    .HTTPCONNECTION_REQUEST_TIMEOUT, tenantDomain);
+                    .HTTP_CONNECTION_REQUEST_TIMEOUT, tenantDomain);
         } catch (IdentityEventException e) {
             // Ignore. If there was error while getting the property, continue with default value.
         }

@@ -32,4 +32,7 @@ public class Constants {
     public static final String AUTHENTICATION_USERNAME = "AdaptiveAuth.EventPublisher.BasicAuthentication.Username";
     public static final String AUTHENTICATION_PASSWORD = "AdaptiveAuth.EventPublisher.BasicAuthentication.Password";
     public static final String HOSTNAME_VERIFIER = "AdaptiveAuth.EventPublisher.HostnameVerifier";
+
+    public static final String CONNECTION_POOL_MAX_CONNECTIONS = "AdaptiveAuth.MaxTotalConnections";
+    public static final String CONNECTION_POOL_MAX_CONNECTIONS_PER_ROUTE = "AdaptiveAuth.MaxTotalConnectionsPerRoute";
 }

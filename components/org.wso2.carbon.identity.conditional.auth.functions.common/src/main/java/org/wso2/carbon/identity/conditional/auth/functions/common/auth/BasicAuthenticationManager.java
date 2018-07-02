@@ -39,7 +39,7 @@ public class BasicAuthenticationManager implements AuthenticationManager {
         final StringBuilder tmp = new StringBuilder();
         tmp.append(credentials.getUserPrincipal().getName());
         tmp.append(":");
-        tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
+        tmp.append((credentials.getPassword() == null) ? "" : credentials.getPassword());
 
         final byte[] base64password = Base64.getEncoder().encode(tmp.toString().getBytes());
 
