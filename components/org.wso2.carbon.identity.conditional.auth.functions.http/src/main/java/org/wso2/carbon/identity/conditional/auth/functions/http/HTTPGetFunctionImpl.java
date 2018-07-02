@@ -32,15 +32,15 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
-import org.wso2.carbon.identity.conditional.auth.functions.http.util.ConfigProvider;
-import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.Map;
 
-import static javax.ws.rs.core.HttpHeaders.ACCEPT;
+import static org.apache.http.HttpHeaders.ACCEPT;
 
 /**
  * Implementation of the {@link HTTPGetFunction}
@@ -78,27 +78,27 @@ public class HTTPGetFunctionImpl implements HTTPGetFunction {
                     responseCode = response.getStatusLine().getStatusCode();
 
                     if (responseCode == 200) {
-                        outcome = HTTPConstants.OUTCOME_SUCCESS;
+                        outcome = Constants.OUTCOME_SUCCESS;
                         String jsonString = EntityUtils.toString(response.getEntity());
                         JSONParser parser = new JSONParser();
                         json = (JSONObject) parser.parse(jsonString);
                     } else {
-                        outcome = HTTPConstants.OUTCOME_FAIL;
+                        outcome = Constants.OUTCOME_FAIL;
                     }
                 }
 
             } catch (ConnectTimeoutException e) {
                 LOG.error("Error while waiting to connect to " + epUrl, e);
-                outcome = HTTPConstants.OUTCOME_TIMEOUT;
+                outcome = Constants.OUTCOME_TIMEOUT;
             } catch (SocketTimeoutException e) {
                 LOG.error("Error while waiting for data from " + epUrl, e);
-                outcome = HTTPConstants.OUTCOME_TIMEOUT;
+                outcome = Constants.OUTCOME_TIMEOUT;
             } catch (IOException e) {
                 LOG.error("Error while calling endpoint. ", e);
-                outcome = HTTPConstants.OUTCOME_FAIL;
+                outcome = Constants.OUTCOME_FAIL;
             } catch (ParseException e) {
                 LOG.error("Error while parsing response. ", e);
-                outcome = HTTPConstants.OUTCOME_FAIL;
+                outcome = Constants.OUTCOME_FAIL;
             }
 
             asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);

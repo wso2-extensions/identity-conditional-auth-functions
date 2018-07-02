@@ -40,6 +40,7 @@
     </scm>
 
     <modules>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.common</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.user</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.http</module>
@@ -48,6 +49,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+                <artifactId>org.wso2.carbon.identity.conditional.auth.functions.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>commons-lang.wso2</groupId>
                 <artifactId>commons-lang</artifactId>
@@ -104,6 +110,11 @@
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.testutil</artifactId>
                 <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.governance</groupId>
+                <artifactId>org.wso2.carbon.identity.governance</artifactId>
+                <version>${identity.governance.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.googlecode.json-simple.wso2</groupId>
@@ -265,6 +276,7 @@
     <properties>
         <carbon.kernel.version>4.4.27</carbon.kernel.version>
         <carbon.identity.framework.version>5.11.236</carbon.identity.framework.version>
+        <identity.governance.version>1.1.17</identity.governance.version>
 
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>

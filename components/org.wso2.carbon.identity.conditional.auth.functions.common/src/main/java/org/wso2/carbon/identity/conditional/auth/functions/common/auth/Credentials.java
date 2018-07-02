@@ -14,20 +14,28 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http.util;
+package org.wso2.carbon.identity.conditional.auth.functions.common.auth;
+
+import java.security.Principal;
 
 /**
- * Set of the constants used in the cookie related functions.
+ * User credentials
  */
-public class HTTPConstants {
+public interface Credentials {
 
-    public static final String SIGN = "sign";
-    public static final String ENCRYPT = "encrypt";
-    public static final String VALIDATE_SIGN = "validateSignature";
-    public static final String DECRYPT = "decrypt";
-    public static final String VALUE = "value";
-    public static final String SIGNATURE = "signature";
+    /**
+     * Get the user principal of this credential.
+     *
+     * @return principal
+     */
+    Principal getUserPrincipal();
+
+    /**
+     * Get the password of this credential.
+     *
+     * @return password
+     */
+    String getPassword();
 }
