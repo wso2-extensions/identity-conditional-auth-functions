@@ -62,9 +62,9 @@ public class SessionValidationUtil {
         JSONArray responseJsonArray;
         httpResponse = httpClient.execute(httpPost);
         if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-            try(BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity()
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity()
                     .getContent(),
-                    StandardCharsets.UTF_8.name()))){
+                    StandardCharsets.UTF_8.name()))) {
                 StringBuilder responseResult = new StringBuilder();
                 String line;
                 while ((line = bufferedReader.readLine()) != null) {
@@ -146,7 +146,8 @@ public class SessionValidationUtil {
     public static HttpPost setAuthorizationHeader(HttpPost httpMethod, String username, String password) {
 
         String toEncode = username + SessionValidationConstants.ATTRIBUTE_SEPARATOR + password;
-        byte[] encoding = org.apache.commons.codec.binary.Base64.encodeBase64(toEncode.getBytes(Charset.forName(StandardCharsets.UTF_8.name())));
+
+        byte[] encoding = Base64.encodeBase64(toEncode.getBytes(Charset.forName(StandardCharsets.UTF_8.name())));
         String authHeader = new String(encoding, Charset.defaultCharset());
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION,
                 SessionValidationConstants.AUTH_TYPE_KEY + authHeader);
