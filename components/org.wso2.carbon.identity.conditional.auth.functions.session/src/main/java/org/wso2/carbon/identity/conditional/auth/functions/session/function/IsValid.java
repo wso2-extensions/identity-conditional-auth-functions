@@ -27,7 +27,7 @@ import java.util.Map;
  * Function definition for verify some defined requirement is fulfilled.
  */
 @FunctionalInterface
-public interface IsValidFunction {
+public interface IsValid {
 
     boolean validate(JsAuthenticationContext context, Map<String, String> map)
             throws AuthenticationFailedException;

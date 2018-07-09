@@ -33,7 +33,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetS
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetUserSessionDataFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.KillSessionFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsValidFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsValid;
 
 @Component(
         name = "session.based.conditional.authentication.function.component",
@@ -56,7 +56,7 @@ public class SessionBasedJSFunctionsComponent {
             killSessionFunction = new KillSessionFunction();
             getSessionDataFunction = new GetSessionDataFunction();
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isWithinSessionLimit",
-                    (IsValidFunction) isWithinSessionLimitFunction::validate);
+                    (IsValid) isWithinSessionLimitFunction::validate);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "killSession",
                     (ExecuteActionFunction) killSessionFunction::execute);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getSessionData",

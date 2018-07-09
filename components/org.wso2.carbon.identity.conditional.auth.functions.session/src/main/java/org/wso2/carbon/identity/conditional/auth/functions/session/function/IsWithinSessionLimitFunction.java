@@ -49,7 +49,7 @@ import static java.lang.Integer.parseInt;
  * sessions.
  * The purpose is to perform dynamic authentication selection based on the active session count.
  */
-public class IsWithinSessionLimitFunction implements IsValidFunction {
+public class IsWithinSessionLimitFunction implements IsValid {
 
     private static final Log log = LogFactory.getLog(IsWithinSessionLimitFunction.class);
 
