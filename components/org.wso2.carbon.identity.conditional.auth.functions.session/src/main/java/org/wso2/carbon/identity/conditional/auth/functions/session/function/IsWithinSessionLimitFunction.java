@@ -32,9 +32,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -68,10 +68,10 @@ public class IsWithinSessionLimitFunction implements IsValid {
         boolean state = false;
         int sessionLimit = getSessionLimitFromMap(map);
         AuthenticatedUser authenticatedUser;
-        try{
+        try {
             authenticatedUser = context.getWrapped().getLastAuthenticatedUser();
-        } catch (NullPointerException e){
-            throw new AuthenticationFailedException("Failed to identify the Authenticated user from the context",e);
+        } catch (NullPointerException e) {
+            throw new AuthenticationFailedException("Failed to identify the Authenticated user from the context", e);
         }
         if (authenticatedUser == null) {
             if (log.isDebugEnabled()) {
@@ -89,9 +89,6 @@ public class IsWithinSessionLimitFunction implements IsValid {
             }
         } catch (FrameworkException e) {
             throw new AuthenticationFailedException("Problem occurred retrieving session data for the user " +
-                    authenticatedUser.getUserName(), e);
-        } catch (NumberFormatException e) {
-            throw new AuthenticationFailedException("Failed to retrieve session count from response for the user " +
                     authenticatedUser.getUserName(), e);
         }
         return state;
@@ -157,6 +154,8 @@ public class IsWithinSessionLimitFunction implements IsValid {
                     return sessionCount;
                 } catch (IOException e) {
                     throw new FrameworkException("Problem occurred while processing the HTTP Response ");
+                } catch (NumberFormatException e){
+                    throw new FrameworkException("Problem occurred while parsing response result ");
                 }
             } else {
                 throw new FrameworkException("Failed to retrieve data from endpoint.Response status code :" +
