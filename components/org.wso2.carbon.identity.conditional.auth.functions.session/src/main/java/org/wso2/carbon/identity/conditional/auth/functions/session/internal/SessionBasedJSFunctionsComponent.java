@@ -29,10 +29,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.ExecuteActionFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetDataFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetSessionDataFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetUserSessionDataFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.KillSessionFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetSessionDataFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsValidFunction;
 
 @Component(
@@ -60,7 +60,7 @@ public class SessionBasedJSFunctionsComponent {
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "killSession",
                     (ExecuteActionFunction) killSessionFunction::execute);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getSessionData",
-                    (GetDataFunction) getSessionDataFunction::getData);
+                    (GetUserSessionDataFunction) getSessionDataFunction::getData);
             if (log.isDebugEnabled()) {
                 log.info("Session based conditional authentication component bundle activated");
             }

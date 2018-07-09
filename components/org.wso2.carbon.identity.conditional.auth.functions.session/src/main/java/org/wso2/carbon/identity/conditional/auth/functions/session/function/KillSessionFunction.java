@@ -34,7 +34,7 @@ public class KillSessionFunction implements ExecuteActionFunction {
     private static final Log log = LogFactory.getLog(KillSessionFunction.class);
 
     @Override
-    public Boolean execute(JsAuthenticationContext context, Map<String, String> map) {
+    public boolean execute(JsAuthenticationContext context, Map<String, String> map) {
 
         String sessionId = map.get(SessionValidationConstants.TERMINATION_SESSION_ID);
         try {

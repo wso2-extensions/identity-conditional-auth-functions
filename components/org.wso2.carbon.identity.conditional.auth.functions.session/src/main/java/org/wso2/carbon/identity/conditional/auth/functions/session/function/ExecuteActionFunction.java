@@ -35,5 +35,5 @@ public interface ExecuteActionFunction {
      * @param map     parameter map
      * @return boolean value indicating the success or failure state of process
      */
-    Boolean execute(JsAuthenticationContext context, Map<String, String> map);
+    boolean execute(JsAuthenticationContext context, Map<String, String> map);
 }

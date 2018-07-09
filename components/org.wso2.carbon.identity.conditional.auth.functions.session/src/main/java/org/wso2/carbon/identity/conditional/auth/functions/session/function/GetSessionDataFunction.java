@@ -37,7 +37,7 @@ import java.util.Map;
  * Represents javascript function provided in conditional authentication to retrieve active session data for given user.
  * The purpose is to perform dynamic authentication selection based on the active session count.
  */
-public class GetSessionDataFunction implements GetDataFunction {
+public class GetSessionDataFunction implements GetUserSessionDataFunction {
 
     private static final Log log = LogFactory.getLog(GetSessionDataFunction.class);
 
@@ -68,7 +68,7 @@ public class GetSessionDataFunction implements GetDataFunction {
             }
             jsonObject.put(SessionValidationConstants.SESSIONS_TAG, jsonArray);
         } catch (IOException | SessionValidationException e) {
-            log.error("Failed to retrieve active session details");
+            log.error("Failed to retrieve active session details",e);
         }
         return jsonObject;
     }
