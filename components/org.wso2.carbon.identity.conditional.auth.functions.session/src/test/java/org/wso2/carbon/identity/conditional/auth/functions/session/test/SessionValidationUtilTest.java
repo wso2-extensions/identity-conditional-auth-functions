@@ -88,15 +88,6 @@ public class SessionValidationUtilTest {
         Assert.assertEquals("Basic " + authHeader, header.getValue());
     }
 
-    //Test for JSON response is []
-    @Test(expectedExceptions = {SessionValidationException.class, NullPointerException.class})
-    public void testGetSessionDetails() throws IOException, SessionValidationException {
-
-        JSONArray respond = SessionValidationUtil.getSessionDetails(authenticatedUserMock);
-        Assert.assertEquals(respond.toString().charAt(0), '[');
-        Assert.assertEquals(respond.toString().charAt(respond.toString().length() - 1), ']');
-    }
-
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
 

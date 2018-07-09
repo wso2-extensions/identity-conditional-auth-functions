@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.session.exception.SessionValidationException;
+import org.wso2.carbon.identity.conditional.auth.functions.session.model.Session;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.BufferedReader;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 /**
  * Utility methods used in the session validation conditional authentication functions.
@@ -52,7 +54,7 @@ public class SessionValidationUtil {
      * @throws IOException                When it fails to read response from the REST call
      * @throws SessionValidationException when REST response is not in state 200
      */
-    public static JSONArray getSessionDetails(AuthenticatedUser authenticatedUser) throws
+    public static ArrayList<Session> getSessionDetails(AuthenticatedUser authenticatedUser) throws
             IOException, SessionValidationException {
 
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
@@ -76,7 +78,7 @@ public class SessionValidationUtil {
             throw new SessionValidationException("Failed to retrieve data from endpoint. Error code :" +
                     httpResponse.getStatusLine().getStatusCode());
         }
-        return responseJsonArray;
+        return getSessionListFromJSON(responseJsonArray);
     }
 
     /**
@@ -152,5 +154,21 @@ public class SessionValidationUtil {
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION,
                 SessionValidationConstants.AUTH_TYPE_KEY + authHeader);
         return httpMethod;
+    }
+
+    public static ArrayList<Session> getSessionListFromJSON(JSONArray sessionJSON){
+        ArrayList<Session> sessionList = new ArrayList<>();
+        for (int sessionIndex = 0; sessionIndex < sessionJSON.length(); sessionIndex++) {
+            JSONObject sessionJsonObject = sessionJSON.getJSONObject(sessionIndex);
+            JSONObject sessionValues = sessionJsonObject.getJSONObject(SessionValidationConstants.VALUE_TAG);
+            String sessionId = sessionValues.getString(SessionValidationConstants.SESSION_ID_TAG);
+            String timestamp = sessionJsonObject.get(SessionValidationConstants.TIMESTAMP_TAG).toString();
+            String userAgent = sessionValues.get(SessionValidationConstants.USER_AGENT_TAG).toString();
+            String ipAddress = sessionValues.getString(SessionValidationConstants.IP_TAG);
+            String serviceProvider = sessionValues.getString(SessionValidationConstants.SERVICE_PROVIDER_TAG);
+            Session session = new Session(sessionId, timestamp, userAgent, ipAddress, serviceProvider);
+            sessionList.add(session);
+        }
+        return sessionList;
     }
 }

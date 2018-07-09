@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionV
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationUtil;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -54,18 +55,11 @@ public class GetSessionDataFunction implements GetUserSessionDataFunction {
             throw new AuthenticationFailedException("Authentication user not found");
         }
         try {
-            JSONArray sessionMetaData = SessionValidationUtil.getSessionDetails(authenticatedUser);
-            for (int sessionIndex = 0; sessionIndex < sessionMetaData.length(); sessionIndex++) {
-                JSONObject sessionJsonObject = sessionMetaData.getJSONObject(sessionIndex);
-                JSONObject sessionValues = sessionJsonObject.getJSONObject(SessionValidationConstants.VALUE_TAG);
-                String sessionId = sessionValues.getString(SessionValidationConstants.SESSION_ID_TAG);
-                String timestamp = sessionJsonObject.get(SessionValidationConstants.TIMESTAMP_TAG).toString();
-                String userAgent = sessionValues.get(SessionValidationConstants.USER_AGENT_TAG).toString();
-                String ipAddress = sessionValues.getString(SessionValidationConstants.IP_TAG);
-                String serviceProvider = sessionValues.getString(SessionValidationConstants.SERVICE_PROVIDER_TAG);
-                Session session = new Session(sessionId, timestamp, userAgent, ipAddress, serviceProvider);
+            ArrayList<Session> sessionList = SessionValidationUtil.getSessionDetails(authenticatedUser);
+            for (Session session : sessionList) {
                 jsonArray.put(session.toJSONObject());
             }
+
             jsonObject.put(SessionValidationConstants.SESSIONS_TAG, jsonArray);
         } catch (IOException | SessionValidationException e) {
             log.error("Failed to retrieve active session details",e);
