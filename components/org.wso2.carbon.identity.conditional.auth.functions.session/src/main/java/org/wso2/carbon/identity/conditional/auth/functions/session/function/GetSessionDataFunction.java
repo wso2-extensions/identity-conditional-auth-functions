@@ -64,7 +64,7 @@ public class GetSessionDataFunction implements GetUserSessionDataFunction {
                 String ipAddress = sessionValues.getString(SessionValidationConstants.IP_TAG);
                 String serviceProvider = sessionValues.getString(SessionValidationConstants.SERVICE_PROVIDER_TAG);
                 Session session = new Session(sessionId, timestamp, userAgent, ipAddress, serviceProvider);
-                jsonArray.put(session.getJSONObject());
+                jsonArray.put(session.toJSONObject());
             }
             jsonObject.put(SessionValidationConstants.SESSIONS_TAG, jsonArray);
         } catch (IOException | SessionValidationException e) {

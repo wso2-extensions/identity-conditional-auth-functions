@@ -54,7 +54,7 @@ public class Session {
      *
      * @return A JSON Object with session details
      */
-    public JSONObject getJSONObject() {
+    public JSONObject toJSONObject() {
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("sessionID", sessionId);
