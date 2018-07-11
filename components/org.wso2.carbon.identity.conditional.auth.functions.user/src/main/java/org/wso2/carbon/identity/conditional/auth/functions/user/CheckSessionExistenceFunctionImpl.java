@@ -27,13 +27,13 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 
 import java.util.Map;
 
-public class CheckSessionImpl implements CheckSession {
+public class CheckSessionExistenceFunctionImpl implements CheckSessionExistenceFunction {
 
     @Override
-    public boolean checkSession(int step, JsAuthenticationContext context) {
+    public boolean checkSessionExistence(int step, JsAuthenticationContext context) {
 
-        StepConfig stepConfig = context.getWrapped().getSequenceConfig().getAuthenticationGraph().getStepMap()
-                .get(step);
+        StepConfig stepConfig = context.getWrapped()
+                .getSequenceConfig().getAuthenticationGraph().getStepMap().get(step);
         Map<String, AuthenticatedIdPData> authenticatedIdPs = context.getWrapped().getCurrentAuthenticatedIdPs();
 
         // If there are no current authenticated IDPs, it means no authentication has been taken place yet.

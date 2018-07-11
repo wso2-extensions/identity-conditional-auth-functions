@@ -22,7 +22,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
  * Function to prompt for user identifier.
  */
 @FunctionalInterface
-public interface PromptIdentifier {
+public interface PromptIdentifierFunction {
 
     /**
      * Prompt for user identifier.

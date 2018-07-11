@@ -28,12 +28,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExistenceFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierFunctionImpl;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -60,9 +60,9 @@ public class UserFunctionsServiceComponent {
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
                 hasAnyOfTheRolesFunctionImpl);
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "promptIdentifierForStep",
-                new PromptIdentifierImpl());
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSession",
-                new CheckSessionImpl());
+                new PromptIdentifierFunctionImpl());
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSessionExistence",
+                new CheckSessionExistenceFunctionImpl());
     }
 
     @Deactivate
@@ -73,7 +73,7 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "promptIdentifierForStep");
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSession");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSessionExistence");
         }
     }
 

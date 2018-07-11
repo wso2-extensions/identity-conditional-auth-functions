@@ -25,10 +25,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import java.util.HashMap;
 import java.util.Map;
 
-public class PromptIdentifierImpl implements PromptIdentifier {
+public class PromptIdentifierFunctionImpl implements PromptIdentifierFunction {
 
     public static final String DEFAULT_PRE_HANDLER_FUNC = "function(step, context) {return " +
-            "checkSession(step, context);}";
+            "checkSessionExistence(step, context);}";
     public static final String IDENTIFIER_TEMPLATE_NAME = "username";
     public static final String STEP_PARAM = "step";
 

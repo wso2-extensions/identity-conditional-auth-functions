@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
  * give step.
  */
 @FunctionalInterface
-public interface CheckSession {
+public interface CheckSessionExistenceFunction {
 
     /**
      * Check if the user in the authentication context is authenticated for the give step.
@@ -33,5 +33,5 @@ public interface CheckSession {
      * @param context   authentication context
      * @return          if the user is already authenticated for the step.
      */
-    boolean checkSession(int step, JsAuthenticationContext context);
+    boolean checkSessionExistence(int step, JsAuthenticationContext context);
 }
