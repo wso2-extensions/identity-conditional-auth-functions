@@ -32,8 +32,8 @@ import org.wso2.carbon.identity.conditional.auth.functions.session.function.Exec
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetSessionDataFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetUserSessionDataFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.KillSessionFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsValid;
 
 @Component(
         name = "session.based.conditional.authentication.function.component",
@@ -44,7 +44,7 @@ public class SessionBasedJSFunctionsComponent {
     private static Log log = LogFactory.getLog(SessionBasedJSFunctionsComponent.class);
 
     private JsFunctionRegistry jsFunctionRegistry;
-    private IsWithinSessionLimitFunction isWithinSessionLimitFunction;
+    private IsWithinSessionLimitFunctionImpl isWithinSessionLimitFunction;
     private KillSessionFunction killSessionFunction;
     private GetSessionDataFunction getSessionDataFunction;
 
@@ -52,11 +52,11 @@ public class SessionBasedJSFunctionsComponent {
     protected void activate(ComponentContext ctxt) {
 
         try {
-            isWithinSessionLimitFunction = new IsWithinSessionLimitFunction();
+            isWithinSessionLimitFunction = new IsWithinSessionLimitFunctionImpl();
             killSessionFunction = new KillSessionFunction();
             getSessionDataFunction = new GetSessionDataFunction();
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isWithinSessionLimit",
-                    (IsValid) isWithinSessionLimitFunction::validate);
+                    (IsWithinSessionLimitFunction) isWithinSessionLimitFunction::validate);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "killSession",
                     (ExecuteActionFunction) killSessionFunction::execute);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getSessionData",

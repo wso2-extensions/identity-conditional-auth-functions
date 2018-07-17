@@ -20,18 +20,16 @@ package org.wso2.carbon.identity.conditional.auth.functions.session.function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.session.exception.SessionValidationException;
 import org.wso2.carbon.identity.conditional.auth.functions.session.model.Session;
-import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,10 +41,10 @@ public class GetSessionDataFunction implements GetUserSessionDataFunction {
     private static final Log log = LogFactory.getLog(GetSessionDataFunction.class);
 
     @Override
-    public JSONObject getData(JsAuthenticationContext context, Map<String, String> map) throws AuthenticationFailedException {
+    public Map<String, Session> getData(JsAuthenticationContext context, Map<String, String> map) throws
+            AuthenticationFailedException {
 
-        JSONObject jsonObject = new JSONObject();
-        JSONArray jsonArray = new JSONArray();
+        Map<String, Session> sessionMap = new HashMap<>();
         AuthenticatedUser authenticatedUser = context.getWrapped().getLastAuthenticatedUser();
         if (authenticatedUser == null) {
             if (log.isDebugEnabled()) {
@@ -55,15 +53,14 @@ public class GetSessionDataFunction implements GetUserSessionDataFunction {
             throw new AuthenticationFailedException("Authentication user not found");
         }
         try {
-            ArrayList<Session> sessionList = SessionValidationUtil.getSessionDetails(authenticatedUser);
+            List<Session> sessionList = SessionValidationUtil.getSessionDetails(authenticatedUser);
             for (Session session : sessionList) {
-                jsonArray.put(session.toJSONObject());
+                sessionMap.put(session.getSessionId(), session);
             }
 
-            jsonObject.put(SessionValidationConstants.SESSIONS_TAG, jsonArray);
         } catch (IOException | SessionValidationException e) {
-            log.error("Failed to retrieve active session details",e);
+            log.error("Failed to retrieve active session details", e);
         }
-        return jsonObject;
+        return sessionMap;
     }
 }

@@ -31,6 +31,9 @@ public class Session {
     private String ipAddress;
     private String serviceProvider;
 
+    public String getSessionId() {
+        return sessionId;
+    }
     /**
      * Constructor of the model class.
      *

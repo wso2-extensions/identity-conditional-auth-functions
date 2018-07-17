@@ -40,6 +40,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility methods used in the session validation conditional authentication functions.
@@ -54,7 +55,7 @@ public class SessionValidationUtil {
      * @throws IOException                When it fails to read response from the REST call
      * @throws SessionValidationException when REST response is not in state 200
      */
-    public static ArrayList<Session> getSessionDetails(AuthenticatedUser authenticatedUser) throws
+    public static List<Session> getSessionDetails(AuthenticatedUser authenticatedUser) throws
             IOException, SessionValidationException {
 
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
@@ -156,7 +157,7 @@ public class SessionValidationUtil {
         return httpMethod;
     }
 
-    public static ArrayList<Session> getSessionListFromJSON(JSONArray sessionJSON){
+    public static List<Session> getSessionListFromJSON(JSONArray sessionJSON) {
         ArrayList<Session> sessionList = new ArrayList<>();
         for (int sessionIndex = 0; sessionIndex < sessionJSON.length(); sessionIndex++) {
             JSONObject sessionJsonObject = sessionJSON.getJSONObject(sessionIndex);

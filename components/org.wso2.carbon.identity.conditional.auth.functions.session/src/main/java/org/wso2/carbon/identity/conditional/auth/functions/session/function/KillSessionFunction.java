@@ -37,18 +37,15 @@ public class KillSessionFunction implements ExecuteActionFunction {
     public boolean execute(JsAuthenticationContext context, Map<String, String> map) {
 
         String sessionId = map.get(SessionValidationConstants.TERMINATION_SESSION_ID);
-        try {
-            SessionManagementService sessionManagementService = new SessionManagementService();
-            if (log.isDebugEnabled()) {
-                log.debug("Session with session id :" + sessionId + " is requested to kill");
-            }
-            sessionManagementService.removeSession(sessionId);
-        } catch (NullPointerException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Session with provided session ID :" + sessionId + " not found.");
-            }
+        SessionManagementService sessionManagementService = new SessionManagementService();
+        if (log.isDebugEnabled()) {
+            log.debug("Session with session id :" + sessionId + " is requested to kill");
+        }
+        if (sessionId.equals("") || sessionId.isEmpty()) {
             return false;
         }
+        sessionManagementService.removeSession(sessionId);
+
         return true;
     }
 }

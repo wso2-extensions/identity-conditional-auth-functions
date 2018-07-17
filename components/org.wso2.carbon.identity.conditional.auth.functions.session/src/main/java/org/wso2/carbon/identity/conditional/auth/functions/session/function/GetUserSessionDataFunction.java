@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.session.function;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.conditional.auth.functions.session.model.Session;
 
 import java.util.Map;
 
@@ -38,5 +39,6 @@ public interface GetUserSessionDataFunction {
      * @return JSONObject with requested data
      * @throws AuthenticationFailedException
      */
-    JSONObject getData(JsAuthenticationContext context, Map<String, String> map) throws AuthenticationFailedException;
+    Map<String,Session> getData(JsAuthenticationContext context, Map<String, String> map) throws
+            AuthenticationFailedException;
 }

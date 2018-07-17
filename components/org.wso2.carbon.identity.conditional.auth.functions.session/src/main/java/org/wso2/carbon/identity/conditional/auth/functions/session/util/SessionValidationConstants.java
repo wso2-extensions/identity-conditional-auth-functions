@@ -53,5 +53,4 @@ public class SessionValidationConstants {
     public static final String USER_AGENT_TAG = "userAgent";
     public static final String IP_TAG = "remoteIp";
     public static final String SERVICE_PROVIDER_TAG = "serviceProvider";
-    public static final String SESSIONS_TAG = "sessions";
 }

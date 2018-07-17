@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetSessionDataFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.KillSessionFunction;
 
 import java.util.HashMap;
@@ -45,7 +45,7 @@ public class ConditionalAuthFunctionTest {
     @Mock
     KillSessionFunction killSessionFunction;
     @Spy
-    IsWithinSessionLimitFunction isWithinSessionLimitFunction;
+    IsWithinSessionLimitFunctionImpl isWithinSessionLimitFunction;
     @Spy
     GetSessionDataFunction getSessionDataFunction;
     @Mock
