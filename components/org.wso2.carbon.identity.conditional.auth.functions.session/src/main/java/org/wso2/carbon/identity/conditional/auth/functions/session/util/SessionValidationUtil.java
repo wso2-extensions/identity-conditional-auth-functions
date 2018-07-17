@@ -157,6 +157,12 @@ public class SessionValidationUtil {
         return httpMethod;
     }
 
+    /**
+     * Method to get sessionList from JSON Object
+     *
+     * @param sessionJSON JSON Object containing session related data
+     * @return List of session objects
+     */
     public static List<Session> getSessionListFromJSON(JSONArray sessionJSON) {
         ArrayList<Session> sessionList = new ArrayList<>();
         for (int sessionIndex = 0; sessionIndex < sessionJSON.length(); sessionIndex++) {

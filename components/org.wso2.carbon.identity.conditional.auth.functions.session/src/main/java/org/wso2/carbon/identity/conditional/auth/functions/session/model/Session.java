@@ -20,10 +20,12 @@ package org.wso2.carbon.identity.conditional.auth.functions.session.model;
 
 import org.json.JSONObject;
 
+import java.io.Serializable;
+
 /**
  * Model class to store details about a active sessions of user.
  */
-public class Session {
+public class Session implements Serializable {
 
     private String sessionId;
     private String timeStamp;

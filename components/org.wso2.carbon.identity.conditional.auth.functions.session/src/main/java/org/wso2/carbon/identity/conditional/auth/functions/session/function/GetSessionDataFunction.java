@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.session.exception.SessionValidationException;
 import org.wso2.carbon.identity.conditional.auth.functions.session.model.Session;
@@ -42,7 +43,7 @@ public class GetSessionDataFunction implements GetUserSessionDataFunction {
 
     @Override
     public Map<String, Session> getData(JsAuthenticationContext context, Map<String, String> map) throws
-            AuthenticationFailedException {
+            FrameworkException {
 
         Map<String, Session> sessionMap = new HashMap<>();
         AuthenticatedUser authenticatedUser = context.getWrapped().getLastAuthenticatedUser();
@@ -50,7 +51,7 @@ public class GetSessionDataFunction implements GetUserSessionDataFunction {
             if (log.isDebugEnabled()) {
                 log.debug("Unable to find the authenticated user from the Authentication context.");
             }
-            throw new AuthenticationFailedException("Authentication user not found");
+            throw new FrameworkException("Authentication user not found");
         }
         try {
             List<Session> sessionList = SessionValidationUtil.getSessionDetails(authenticatedUser);

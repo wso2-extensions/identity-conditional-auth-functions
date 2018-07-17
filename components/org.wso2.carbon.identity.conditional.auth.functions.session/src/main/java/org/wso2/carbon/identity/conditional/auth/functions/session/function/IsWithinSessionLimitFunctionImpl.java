@@ -59,11 +59,11 @@ public class IsWithinSessionLimitFunctionImpl implements IsWithinSessionLimitFun
      * @param context Authentication context
      * @param map     Hash map of attributes required for validation
      * @return boolean value indicating the validation success/failure
-     * @throws AuthenticationFailedException when exception occurred in session retrieving method
+     * @throws FrameworkException when exception occurred in session retrieving method
      */
     @Override
     public boolean validate(JsAuthenticationContext context, Map<String, String> map)
-            throws AuthenticationFailedException {
+            throws FrameworkException {
 
         boolean state = false;
         int sessionLimit = getSessionLimitFromMap(map);
@@ -73,19 +73,14 @@ public class IsWithinSessionLimitFunctionImpl implements IsWithinSessionLimitFun
             if (log.isDebugEnabled()) {
                 log.debug("Unable to find the authenticated user from the Authentication context.");
             }
-            throw new AuthenticationFailedException("Unable to find the Authenticated user from previous step");
+            throw new FrameworkException("Unable to find the Authenticated user from previous step");
         }
-        try {
-            int sessionCount = getActiveSessionCount(authenticatedUser);
-            if (log.isDebugEnabled()) {
-                log.debug("Active session count: " + sessionCount + " and session limit : " + sessionLimit);
-            }
-            if (sessionCount < sessionLimit) {
-                state = true;
-            }
-        } catch (FrameworkException e) {
-            throw new AuthenticationFailedException("Problem occurred retrieving session data for the user " +
-                    authenticatedUser.getUserName(), e);
+        int sessionCount = getActiveSessionCount(authenticatedUser);
+        if (log.isDebugEnabled()) {
+            log.debug("Active session count: " + sessionCount + " and session limit : " + sessionLimit);
+        }
+        if (sessionCount < sessionLimit) {
+            state = true;
         }
         return state;
     }
