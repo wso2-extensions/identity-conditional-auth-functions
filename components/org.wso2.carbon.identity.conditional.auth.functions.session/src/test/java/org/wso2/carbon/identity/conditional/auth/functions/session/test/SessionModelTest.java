@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.session.model.Session
  * Contains methods for testing Session Model class methods.
  */
 public class SessionModelTest {
+
     //Test for model object's toJSONObject function
     @Test
     public void testGetJSONObject() {

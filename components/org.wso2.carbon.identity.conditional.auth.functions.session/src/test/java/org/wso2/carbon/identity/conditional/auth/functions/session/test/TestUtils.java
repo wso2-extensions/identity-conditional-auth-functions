@@ -26,6 +26,7 @@ import java.util.Random;
  * Contains utility methods for Test classes
  */
 public class TestUtils {
+
     //Method for generating random string for testing purposes
     public static String getRandomString(int size, boolean useLetters, boolean useNumbers) {
         return RandomStringUtils.random(size, useLetters, useNumbers);

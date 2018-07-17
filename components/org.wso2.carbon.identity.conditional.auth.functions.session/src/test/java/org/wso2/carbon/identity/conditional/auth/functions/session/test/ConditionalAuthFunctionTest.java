@@ -24,7 +24,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.GetSessionDataFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.session.function.IsWithinSessionLimitFunctionImpl;
@@ -62,8 +62,8 @@ public class ConditionalAuthFunctionTest {
     }
 
     //Test for isWithinSessionLimitFunction with mock authenticatedUser.
-    @Test(expectedExceptions = {AuthenticationFailedException.class, NullPointerException.class})
-    public void testIsWithinSessionLimitFunction() throws AuthenticationFailedException {
+    @Test(expectedExceptions = {FrameworkException.class, NullPointerException.class})
+    public void testIsWithinSessionLimitFunction() throws FrameworkException {
 
         when(jsAuthenticationContext.getWrapped()).thenReturn(authenticationContext);
         when(authenticationContext.getLastAuthenticatedUser()).thenReturn(authenticatedUser);
@@ -74,7 +74,7 @@ public class ConditionalAuthFunctionTest {
     }
     //Test for GetSessionDataFunction
     @Test(expectedExceptions = NullPointerException.class)
-    public void testGetSessionData() throws AuthenticationFailedException {
+    public void testGetSessionData() throws FrameworkException {
 
         when(jsAuthenticationContext.getWrapped()).thenReturn(authenticationContext);
         when(authenticationContext.getLastAuthenticatedUser()).thenReturn(authenticatedUser);

@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.session.test;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.http.Header;
 import org.apache.http.client.methods.HttpPost;
-import org.json.JSONArray;
 import org.mockito.Mock;
 import org.testng.Assert;
 import org.testng.IObjectFactory;
@@ -29,11 +28,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.conditional.auth.functions.session.exception.SessionValidationException;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationUtil;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -42,7 +39,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Contains methods for testing functions in SessionValidationUtil class
- *
  */
 
 public class SessionValidationUtilTest {
