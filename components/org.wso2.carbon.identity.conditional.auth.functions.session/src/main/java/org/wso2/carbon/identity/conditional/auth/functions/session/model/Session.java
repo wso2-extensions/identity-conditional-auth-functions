@@ -33,9 +33,6 @@ public class Session implements Serializable {
     private String ipAddress;
     private String serviceProvider;
 
-    public String getSessionId() {
-        return sessionId;
-    }
     /**
      * Constructor of the model class.
      *
@@ -53,7 +50,9 @@ public class Session implements Serializable {
         this.ipAddress = ipAddress;
         this.serviceProvider = serviceProvider;
     }
-
+    public String getSessionId() {
+        return sessionId;
+    }
     /**
      * Method for retrieving session details as a JSON Object.
      *
