@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>0.1.14-SNAPSHOT</version>
+        <version>0.1.18-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -97,9 +97,14 @@
                             org.wso2.carbon,
                             org.wso2.carbon.core.util,
                             org.wso2.carbon.identity.application.authentication.framework,
+                            org.wso2.carbon.identity.application.authentication.framework.util,
                             org.wso2.carbon.identity.application.authentication.framework.exception,
                             org.wso2.carbon.identity.application.authentication.framework.model,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model,
+                            org.wso2.carbon.identity.application.authentication.framework.context,
+                            org.apache.commons.collections,
                             org.wso2.carbon.registry.core.service,
                             org.wso2.carbon.user.core,
                             org.wso2.carbon.user.core.service

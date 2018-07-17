@@ -18,45 +18,48 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.analytics.internal;
 
+import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.user.core.service.RealmService;
 
-public class SiddhiFunctionsServiceHolder {
+import java.security.KeyStore;
 
-    private static SiddhiFunctionsServiceHolder instance = new SiddhiFunctionsServiceHolder();
+public class AnalyticsFunctionsServiceHolder {
 
-    private RealmService realmService;
-    private RegistryService registryService;
+    private static AnalyticsFunctionsServiceHolder instance = new AnalyticsFunctionsServiceHolder();
+
     private JsFunctionRegistry jsFunctionRegistry;
 
-    public static SiddhiFunctionsServiceHolder getInstance() {
+    private ServerConfigurationService serverConfigurationService;
+
+    public KeyStore getTrustStore() {
+
+        return trustStore;
+    }
+
+    public void setTrustStore(KeyStore trustStore) {
+
+        this.trustStore = trustStore;
+    }
+
+    private KeyStore trustStore;
+
+    public ServerConfigurationService getServerConfigurationService() {
+
+        return serverConfigurationService;
+    }
+
+    public void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+
+        this.serverConfigurationService = serverConfigurationService;
+    }
+
+    public static AnalyticsFunctionsServiceHolder getInstance() {
 
         return instance;
     }
 
-    private SiddhiFunctionsServiceHolder(){
+    private AnalyticsFunctionsServiceHolder(){
 
-    }
-
-    public RealmService getRealmService() {
-
-        return realmService;
-    }
-
-    public void setRealmService(RealmService realmService) {
-
-        this.realmService = realmService;
-    }
-
-    public RegistryService getRegistryService() {
-
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-
-        this.registryService = registryService;
     }
 
     public JsFunctionRegistry getJsFunctionRegistry() {

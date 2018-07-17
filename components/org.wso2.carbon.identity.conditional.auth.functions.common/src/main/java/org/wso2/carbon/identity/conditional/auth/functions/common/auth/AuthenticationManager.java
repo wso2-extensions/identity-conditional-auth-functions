@@ -16,16 +16,25 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.analytics.utils;
+package org.wso2.carbon.identity.conditional.auth.functions.common.auth;
 
-public class AnalyticsConstants {
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
 
-    public static final String OUTCOME_SUCCESS = "onSuccess";
-    public static final String OUTCOME_FAIL = "onFail";
-    public static final String OUTCOME_TIMEOUT = "onTimeout";
+/**
+ * Authentication manager.
+ */
+public interface AuthenticationManager {
 
-    public static final String RECEIVER_URL = "AdaptiveAuth.EventPublisher.receiverURL";
-    public static final String HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.HTTPConnectionTimeout";
-    public static final String HTTP_READ_TIMEOUT = "AdaptiveAuth.HTTPReadTimeout";
-    public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.HTTPConnectionRequestTimeout";
+    /**
+     * Create Authorization header with provided credentials.
+     *
+     * @param credentials Credentials to use for Authorization header.
+     * @param request HTTP request.
+     *
+     * @return Authorization header
+     */
+    Header authenticate(
+            final Credentials credentials,
+            final HttpRequest request);
 }

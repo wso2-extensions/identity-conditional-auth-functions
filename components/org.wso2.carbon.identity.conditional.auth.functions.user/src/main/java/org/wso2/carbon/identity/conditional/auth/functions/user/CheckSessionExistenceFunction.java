@@ -14,28 +14,24 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http;
+package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
-
-import java.util.Map;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
 /**
- * Function definition for getcookie value from the context request.
+ * Function to check if the user in the authentication context has at least one authenticator authenticated for the
+ * give step.
  */
 @FunctionalInterface
-public interface GetCookieFunction {
+public interface CheckSessionExistenceFunction {
 
     /**
-     * Retrieve cookie value for the respective name from the request object.
-     *
-     * @param request request object
-     * @param params  value mandatory and properties optional
-     * @return cookieValue
+     * Check if the user in the authentication context is authenticated for the give step.
+     * @param step      step number
+     * @param context   authentication context
+     * @return          if the user is already authenticated for the step.
      */
-    String getCookieValue(JsServletRequest request, Object... params);
-
+    boolean checkSessionExistence(int step, JsAuthenticationContext context);
 }

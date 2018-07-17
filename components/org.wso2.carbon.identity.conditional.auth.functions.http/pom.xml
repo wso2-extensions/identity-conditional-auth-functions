@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>0.1.14-SNAPSHOT</version>
+        <version>0.1.18-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -34,6 +34,10 @@
     <packaging>bundle</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.common</artifactId>
+        </dependency>
         <dependency>
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
@@ -108,7 +112,10 @@
                             org.wso2.carbon.identity.core.util,
                             org.wso2.carbon.registry.core.service,
                             org.wso2.carbon.user.core,
-                            org.wso2.carbon.user.core.service
+                            org.wso2.carbon.user.core.service,
+                            org.wso2.carbon.identity.conditional.auth.functions.common,
+                            org.wso2.carbon.identity.conditional.auth.functions.common.utils,
+                            org.wso2.carbon.identity.conditional.auth.functions.common.auth,
                         </Import-Package>
                     </instructions>
                 </configuration>

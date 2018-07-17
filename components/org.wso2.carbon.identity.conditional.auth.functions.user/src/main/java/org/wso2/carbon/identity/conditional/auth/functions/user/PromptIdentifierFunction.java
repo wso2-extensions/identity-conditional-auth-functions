@@ -14,28 +14,20 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http;
-
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
-
-import java.util.Map;
+package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 /**
- * Function definition for getcookie value from the context request.
+ * Function to prompt for user identifier.
  */
 @FunctionalInterface
-public interface GetCookieFunction {
+public interface PromptIdentifierFunction {
 
     /**
-     * Retrieve cookie value for the respective name from the request object.
-     *
-     * @param request request object
-     * @param params  value mandatory and properties optional
-     * @return cookieValue
+     * Prompt for user identifier.
+     * @param step          step number
+     * @param parameters    parameters
      */
-    String getCookieValue(JsServletRequest request, Object... params);
-
+    void promptIdentifier(int step, Object... parameters);
 }

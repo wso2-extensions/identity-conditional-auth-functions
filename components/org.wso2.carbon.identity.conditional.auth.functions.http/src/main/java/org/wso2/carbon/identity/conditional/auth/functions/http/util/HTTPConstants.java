@@ -30,13 +30,4 @@ public class HTTPConstants {
     public static final String DECRYPT = "decrypt";
     public static final String VALUE = "value";
     public static final String SIGNATURE = "signature";
-
-    public static final String OUTCOME_SUCCESS = "onSuccess";
-    public static final String OUTCOME_FAIL = "onFail";
-    public static final String OUTCOME_TIMEOUT = "onTimeout";
-
-    public static final String RECEIVER_URL = "AdaptiveAuth.EventPublisher.receiverURL";
-    public static final String HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.HTTPConnectionTimeout";
-    public static final String HTTP_READ_TIMEOUT = "AdaptiveAuth.HTTPReadTimeout";
-    public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.HTTPConnectionRequestTimeout";
 }

@@ -14,28 +14,25 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.http;
-
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
-
-import java.util.Map;
+package org.wso2.carbon.identity.conditional.auth.functions.common.auth;
 
 /**
- * Function definition for getcookie value from the context request.
+ * Factory to get authentication manager.
  */
-@FunctionalInterface
-public interface GetCookieFunction {
+public class AuthenticationFactory {
 
     /**
-     * Retrieve cookie value for the respective name from the request object.
-     *
-     * @param request request object
-     * @param params  value mandatory and properties optional
-     * @return cookieValue
+     * Get the authentication manager
+     * @param authType authentication type.
+     * @return Authentication manager.
      */
-    String getCookieValue(JsServletRequest request, Object... params);
-
+    public AuthenticationManager getAuthenticationManager(String authType){
+        if ("Basic".equalsIgnoreCase(authType)) {
+            return new BasicAuthenticationManager();
+        } else {
+            throw new IllegalArgumentException("Unsupported Authentication type.");
+        }
+    }
 }
