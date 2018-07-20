@@ -45,6 +45,7 @@
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.http</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.analytics</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.session</module>
     </modules>
 
     <dependencyManagement>
@@ -121,6 +122,20 @@
                 <artifactId>json-simple</artifactId>
                 <version>${com.googlecode.json-simple.wso2.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>${org.powermock.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.agent</artifactId>
+                <classifier>runtime</classifier>
+                <scope>test</scope>
+                <version>${jacoco.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -281,16 +296,16 @@
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
         <org.powermock.version>1.7.3</org.powermock.version>
-
+        <org.json.version.range>[3.0,4)</org.json.version.range>
         <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
         <jacoco.version>0.7.9</jacoco.version>
-
+        <org.apache.axis2.transport.version.range>[1.6,2)</org.apache.axis2.transport.version.range>
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
-
+        <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
         <com.googlecode.json-simple.wso2.version>1.1.wso2v1</com.googlecode.json-simple.wso2.version>
     </properties>
 </project>
