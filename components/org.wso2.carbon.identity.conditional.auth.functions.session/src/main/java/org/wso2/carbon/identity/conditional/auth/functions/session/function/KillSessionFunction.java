@@ -42,7 +42,7 @@ public class KillSessionFunction implements ExecuteActionFunction {
         if (log.isDebugEnabled()) {
             log.debug("Session with session id :" + sessionId + " is requested to kill");
         }
-        if ( StringUtils.isEmpty(sessionId) || sessionId.isEmpty()) {
+        if ( StringUtils.isEmpty(sessionId)) {
             return false;
         }
         sessionManagementService.removeSession(sessionId);
