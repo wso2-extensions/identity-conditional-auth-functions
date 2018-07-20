@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
+import org.wso2.carbon.utils.xml.StringUtils;
 
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class KillSessionFunction implements ExecuteActionFunction {
         if (log.isDebugEnabled()) {
             log.debug("Session with session id :" + sessionId + " is requested to kill");
         }
-        if (sessionId.equals("") || sessionId.isEmpty()) {
+        if ( StringUtils.isEmpty(sessionId) || sessionId.isEmpty()) {
             return false;
         }
         sessionManagementService.removeSession(sessionId);

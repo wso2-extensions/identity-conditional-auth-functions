@@ -95,7 +95,6 @@
                             org.wso2.carbon.identity.application.authentication.framework.model,
                             org.wso2.carbon.identity.application.authentication.framework.services,
                             org.wso2.carbon.identity.core.util,
-                            org.wso2.carbon.identity.conditional.auth.functions.session.function
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.conditional.auth.functions.session.internal,
