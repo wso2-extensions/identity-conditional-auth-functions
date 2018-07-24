@@ -93,15 +93,15 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function onInitialRequest(context) {
-	executeStep(1, {
+function onLoginRequest(context) {
+    executeStep(1, {
         onSuccess : function(context){
                 Log.info('Has Role calling');
                 isAdmin = hasRole(context.steps[1].subject, 'admin');
                 Log.info('Has Role returned '+isAdmin);
                 context.selectedAcr = ''+isAdmin;
         }
-	})
+    })
 }
 
 ]]></AuthenticationScript>

@@ -93,13 +93,13 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function onInitialRequest(context) {
-	executeStep(1, {
+function onLoginRequest(context) {
+    executeStep(1, {
         onSuccess : function(context){
                 Log.info('Send Email Role calling');
                 sendEmail(context.steps[1].subject, 'template1', {});
         }
-	})
+    })
 }
 
 ]]></AuthenticationScript>
