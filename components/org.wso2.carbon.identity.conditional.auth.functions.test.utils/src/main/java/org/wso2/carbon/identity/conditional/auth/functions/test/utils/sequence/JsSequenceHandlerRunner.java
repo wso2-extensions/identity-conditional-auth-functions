@@ -22,6 +22,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -40,7 +41,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.MockAu
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.SubjectCallback;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -157,11 +157,14 @@ public class JsSequenceHandlerRunner {
                        String tenantDomain) throws
             JsTestException {
 
-        UserCoreUtil.setDomainInThreadLocal(tenantDomain);
         try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
             graphBasedSequenceHandler.handle(req, resp, context);
         } catch (FrameworkException e) {
             throw new JsTestException("Error executing javascript based sequence handler", e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
     }
 

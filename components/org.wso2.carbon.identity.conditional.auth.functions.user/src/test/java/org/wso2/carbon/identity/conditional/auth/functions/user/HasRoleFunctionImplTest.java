@@ -74,13 +74,13 @@ public class HasRoleFunctionImplTest extends JsSequenceHandlerAbstractTest {
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
-        sequenceHandlerRunner.handle(req, resp, context, "PRIMARY");
+        sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
 
         HttpServletRequest secondReq = sequenceHandlerRunner.createHttpServletRequest();
         secondReq.setAttribute("s", "S");
         HttpServletResponse secondResp = sequenceHandlerRunner.createHttpServletResponse();
 
-        sequenceHandlerRunner.handle(req, resp, context, "PRIMARY");
+        sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
         assertNotNull(context.getSelectedAcr());
         assertTrue(Boolean.parseBoolean(context.getSelectedAcr()));
     }

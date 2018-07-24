@@ -90,7 +90,7 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
-        sequenceHandlerRunner.handle(req, resp, context, "PRIMARY");
+        sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
 
         assertEquals(hasEmailSent.get(), sendSuccessfully);
     }
