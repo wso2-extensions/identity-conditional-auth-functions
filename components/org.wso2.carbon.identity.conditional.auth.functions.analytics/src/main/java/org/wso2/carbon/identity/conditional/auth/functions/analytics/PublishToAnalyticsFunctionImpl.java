@@ -21,19 +21,18 @@ package org.wso2.carbon.identity.conditional.auth.functions.analytics;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils;
 import org.wso2.carbon.identity.event.IdentityEventException;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Map;
 
@@ -85,22 +84,60 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
             jsonObject.put("event", event);
             request.setEntity(new StringEntity(jsonObject.toJSONString()));
 
-            URL hostUrl = new URL(targetHostUrl);
-            HttpHost targetHost = new HttpHost(hostUrl.getHost(), hostUrl.getPort());
+            String[] targetHostUrls = targetHostUrl.split(";");
 
-            CloseableHttpClient client = ClientManager.getInstance().getClient(tenantDomain);
-            try (CloseableHttpResponse response = client.execute(targetHost, request)) {
-                EntityUtils.consume(response.getEntity());
+            HttpHost[] targetHosts = new HttpHost[targetHostUrls.length];
+
+            for (int i = 0; i < targetHostUrls.length; i++) {
+                URL hostUrl = new URL(targetHostUrls[i]);
+                targetHosts[i] = new HttpHost(hostUrl.getHost(), hostUrl.getPort(), hostUrl.getProtocol());
             }
 
-        }  catch (ConnectTimeoutException e) {
-            LOG.error("Error while waiting to connect to " + epUrl, e);
-        } catch (SocketTimeoutException e) {
-            LOG.error("Error while waiting for data from " + epUrl, e);
+            CloseableHttpAsyncClient client = ClientManager.getInstance().getClient(tenantDomain);
+
+            for (final HttpHost targetHost : targetHosts) {
+                client.execute(targetHost, request, new FutureCallback<HttpResponse>() {
+
+                    @Override
+                    public void completed(final HttpResponse response) {
+
+                        int responseCode = response.getStatusLine().getStatusCode();
+                        if (responseCode == 200) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("Successfully published data to the analytics for session data key: " +
+                                        context.getContext().getContextIdentifier());
+                            }
+                        } else {
+                            LOG.error("Error while publishing data to analytics engine for session data key: " +
+                                    context.getContext().getContextIdentifier() + ". Request completed successfully. " +
+                                    "But response code was not 200");
+                        }
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+
+                        LOG.error("Error while publishing data to analytics engine for session data key: " +
+                                context.getContext().getContextIdentifier() + ". Request failed with: " + ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+
+                        LOG.error("Error while publishing data to analytics engine for session data key: " +
+                                context.getContext().getContextIdentifier() + ". Request canceled.");
+                    }
+                });
+            }
+
         } catch (IOException e) {
-            LOG.error("Error while calling siddhi.", e);
+            LOG.error("Error while calling analytics engine for tenant: " + context.getContext().getTenantDomain(), e);
         } catch (IdentityEventException e) {
-            LOG.error("Error while creating authentication.", e);
+            LOG.error("Error while preparing authentication information for tenant: " + context.getContext()
+                    .getTenantDomain(), e);
+        } catch (FrameworkException e) {
+            LOG.error("Error while building client to invoke analytics engine for tenant: " + context.getContext()
+                    .getTenantDomain(), e);
         }
     }
 }

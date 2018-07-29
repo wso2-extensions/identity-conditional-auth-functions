@@ -21,11 +21,12 @@ package org.wso2.carbon.identity.conditional.auth.functions.analytics;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -41,6 +42,7 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -62,13 +64,11 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
                               Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
-            JSONObject json = null;
-            int responseCode;
-            String outcome;
+
             String appName = metadata.get(PARAM_APP_NAME);
             String inputStream = metadata.get(PARAM_INPUT_STREAM);
             String receiverUrl = metadata.get(PARAM_EP_URL);
-            String targetPath = null;
+            String targetPath;
             try {
                 if (appName != null && inputStream != null) {
                     targetPath = "/" + appName + "/" + inputStream;
@@ -98,44 +98,92 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
                 jsonObject.put("event", event);
                 request.setEntity(new StringEntity(jsonObject.toJSONString()));
 
-                URL hostUrl = new URL(targetHostUrl);
-                HttpHost targetHost = new HttpHost(hostUrl.getHost(), hostUrl.getPort(), hostUrl.getProtocol());
+                String[] targetHostUrls = targetHostUrl.split(";");
 
-                CloseableHttpClient client = ClientManager.getInstance().getClient(tenantDomain);
-                try (CloseableHttpResponse response = client.execute(targetHost, request)) {
-                    responseCode = response.getStatusLine().getStatusCode();
+                HttpHost[] targetHosts = new HttpHost[targetHostUrls.length];
 
-                    if (responseCode == 200) {
-                        outcome = OUTCOME_SUCCESS;
-                        String jsonString = EntityUtils.toString(response.getEntity());
-                        JSONParser parser = new JSONParser();
-                        json = (JSONObject) parser.parse(jsonString);
-                    } else {
-                        outcome = OUTCOME_FAIL;
-                    }
+                for (int i = 0; i < targetHostUrls.length; i++) {
+                    URL hostUrl = new URL(targetHostUrls[i]);
+                    targetHosts[i] = new HttpHost(hostUrl.getHost(), hostUrl.getPort(), hostUrl.getProtocol());
                 }
 
-            } catch (FrameworkException e) {
-                LOG.error("Error while generating request. ", e);
-                outcome = OUTCOME_FAIL;
-            } catch (ConnectTimeoutException e) {
-                LOG.error("Error while waiting to connect to " + targetPath, e);
-                outcome = OUTCOME_TIMEOUT;
-            } catch (SocketTimeoutException e) {
-                LOG.error("Error while waiting for data from " + targetPath, e);
-                outcome = OUTCOME_TIMEOUT;
+                CloseableHttpAsyncClient client = ClientManager.getInstance().getClient(tenantDomain);
+
+                AtomicInteger requestAtomicInteger = new AtomicInteger(targetHosts.length);
+
+                for (final HttpHost targetHost : targetHosts) {
+                    client.execute(targetHost, request, new FutureCallback<HttpResponse>() {
+
+                        @Override
+                        public void completed(final HttpResponse response) {
+
+                            int responseCode = response.getStatusLine().getStatusCode();
+                            try {
+                                if (responseCode == 200) {
+                                    try {
+                                        String jsonString = EntityUtils.toString(response.getEntity());
+                                        JSONParser parser = new JSONParser();
+                                        JSONObject json = (JSONObject) parser.parse(jsonString);
+                                        asyncReturn.accept(authenticationContext, json, OUTCOME_SUCCESS);
+                                    } catch (ParseException e) {
+                                        LOG.error("Error while building response from analytics engine call for " +
+                                                "session data key: " + authenticationContext.getContextIdentifier());
+                                        asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                                    } catch (IOException e) {
+                                        LOG.error("Error while reading response from analytics engine call for " +
+                                                "session data key: " + authenticationContext.getContextIdentifier());
+                                        asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                                    }
+                                } else {
+                                    asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                                }
+                            } catch (FrameworkException e) {
+                                LOG.error("Error while proceeding after successful response from analytics engine " +
+                                        "call for session data key: " + authenticationContext.getContextIdentifier());
+                            }
+                        }
+
+                        @Override
+                        public void failed(final Exception ex) {
+
+                            if (requestAtomicInteger.decrementAndGet() <= 0) {
+                                try {
+                                    String outcome = OUTCOME_FAIL;
+                                    if ((ex instanceof SocketTimeoutException)
+                                            || (ex instanceof ConnectTimeoutException)) {
+                                        outcome = OUTCOME_TIMEOUT;
+                                    }
+                                    asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
+                                } catch (FrameworkException e) {
+                                    LOG.error("Error while proceeding after failed response from analytics engine " +
+                                            "call for session data key: " + authenticationContext.getContextIdentifier());
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void cancelled() {
+
+                            if (requestAtomicInteger.decrementAndGet() <= 0) {
+                                try {
+                                    asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                                } catch (FrameworkException e) {
+                                    LOG.error("Error while proceeding after cancelled response from analytics engine " +
+                                            "call for session data key: " + authenticationContext.getContextIdentifier());
+                                }
+                            }
+                        }
+
+                    });
+                }
+
             } catch (IOException e) {
                 LOG.error("Error while calling analytics engine. ", e);
-                outcome = OUTCOME_FAIL;
-            } catch (ParseException e) {
-                LOG.error("Error while parsing response. ", e);
-                outcome = OUTCOME_FAIL;
+                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (IdentityEventException e) {
                 LOG.error("Error while creating authentication. ", e);
-                outcome = OUTCOME_FAIL;
+                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             }
-
-            asyncReturn.accept(authenticationContext, json != null ? json : Collections.emptyMap(), outcome);
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
     }
