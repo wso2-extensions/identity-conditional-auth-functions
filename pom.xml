@@ -148,6 +148,18 @@
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.msf4j</groupId>
+                <artifactId>msf4j-core</artifactId>
+                <version>${msf4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.msf4j</groupId>
+                <artifactId>msf4j-microservice</artifactId>
+                <version>${msf4j.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -382,5 +394,7 @@
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
         <com.googlecode.json-simple.wso2.version>1.1.wso2v1</com.googlecode.json-simple.wso2.version>
         <ua_parser.version>1.3.0.wso2v1</ua_parser.version>
+        <msf4j.version>2.6.2</msf4j.version>
+
     </properties>
 </project>

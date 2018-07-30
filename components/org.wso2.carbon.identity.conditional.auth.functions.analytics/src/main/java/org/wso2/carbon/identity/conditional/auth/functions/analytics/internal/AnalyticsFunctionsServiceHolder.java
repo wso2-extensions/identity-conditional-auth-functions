@@ -28,8 +28,8 @@ public class AnalyticsFunctionsServiceHolder {
     private static AnalyticsFunctionsServiceHolder instance = new AnalyticsFunctionsServiceHolder();
 
     private JsFunctionRegistry jsFunctionRegistry;
-
     private ServerConfigurationService serverConfigurationService;
+    private KeyStore trustStore;
 
     public KeyStore getTrustStore() {
 
@@ -40,8 +40,6 @@ public class AnalyticsFunctionsServiceHolder {
 
         this.trustStore = trustStore;
     }
-
-    private KeyStore trustStore;
 
     public ServerConfigurationService getServerConfigurationService() {
 
