@@ -133,7 +133,6 @@
                             org.wso2.carbon.registry.core.service,
                             org.wso2.carbon.user.core,
                             org.wso2.carbon.user.core.service,
-                            org.wso2.carbon.identity.conditional.auth.functions.common,
                             org.wso2.carbon.identity.conditional.auth.functions.common.utils,
                             org.wso2.carbon.identity.conditional.auth.functions.common.auth,
                         </Import-Package>
