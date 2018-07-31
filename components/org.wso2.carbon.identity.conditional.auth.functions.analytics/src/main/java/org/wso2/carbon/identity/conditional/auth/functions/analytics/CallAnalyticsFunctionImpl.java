@@ -127,11 +127,11 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
                                         asyncReturn.accept(authenticationContext, json, OUTCOME_SUCCESS);
                                     } catch (ParseException e) {
                                         LOG.error("Error while building response from analytics engine call for " +
-                                                "session data key: " + authenticationContext.getContextIdentifier());
+                                                "session data key: " + authenticationContext.getContextIdentifier(), e);
                                         asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
                                     } catch (IOException e) {
                                         LOG.error("Error while reading response from analytics engine call for " +
-                                                "session data key: " + authenticationContext.getContextIdentifier());
+                                                "session data key: " + authenticationContext.getContextIdentifier(), e);
                                         asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
                                     }
                                 } else {
@@ -139,15 +139,22 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
                                 }
                             } catch (FrameworkException e) {
                                 LOG.error("Error while proceeding after successful response from analytics engine " +
-                                        "call for session data key: " + authenticationContext.getContextIdentifier());
+                                        "call for session data key: " + authenticationContext.getContextIdentifier(),
+                                        e);
                             }
                         }
 
                         @Override
                         public void failed(final Exception ex) {
 
+                            LOG.error("Failed to invoke analytics engine for session data key: " +
+                                    authenticationContext.getContextIdentifier(), ex);
                             if (requestAtomicInteger.decrementAndGet() <= 0) {
                                 try {
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug(" All the calls to analytics engine failed for session " +
+                                                "data key: " + authenticationContext.getContextIdentifier());
+                                    }
                                     String outcome = OUTCOME_FAIL;
                                     if ((ex instanceof SocketTimeoutException)
                                             || (ex instanceof ConnectTimeoutException)) {
@@ -156,7 +163,8 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
                                     asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
                                 } catch (FrameworkException e) {
                                     LOG.error("Error while proceeding after failed response from analytics engine " +
-                                            "call for session data key: " + authenticationContext.getContextIdentifier());
+                                            "call for session data key: " + authenticationContext
+                                            .getContextIdentifier(), e);
                                 }
                             }
                         }
@@ -164,12 +172,19 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
                         @Override
                         public void cancelled() {
 
+                            LOG.error("Invocation analytics engine for session data key: " +
+                                    authenticationContext.getContextIdentifier() + " is cancelled.");
                             if (requestAtomicInteger.decrementAndGet() <= 0) {
                                 try {
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug(" All the calls to analytics engine failed for session " +
+                                                "data key: " + authenticationContext.getContextIdentifier());
+                                    }
                                     asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
                                 } catch (FrameworkException e) {
                                     LOG.error("Error while proceeding after cancelled response from analytics engine " +
-                                            "call for session data key: " + authenticationContext.getContextIdentifier());
+                                            "call for session data key: " + authenticationContext
+                                            .getContextIdentifier(), e);
                                 }
                             }
                         }
