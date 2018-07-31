@@ -115,6 +115,11 @@
 
             <!-- Test related dependencies -->
             <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${org.testng.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-module-testng</artifactId>
                 <version>${org.powermock.version}</version>
@@ -405,6 +410,7 @@
 
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
+        <org.testng.version>6.9.10</org.testng.version>
         <org.powermock.version>1.7.3</org.powermock.version>
         <com.h2database.version>1.2.140.wso2v3</com.h2database.version>
 
