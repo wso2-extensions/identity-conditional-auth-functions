@@ -105,6 +105,10 @@
             <groupId>org.wso2.msf4j</groupId>
             <artifactId>msf4j-microservice</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+            <artifactId>httpasyncclient</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -164,6 +168,12 @@
                             org.apache.http.impl.conn,
                             org.osgi.framework,
                             org.wso2.carbon.base.api,
+                            org.apache.http.impl.nio.*,
+                            org.apache.http.concurrent,
+                            org.apache.http.nio.*,
+                            org.apache.axis2.context,
+                            org.wso2.carbon.utils,
+                            org.wso2.carbon.context,
                         </Import-Package>
                     </instructions>
                 </configuration>

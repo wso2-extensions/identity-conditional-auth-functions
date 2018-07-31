@@ -35,9 +35,11 @@ import org.wso2.carbon.identity.conditional.auth.functions.analytics.CallAnalyti
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.CallAnalyticsFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.PublishToAnalyticsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.analytics.PublishToAnalyticsFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.analytics.listener.AnalyticsAxis2ConfigurationContextObserver;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
+import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -78,6 +80,9 @@ public class AnalyticsFunctionsServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             AnalyticsEngineConfigImpl analyticsFunctionConfig = new AnalyticsEngineConfigImpl();
             bundleContext.registerService(IdentityConnectorConfig.class.getName(), analyticsFunctionConfig, null);
+
+            AnalyticsAxis2ConfigurationContextObserver observer = new AnalyticsAxis2ConfigurationContextObserver();
+            bundleContext.registerService(Axis2ConfigurationContextObserver.class.getName(), observer, null);
 
             ServerConfigurationService config = AnalyticsFunctionsServiceHolder.getInstance()
                     .getServerConfigurationService();
