@@ -22,6 +22,7 @@ import org.apache.axiom.om.util.Base64;
 import org.apache.commons.io.Charsets;
 import org.json.simple.JSONObject;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerRunner;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 
 import javax.servlet.http.Cookie;
@@ -68,8 +70,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
 
-        SequenceConfig sequenceConfig = sequenceHandlerRunner
-                .getSequenceConfig(context, sp1);
+        SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp1);
         context.setSequenceConfig(sequenceConfig);
 
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
@@ -97,16 +98,41 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
 
-        SequenceConfig sequenceConfig = sequenceHandlerRunner
-                .getSequenceConfig(context, sp1);
+        SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp1);
         context.setSequenceConfig(sequenceConfig);
 
-        HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
+        JSONObject cookieValueJson = new JSONObject();
+        cookieValueJson.put(HTTPConstants.VALUE, "test");
+        cookieValueJson.put(HTTPConstants.SIGNATURE, null);
+        String cookieValue = cookieValueJson.toString();
+        Cookie cookie = new Cookie("name", Base64.encode(cookieValue.getBytes(Charsets.UTF_8)));
+        Cookie mockCookie = Mockito.spy(cookie);
+        Cookie[] cookies = {mockCookie};
+
+        HttpServletRequest req = new MockServletRequestWithCookie(cookies);
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
-        resp.addCookie(new Cookie("name", "test"));
 
         context.addParameter(FrameworkConstants.RequestAttribute.HTTP_RESPONSE, new TransientObjectWrapper(resp));
         context.addParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST, new TransientObjectWrapper(req));
         sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
+        verify(mockCookie).getValue();
+    }
+
+    private class MockServletRequestWithCookie extends JsSequenceHandlerRunner.MockServletRequest {
+
+        Cookie[] cookies;
+
+        public MockServletRequestWithCookie(Cookie[] cookies) {
+
+            super();
+            this.cookies = cookies;
+        }
+
+        @Override
+        public Cookie[] getCookies() {
+
+            return this.cookies;
+        }
+
     }
 }
