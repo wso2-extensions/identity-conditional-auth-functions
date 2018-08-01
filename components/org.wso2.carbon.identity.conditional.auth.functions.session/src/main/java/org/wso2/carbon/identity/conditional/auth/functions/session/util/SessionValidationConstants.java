@@ -43,7 +43,7 @@ public class SessionValidationConstants {
     public static final String TERMINATION_SESSION_ID = "sessionID";
     //Configuration names
     public static final String USERNAME_CONFIG_NAME = "SessionBasedValidation.Username";
-    public static final String PASSWORD_CONFIG_NAME = "SessionBasedValidation.Password";
+    public static final String CREDENTIAL_CONFIG_NAME = "SessionBasedValidation.Password";
     public static final String TABLE_SEARCH_COUNT_CONFIG_NAMES = "SessionBasedValidation.TableSearchCountURL";
     public static final String TABLE_SEARCH_CONFIG_NAMES = "SessionBasedValidation.TableSearchURL";
     //JSONObject value tags

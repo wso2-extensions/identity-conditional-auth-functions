@@ -33,9 +33,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 
 /**
  * Abstract test used for Javascript based sequence handling.
@@ -63,15 +60,18 @@ public class JsSequenceHandlerAbstractTest {
                 //Copy default identity xml into temp location and use it.
                 URL url = JsSequenceHandlerAbstractTest.class.getClassLoader().getResource("repository/conf/identity/identity.xml");
                 InputStream inputStream = url.openStream();
-                ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
-                File f = File.createTempFile(this.getClass().getSimpleName(), "identity.xml");
-                FileOutputStream fos = new FileOutputStream(f);
-                WritableByteChannel targetChannel = fos.getChannel();
-                //Transfer data from input channel to output channel
-                ((FileChannel) targetChannel).transferFrom(inputChannel, 0, Short.MAX_VALUE);
+                File f;
+                WritableByteChannel targetChannel;
+                try (ReadableByteChannel inputChannel = Channels.newChannel(inputStream)) {
+                    f = File.createTempFile(this.getClass().getSimpleName(), "identity.xml");
+                    try (FileOutputStream fos = new FileOutputStream(f)) {
+                        targetChannel = fos.getChannel();
+                        //Transfer data from input channel to output channel
+                        ((FileChannel) targetChannel).transferFrom(inputChannel, 0, Short.MAX_VALUE);
+                    }
+                }
                 inputStream.close();
                 targetChannel.close();
-                fos.close();
                 identityXmlUrl = f.toURI().toURL();
             }
             IdentityConfigParser.getInstance(identityXmlUrl.getPath());

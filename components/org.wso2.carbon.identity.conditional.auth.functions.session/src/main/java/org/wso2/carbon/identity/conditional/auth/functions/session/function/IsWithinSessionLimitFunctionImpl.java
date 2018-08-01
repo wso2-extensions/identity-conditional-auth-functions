@@ -123,7 +123,7 @@ public class IsWithinSessionLimitFunctionImpl implements IsWithinSessionLimitFun
 
         request = SessionValidationUtil.setAuthorizationHeader(request,
                 IdentityUtil.getProperty(SessionValidationConstants.USERNAME_CONFIG_NAME),
-                IdentityUtil.getProperty(SessionValidationConstants.PASSWORD_CONFIG_NAME));
+                IdentityUtil.getProperty(SessionValidationConstants.CREDENTIAL_CONFIG_NAME));
         request.addHeader(SessionValidationConstants.CONTENT_TYPE_TAG, ContentType.APPLICATION_JSON.toString());
         request.setEntity(entity);
         try {
