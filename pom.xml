@@ -423,5 +423,12 @@
         <msf4j.version>2.6.2</msf4j.version>
         <httpasyncclient.version>4.0.2.wso2v1</httpasyncclient.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
+        <sonar.coverage.exclusions>
+            **/*Exception.java,
+            **/*Constants*.java,
+            **/*Component.java,
+            **/*Component.java,
+            **/*Holder.java
+        </sonar.coverage.exclusions>
     </properties>
 </project>

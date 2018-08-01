@@ -67,7 +67,7 @@ public abstract class AbstractAnalyticsFunction {
 
     protected String getPassword(String tenantDomain) throws IdentityEventException {
 
-        return CommonUtils.getConnectorConfig(AnalyticsEngineConfigImpl.PASSWORD, tenantDomain);
+        return CommonUtils.getConnectorConfig(AnalyticsEngineConfigImpl.CREDENTIAL, tenantDomain);
     }
 
     protected String getUsername(String tenantDomain) throws IdentityEventException {
