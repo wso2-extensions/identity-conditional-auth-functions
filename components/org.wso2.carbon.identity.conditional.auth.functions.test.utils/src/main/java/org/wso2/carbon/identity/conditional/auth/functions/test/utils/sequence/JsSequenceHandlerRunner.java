@@ -235,6 +235,25 @@ public class JsSequenceHandlerRunner {
         FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
     }
 
+    public void addSubjectAuthenticator(String authenticatorName, String subject, Map<String, String> claims) {
+
+        FrameworkServiceDataHolder.getInstance().getAuthenticators().removeIf(
+                applicationAuthenticator -> applicationAuthenticator.getName().equals(authenticatorName));
+        MockAuthenticator authenticator = new MockAuthenticator(authenticatorName,
+                (SubjectCallback) context1 -> {
+                    AuthenticatedUser user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(subject);
+                    if (claims != null) {
+                        for (Map.Entry<String, String> entry : claims.entrySet()) {
+                            user.getUserAttributes().put(ClaimMapping.build(entry.getKey(), entry.getKey(),
+                                    entry.getValue(), false), entry.getValue());
+                        }
+                    }
+                    return user;
+                });
+        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
+
+    }
+
     protected static class MockSubjectCallback implements SubjectCallback, Serializable {
 
         private static final long serialVersionUID = 597048141496121100L;
