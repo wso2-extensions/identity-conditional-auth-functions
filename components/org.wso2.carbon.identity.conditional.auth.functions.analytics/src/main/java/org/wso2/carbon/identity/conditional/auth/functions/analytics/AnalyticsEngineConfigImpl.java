@@ -62,13 +62,13 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     @Override
     public String getFriendlyName() {
 
-        return "Analytics Engine";
+        return "Analytics Engine Configuration";
     }
 
     @Override
     public String getCategory() {
 
-        return "Adaptive Authentication";
+        return "Analytics Engine";
     }
 
     @Override
