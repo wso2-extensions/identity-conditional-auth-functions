@@ -274,7 +274,7 @@ public class JsSequenceHandlerRunner {
         }
     }
 
-    private static class MockServletRequest implements HttpServletRequest {
+    public static class MockServletRequest implements HttpServletRequest {
 
         private Hashtable<String, Object> attributes = new Hashtable<>();
 
