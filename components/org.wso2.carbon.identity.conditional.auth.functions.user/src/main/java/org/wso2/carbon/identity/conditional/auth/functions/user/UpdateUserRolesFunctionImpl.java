@@ -12,8 +12,11 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class UpdateUserRolesFunctionImpl implements UpdateUserRolesFunction {
 
@@ -22,36 +25,51 @@ public class UpdateUserRolesFunctionImpl implements UpdateUserRolesFunction {
     @Override
     public void updateUserRoles(JsAuthenticatedUser user, List<String> newRoles, List<String> deletingRoles) {
 
-        if (user != null && newRoles != null && deletingRoles != null) try {
-            String tenantDomain = user.getWrapped().getTenantDomain();
-            String userStoreDomain = user.getWrapped().getUserStoreDomain();
-            String username = user.getWrapped().getUserName();
-            UserRealm userRealm = getUserRealm(tenantDomain);
-            if (userRealm != null) {
-                UserStoreManager userStore = getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
-                if (userStore != null) {
-                    /*
-                    Get all user roles. Then filter both new roles and deleting roles against existing user roles.
-                    */
-                    List<String> roleListOfUser =
-                            Arrays.asList(userStore.getRoleListOfUser(username));
-                    newRoles.removeAll(roleListOfUser);
-                    deletingRoles.retainAll(roleListOfUser);
-                    userStore.updateRoleListOfUser(
-                            username,
-                            deletingRoles.toArray(new String[0]),
-                            newRoles.toArray(new String[0])
-                    );
+        if (user != null && newRoles != null && deletingRoles != null) {
+            try {
+                String tenantDomain = user.getWrapped().getTenantDomain();
+                String userStoreDomain = user.getWrapped().getUserStoreDomain();
+                String username = user.getWrapped().getUserName();
+                UserRealm userRealm = getUserRealm(tenantDomain);
+                if (userRealm != null) {
+                    UserStoreManager userStore = getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
+                    if (userStore != null) {
+                        /*
+                        Get all user roles. Then filter both new roles and deleting roles against existing user roles.
+                        */
+                        List<String> roleListOfUser = Arrays.asList(userStore.getRoleListOfUser(username));
+                        List<String> filteredNewRoles = newRoles.stream()
+                                .filter(role -> !roleListOfUser.contains(role))
+                                .distinct()
+                                .collect(Collectors.toList());
+                        /*
+                        Since catching user store exception within stream operations is not possible, filter invalid
+                        roles separately
+                         */
+                        List<String> nonExistingRoles = new ArrayList<>();
+                        for (String eachRole : filteredNewRoles) {
+                            if (!userStore.isExistingRole(eachRole)) {
+                                nonExistingRoles.add(eachRole);
+                            }
+                        }
+                        filteredNewRoles.removeAll(nonExistingRoles);
+                        userStore.updateRoleListOfUser(
+                                username,
+                                deletingRoles.stream()
+                                        .filter(roleListOfUser::contains)
+                                        .distinct().toArray(String[]::new),
+                                filteredNewRoles.toArray(new String[0])
+                        );
+                    }
                 }
+            } catch (UserStoreException e) {
+                LOG.error("Error in getting user from store at the function ", e);
+            } catch (FrameworkException e) {
+                LOG.error("Error in evaluating the function ", e);
             }
-        } catch (FrameworkException e) {
-            LOG.error("Error in evaluating the function ", e);
-        } catch (UserStoreException e) {
-            LOG.error("Error in getting user from store at the function ", e);
-        }
-        else {
+        } else {
             LOG.error("This function require three parameters but invalid parameters are detected. " +
-                    "Please use an empty array if any of the add or delete role sets are not required");
+                    "Please use an empty array if any of the add or delete user role sets are not required");
         }
     }
 
