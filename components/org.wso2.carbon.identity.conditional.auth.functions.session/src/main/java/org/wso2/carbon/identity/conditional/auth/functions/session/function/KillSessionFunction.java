@@ -33,7 +33,13 @@ import java.util.Map;
 public class KillSessionFunction implements ExecuteActionFunction {
 
     private static final Log log = LogFactory.getLog(KillSessionFunction.class);
-
+    /**
+     * This method will contain the implementation of execute action to kill session.
+     *
+     * @param context AuthenticationContext passed from Javascript
+     * @param map     parameter map
+     * @return boolean value indicating the success or failure state of process
+     */
     @Override
     public boolean execute(JsAuthenticationContext context, Map<String, String> map) {
 
@@ -42,7 +48,7 @@ public class KillSessionFunction implements ExecuteActionFunction {
         if (log.isDebugEnabled()) {
             log.debug("Session with session id :" + sessionId + " is requested to kill");
         }
-        if ( StringUtils.isEmpty(sessionId)) {
+        if (StringUtils.isEmpty(sessionId)) {
             return false;
         }
         sessionManagementService.removeSession(sessionId);

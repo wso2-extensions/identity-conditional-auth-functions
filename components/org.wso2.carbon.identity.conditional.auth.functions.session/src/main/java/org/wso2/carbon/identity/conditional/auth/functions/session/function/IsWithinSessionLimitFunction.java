@@ -29,6 +29,14 @@ import java.util.Map;
 @FunctionalInterface
 public interface IsWithinSessionLimitFunction {
 
+    /**
+     * Method to validate user session a given the authentication context and set of required attributes.
+     *
+     * @param context Authentication context
+     * @param map     Hash map of attributes required for validation
+     * @return boolean value indicating the validation success/failure
+     * @throws FrameworkException when exception occurred in session retrieving method
+     */
     boolean validate(JsAuthenticationContext context, Map<String, String> map)
             throws FrameworkException;
 }
