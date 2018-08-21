@@ -30,7 +30,7 @@ public class Constants {
     public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.HTTPConnectionRequestTimeout";
     public static final String AUTHENTICATION_ENABLED = "AdaptiveAuth.EventPublisher.BasicAuthentication.Enable";
     public static final String AUTHENTICATION_USERNAME = "AdaptiveAuth.EventPublisher.BasicAuthentication.Username";
-    public static final String AUTHENTICATION_PASSWORD = "AdaptiveAuth.EventPublisher.BasicAuthentication.Password";
+    public static final String AUTHENTICATION_CREDENTIAL = "AdaptiveAuth.EventPublisher.BasicAuthentication.Password";
     public static final String HOSTNAME_VERIFIER = "AdaptiveAuth.EventPublisher.HostnameVerifier";
 
     public static final String CONNECTION_POOL_MAX_CONNECTIONS = "AdaptiveAuth.MaxTotalConnections";

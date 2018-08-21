@@ -104,7 +104,7 @@ public class SessionValidationUtil {
                 .TABLE_SEARCH_CONFIG_NAMES));
         String toEncode = IdentityUtil.getProperty(SessionValidationConstants.USERNAME_CONFIG_NAME)
                 + SessionValidationConstants.ATTRIBUTE_SEPARATOR
-                + IdentityUtil.getProperty(SessionValidationConstants.PASSWORD_CONFIG_NAME);
+                + IdentityUtil.getProperty(SessionValidationConstants.CREDENTIAL_CONFIG_NAME);
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes(Charset.forName(StandardCharsets.UTF_8.name())));
         String authHeader = new String(encoding, Charset.defaultCharset());
         //Adding headers to request

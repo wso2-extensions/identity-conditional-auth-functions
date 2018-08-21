@@ -38,7 +38,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     public static final String RECEIVER = "adaptive_authentication.analytics.receiver";
     public static final String BASIC_AUTH_ENABLED = "adaptive_authentication.analytics.basicAuth.enabled";
     public static final String USERNAME = "adaptive_authentication.analytics.basicAuth.username";
-    public static final String PASSWORD = "__secret__adaptive_authentication.analytics.basicAuth.password";
+    public static final String CREDENTIAL = "__secret__adaptive_authentication.analytics.basicAuth.password";
     public static final String HTTP_CONNECTION_TIMEOUT = "adaptive_authentication.analytics.HTTPConnectionTimeout";
     public static final String HTTP_READ_TIMEOUT = "adaptive_authentication.analytics.HTTPReadTimeout";
     public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "adaptive_authentication.analytics" +
@@ -48,7 +48,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     public static final String DEFAULT_TARGET_HOST = "http://localhost:8280/";
     public static final String DEFAULT_AUTHENTICATION_ENABLED = "true";
     public static final String DEFAULT_USERNAME = "change-me";
-    public static final String DEFAULT_PASSWORD = "change-me";
+    public static final String DEFAULT_CREDENTIAL = "change-me";
     public static final String HOSTNAME_VERIFIER_STRICT = "STRICT";
     public static final String HOSTNAME_VERIFIER_ALLOW_ALL = "ALLOW_ALL";
     public static final String DEFAULT_HOSTNAME_VERIFIER = HOSTNAME_VERIFIER_STRICT;
@@ -62,13 +62,13 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     @Override
     public String getFriendlyName() {
 
-        return "Analytics Engine";
+        return "Analytics Engine Configuration";
     }
 
     @Override
     public String getCategory() {
 
-        return "Adaptive Authentication";
+        return "Analytics Engine";
     }
 
     @Override
@@ -91,7 +91,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
         mapping.put(RECEIVER, "Target Host");
         mapping.put(BASIC_AUTH_ENABLED, "Enable Basic Authentication");
         mapping.put(USERNAME, "User ID");
-        mapping.put(PASSWORD, "Secret");
+        mapping.put(CREDENTIAL, "Secret");
         mapping.put(HTTP_CONNECTION_TIMEOUT, "HTTP Connection Timeout");
         mapping.put(HTTP_READ_TIMEOUT, "HTTP Read Timeout");
         mapping.put(HTTP_CONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout");
@@ -108,7 +108,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
         mapping.put(RECEIVER, "Target Host");
         mapping.put(BASIC_AUTH_ENABLED, "Enable Basic Authentication");
         mapping.put(USERNAME, "Target Host Secured User ID");
-        mapping.put(PASSWORD, "Target Host Secured Secret");
+        mapping.put(CREDENTIAL, "Target Host Secured Secret");
         mapping.put(HTTP_CONNECTION_TIMEOUT, "HTTP Connection Timeout in milliseconds");
         mapping.put(HTTP_READ_TIMEOUT, "HTTP Read Timeout in milliseconds");
         mapping.put(HTTP_CONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout in milliseconds");
@@ -124,7 +124,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
         properties.add(RECEIVER);
         properties.add(BASIC_AUTH_ENABLED);
         properties.add(USERNAME);
-        properties.add(PASSWORD);
+        properties.add(CREDENTIAL);
         properties.add(HTTP_CONNECTION_TIMEOUT);
         properties.add(HTTP_READ_TIMEOUT);
         properties.add(HTTP_CONNECTION_REQUEST_TIMEOUT);
@@ -144,8 +144,8 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
                 DEFAULT_AUTHENTICATION_ENABLED);
         String username = IdentityUtil.getProperty(Constants.AUTHENTICATION_USERNAME);
         defaultProperties.put(USERNAME, username != null ? username : DEFAULT_USERNAME);
-        String password = IdentityUtil.getProperty(Constants.AUTHENTICATION_PASSWORD);
-        defaultProperties.put(PASSWORD, password != null ? password : DEFAULT_PASSWORD);
+        String password = IdentityUtil.getProperty(Constants.AUTHENTICATION_CREDENTIAL);
+        defaultProperties.put(CREDENTIAL, password != null ? password : DEFAULT_CREDENTIAL);
         defaultProperties.put(HTTP_CONNECTION_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
                 .getConnectionTimeout()));
         defaultProperties.put(HTTP_READ_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
