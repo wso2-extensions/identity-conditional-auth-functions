@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Function to check if the given user has at least one of the given roles.
@@ -32,7 +31,8 @@ public interface HasAnyOfTheRolesFunction {
 
     /**
      * Checks if the given <code>user</code> has the given <code>roleName</code>
-     * @param user Authenticated user. Ideally from a given step.
+     *
+     * @param user      Authenticated user. Ideally from a given step.
      * @param roleNames Role to be checked
      * @return <code>true</code> if the user has at least one of the  given roles. <code>false</code> for any other
      * case.

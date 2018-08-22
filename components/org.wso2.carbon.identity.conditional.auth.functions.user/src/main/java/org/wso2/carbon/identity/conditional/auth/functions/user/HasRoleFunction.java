@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 /**
  * Function to check if the given user has the given role.
  * The purpose is to perform dynamic authentication selection based on user role.
+ *
  * @deprecated Use {@link HasAnyOfTheRolesFunction} instead
  */
 @FunctionalInterface
@@ -31,7 +32,8 @@ public interface HasRoleFunction {
 
     /**
      * Checks if the given <code>user</code> has the given <code>roleName</code>
-     * @param user Authenticated user. Ideally from a given step.
+     *
+     * @param user     Authenticated user. Ideally from a given step.
      * @param roleName Role to be checked
      * @return <code>true</code> if the user has the given role. <code>false</code> for any other case.
      */

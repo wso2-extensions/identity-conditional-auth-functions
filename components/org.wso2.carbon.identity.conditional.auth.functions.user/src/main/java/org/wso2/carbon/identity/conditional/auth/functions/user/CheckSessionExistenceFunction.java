@@ -29,9 +29,10 @@ public interface CheckSessionExistenceFunction {
 
     /**
      * Check if the user in the authentication context is authenticated for the give step.
-     * @param step      step number
-     * @param context   authentication context
-     * @return          if the user is already authenticated for the step.
+     *
+     * @param step    step number
+     * @param context authentication context
+     * @return if the user is already authenticated for the step.
      */
     boolean checkSessionExistence(int step, JsAuthenticationContext context);
 }

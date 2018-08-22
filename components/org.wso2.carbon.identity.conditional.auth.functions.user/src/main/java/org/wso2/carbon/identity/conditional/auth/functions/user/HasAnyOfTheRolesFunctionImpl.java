@@ -32,7 +32,6 @@ import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
 

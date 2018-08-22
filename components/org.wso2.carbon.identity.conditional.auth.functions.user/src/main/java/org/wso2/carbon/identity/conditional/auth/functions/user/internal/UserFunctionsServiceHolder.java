@@ -30,13 +30,13 @@ public class UserFunctionsServiceHolder {
     private RegistryService registryService;
     private JsFunctionRegistry jsFunctionRegistry;
 
+    private UserFunctionsServiceHolder() {
+
+    }
+
     public static UserFunctionsServiceHolder getInstance() {
 
         return instance;
-    }
-
-    private UserFunctionsServiceHolder(){
-
     }
 
     public RealmService getRealmService() {
