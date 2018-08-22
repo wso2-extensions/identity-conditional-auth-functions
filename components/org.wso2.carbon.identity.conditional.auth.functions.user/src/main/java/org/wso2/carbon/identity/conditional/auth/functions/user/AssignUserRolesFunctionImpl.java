@@ -50,8 +50,6 @@ public class AssignUserRolesFunctionImpl implements AssignUserRolesFunction {
     @Override
     public boolean assignUserRoles(JsAuthenticatedUser user, List<String> assigningRoles) {
 
-        boolean isDebugEnabled = LOG.isDebugEnabled();
-
         if (user != null && assigningRoles != null) {
             try {
                 if (user.getWrapped() != null) {
@@ -67,12 +65,16 @@ public class AssignUserRolesFunctionImpl implements AssignUserRolesFunction {
                                 assigningRoles.toArray(new String[0])
                         );
                         return true;
-                    } else if (isDebugEnabled) {
-                        LOG.debug("Unable to find userRealm for the user: "
-                                + username + " in userStoreDomain: " + userStoreDomain);
+                    } else {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Unable to find userRealm for the user: "
+                                    + username + " in userStoreDomain: " + userStoreDomain);
+                        }
                     }
-                } else if (isDebugEnabled) {
-                    LOG.debug("Unable to get wrapped content for the user");
+                } else {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Unable to get wrapped content for the user");
+                    }
                 }
             } catch (UserStoreException e) {
                 LOG.error("Error while getting user from the store", e);

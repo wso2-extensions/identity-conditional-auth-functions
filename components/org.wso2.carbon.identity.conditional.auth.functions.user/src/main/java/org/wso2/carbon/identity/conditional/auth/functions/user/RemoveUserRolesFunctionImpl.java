@@ -67,17 +67,21 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
                                 new String[0]
                         );
                         return true;
-                    } else if (isDebugEnabled) {
-                        LOG.debug("Unable to find userRealm for the user: "
-                                + username + " in userStoreDomain: " + userStoreDomain);
+                    } else {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Unable to find userRealm for the user: "
+                                    + username + " in userStoreDomain: " + userStoreDomain);
+                        }
                     }
-                } else if (isDebugEnabled) {
-                    LOG.debug("Unable to get wrapped content for the user");
+                } else {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Unable to get wrapped content for the user");
+                    }
                 }
             } catch (UserStoreException e) {
                 LOG.error("Error while getting user from the store", e);
             } catch (FrameworkException e) {
-                LOG.error("Error while retrieving userRealm or userStoreManager", e);
+                LOG.error("Error while retrieving userRealm and userStoreManager", e);
             }
         } else {
             if (user == null) {
