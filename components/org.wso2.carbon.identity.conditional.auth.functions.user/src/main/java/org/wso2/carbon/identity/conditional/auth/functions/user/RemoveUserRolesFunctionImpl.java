@@ -50,8 +50,6 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
     @Override
     public boolean removeUserRoles(JsAuthenticatedUser user, List<String> removingRoles) {
 
-        boolean isDebugEnabled = LOG.isDebugEnabled();
-
         if (user != null && removingRoles != null) {
             try {
                 if (user.getWrapped() != null) {
