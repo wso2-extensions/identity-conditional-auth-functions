@@ -50,6 +50,8 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
     @Override
     public boolean removeUserRoles(JsAuthenticatedUser user, List<String> removingRoles) {
 
+        boolean isDebugEnabled = LOG.isDebugEnabled();
+
         if (user != null && removingRoles != null) {
             try {
                 if (user.getWrapped() != null) {
@@ -59,34 +61,29 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
                     UserRealm userRealm = getUserRealm(tenantDomain);
                     if (userRealm != null) {
                         UserStoreManager userStore = getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
-                        if (userStore != null) {
-                            userStore.updateRoleListOfUser(
-                                    username,
-                                    removingRoles.toArray(new String[0]),
-                                    new String[0]
-                            );
-                            return true;
-                        } else {
-                            LOG.debug("Unable to find userStore for username "
-                                    + username + " in userStoreDomain " + userStoreDomain);
-                        }
-                    } else {
-                        LOG.debug("Unable to find userRealm for the user "
-                                + username + " in userStoreDomain " + userStoreDomain);
+                        userStore.updateRoleListOfUser(
+                                username,
+                                removingRoles.toArray(new String[0]),
+                                new String[0]
+                        );
+                        return true;
+                    } else if (isDebugEnabled) {
+                        LOG.debug("Unable to find userRealm for the user: "
+                                + username + " in userStoreDomain: " + userStoreDomain);
                     }
-                } else {
+                } else if (isDebugEnabled) {
                     LOG.debug("Unable to get wrapped content for the user");
                 }
             } catch (UserStoreException e) {
                 LOG.error("Error while getting user from the store", e);
             } catch (FrameworkException e) {
-                LOG.error("Error while evaluating the function ", e);
+                LOG.error("Error while retrieving userRealm or userStoreManager", e);
             }
         } else {
             if (user == null) {
-                LOG.error("Invalid value for the user");
+                LOG.error("User is not defined");
             } else {
-                LOG.error("Invalid value for the new roles");
+                LOG.error("Assigning roles are not defined");
             }
         }
         return false;
@@ -94,6 +91,9 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
 
     private UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Initiated userRealm retrieving");
+        }
         UserRealm realm;
         try {
             realm = AnonymousSessionUtil.getRealmByTenantDomain(UserFunctionsServiceHolder.getInstance()
@@ -108,7 +108,10 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
     private UserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm, String userDomain)
             throws FrameworkException {
 
-        UserStoreManager userStore;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Initiated userStoreManager retrieving");
+        }
+        UserStoreManager userStore = null;
         try {
             if (StringUtils.isNotBlank(userDomain)) {
                 userStore = realm.getUserStoreManager().getSecondaryUserStoreManager(userDomain);
