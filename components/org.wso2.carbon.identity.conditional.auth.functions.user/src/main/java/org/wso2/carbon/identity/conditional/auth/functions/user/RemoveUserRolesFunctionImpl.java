@@ -46,12 +46,12 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
     @Override
     public boolean removeUserRoles(JsAuthenticatedUser user, List<String> removingRoles) {
 
-        if (user == null || removingRoles == null) {
-            if (user == null) {
-                LOG.error("User is not defined");
-            } else {
-                LOG.error("Assigning roles are not defined");
-            }
+        if (user == null) {
+            LOG.error("User is not defined");
+            return false;
+        }
+        if (removingRoles == null) {
+            LOG.error("Removing roles are not defined");
             return false;
         }
         try {

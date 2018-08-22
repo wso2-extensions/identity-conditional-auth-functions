@@ -12,7 +12,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 /**
  * Utility methods required for user functions
  */
-final class Utils {
+public class Utils {
 
     /**
      * Get userRealm for the given tenantDomain
@@ -21,7 +21,7 @@ final class Utils {
      * @return UserRealm as an object
      * @throws FrameworkException Error occurred during userRealm retrieving
      */
-    static UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
+    public static UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
 
         UserRealm realm;
         try {
@@ -44,7 +44,7 @@ final class Utils {
      * @throws FrameworkException Error occurred while retrieving userStore manager or undefined userStore domain and
      *                            tenantDomain
      */
-    static UserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm, String userDomain)
+    public static UserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm, String userDomain)
             throws FrameworkException {
 
         UserStoreManager userStore = null;

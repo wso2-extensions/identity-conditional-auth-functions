@@ -46,12 +46,12 @@ public class AssignUserRolesFunctionImpl implements AssignUserRolesFunction {
     @Override
     public boolean assignUserRoles(JsAuthenticatedUser user, List<String> assigningRoles) {
 
-        if (user == null || assigningRoles == null) {
-            if (user == null) {
-                LOG.error("User is not defined");
-            } else {
-                LOG.error("Assigning roles are not defined");
-            }
+        if (user == null) {
+            LOG.error("User is not defined");
+            return false;
+        }
+        if (assigningRoles == null) {
+            LOG.error("Assigning roles are not defined");
             return false;
         }
         try {
