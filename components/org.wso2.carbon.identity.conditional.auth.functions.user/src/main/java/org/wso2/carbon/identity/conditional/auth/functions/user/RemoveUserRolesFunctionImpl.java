@@ -18,14 +18,10 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -56,9 +52,9 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
                     String tenantDomain = user.getWrapped().getTenantDomain();
                     String userStoreDomain = user.getWrapped().getUserStoreDomain();
                     String username = user.getWrapped().getUserName();
-                    UserRealm userRealm = getUserRealm(tenantDomain);
+                    UserRealm userRealm = Utils.getUserRealm(tenantDomain);
                     if (userRealm != null) {
-                        UserStoreManager userStore = getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
+                        UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                         userStore.updateRoleListOfUser(
                                 username,
                                 removingRoles.toArray(new String[0]),
@@ -89,48 +85,5 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
             }
         }
         return false;
-    }
-
-    private UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Initiated userRealm retrieving");
-        }
-        UserRealm realm;
-        try {
-            realm = AnonymousSessionUtil.getRealmByTenantDomain(UserFunctionsServiceHolder.getInstance()
-                    .getRegistryService(), UserFunctionsServiceHolder.getInstance().getRealmService(), tenantDomain);
-        } catch (CarbonException e) {
-            throw new FrameworkException(
-                    "Error occurred while retrieving the Realm for " + tenantDomain + " to retrieve user roles", e);
-        }
-        return realm;
-    }
-
-    private UserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm, String userDomain)
-            throws FrameworkException {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Initiated userStoreManager retrieving");
-        }
-        UserStoreManager userStore = null;
-        try {
-            if (StringUtils.isNotBlank(userDomain)) {
-                userStore = realm.getUserStoreManager().getSecondaryUserStoreManager(userDomain);
-            } else {
-                userStore = realm.getUserStoreManager();
-            }
-
-            if (userStore == null) {
-                throw new FrameworkException(
-                        String.format("Invalid user store domain (given : %s) or tenant domain (given: %s).",
-                                userDomain, tenantDomain));
-            }
-        } catch (UserStoreException e) {
-            throw new FrameworkException(
-                    "Error occurred while retrieving the UserStoreManager from Realm for " + tenantDomain
-                            + " to retrieve user roles", e);
-        }
-        return userStore;
     }
 }
