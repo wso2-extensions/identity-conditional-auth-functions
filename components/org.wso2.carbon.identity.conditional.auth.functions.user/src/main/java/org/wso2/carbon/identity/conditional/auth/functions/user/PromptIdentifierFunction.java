@@ -26,8 +26,9 @@ public interface PromptIdentifierFunction {
 
     /**
      * Prompt for user identifier.
-     * @param step          step number
-     * @param parameters    parameters
+     *
+     * @param step       step number
+     * @param parameters parameters
      */
     void promptIdentifier(int step, Object... parameters);
 }

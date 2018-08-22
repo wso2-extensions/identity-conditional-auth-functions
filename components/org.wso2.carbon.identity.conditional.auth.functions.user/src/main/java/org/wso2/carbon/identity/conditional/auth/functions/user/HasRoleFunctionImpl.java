@@ -34,6 +34,7 @@ import java.util.Arrays;
 
 /**
  * Implementation of the {@link HasRoleFunction}
+ *
  * @deprecated
  */
 @Deprecated

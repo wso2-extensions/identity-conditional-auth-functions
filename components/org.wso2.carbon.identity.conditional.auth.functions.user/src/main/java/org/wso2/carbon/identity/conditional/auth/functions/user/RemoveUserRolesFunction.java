@@ -23,20 +23,18 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import java.util.List;
 
 /**
- * Function to check if the given user has at least one of the given roles.
- * The purpose is to perform dynamic authentication selection based on user role.
+ * Function to remove given roles from the a given user.
+ * The purpose is to perform role removing during dynamic authentication.
  */
 @FunctionalInterface
-public interface HasAnyOfTheRolesFunction {
+public interface RemoveUserRolesFunction {
 
     /**
-     * Checks if the given <code>user</code> has the given <code>roleName</code>
+     * Remove roles for a given <code>user</code>
      *
-     * @param user      Authenticated user. Ideally from a given step.
-     * @param roleNames Role to be checked
-     * @return <code>true</code> if the user has at least one of the  given roles. <code>false</code> for any other
-     * case.
+     * @param user          Authenticated user.
+     * @param removingRoles Roles to be removed.
+     * @return <code>true</code> If the role assigning is successfully completed. <code>false</code> for any other case.
      */
-    boolean hasAnyOfTheRoles(JsAuthenticatedUser user, List<String> roleNames);
-
+    boolean removeUserRoles(JsAuthenticatedUser user, List<String> removingRoles);
 }
