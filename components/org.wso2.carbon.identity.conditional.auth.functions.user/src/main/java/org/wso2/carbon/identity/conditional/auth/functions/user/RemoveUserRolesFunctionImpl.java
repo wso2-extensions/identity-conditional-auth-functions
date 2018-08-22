@@ -46,43 +46,43 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
     @Override
     public boolean removeUserRoles(JsAuthenticatedUser user, List<String> removingRoles) {
 
-        if (user != null && removingRoles != null) {
-            try {
-                if (user.getWrapped() != null) {
-                    String tenantDomain = user.getWrapped().getTenantDomain();
-                    String userStoreDomain = user.getWrapped().getUserStoreDomain();
-                    String username = user.getWrapped().getUserName();
-                    UserRealm userRealm = Utils.getUserRealm(tenantDomain);
-                    if (userRealm != null) {
-                        UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
-                        userStore.updateRoleListOfUser(
-                                username,
-                                removingRoles.toArray(new String[0]),
-                                new String[0]
-                        );
-                        return true;
-                    } else {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Unable to find userRealm for the user: "
-                                    + username + " in userStoreDomain: " + userStoreDomain);
-                        }
-                    }
-                } else {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Unable to get wrapped content for the user");
-                    }
-                }
-            } catch (UserStoreException e) {
-                LOG.error("Error while getting user from the store", e);
-            } catch (FrameworkException e) {
-                LOG.error("Error while retrieving userRealm and userStoreManager", e);
-            }
-        } else {
+        if (user == null || removingRoles == null) {
             if (user == null) {
                 LOG.error("User is not defined");
             } else {
                 LOG.error("Assigning roles are not defined");
             }
+            return false;
+        }
+        try {
+            if (user.getWrapped() != null) {
+                String tenantDomain = user.getWrapped().getTenantDomain();
+                String userStoreDomain = user.getWrapped().getUserStoreDomain();
+                String username = user.getWrapped().getUserName();
+                UserRealm userRealm = Utils.getUserRealm(tenantDomain);
+                if (userRealm != null) {
+                    UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
+                    userStore.updateRoleListOfUser(
+                            username,
+                            removingRoles.toArray(new String[0]),
+                            new String[0]
+                    );
+                    return true;
+                } else {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Unable to find userRealm for the user: "
+                                + username + " in userStoreDomain: " + userStoreDomain);
+                    }
+                }
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Unable to get wrapped content for the user");
+                }
+            }
+        } catch (UserStoreException e) {
+            LOG.error("Error while getting user from the store", e);
+        } catch (FrameworkException e) {
+            LOG.error("Error while retrieving userRealm and userStoreManager", e);
         }
         return false;
     }
