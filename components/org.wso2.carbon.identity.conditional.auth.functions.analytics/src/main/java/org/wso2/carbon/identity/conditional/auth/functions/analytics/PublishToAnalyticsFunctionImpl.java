@@ -57,7 +57,7 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
         String epUrl = null;
         try {
             if (appName != null && inputStream != null) {
-                epUrl = appName + "/" + inputStream;
+                epUrl = "/" + appName + "/" + inputStream;
             } else if (targetPath != null) {
                 epUrl = targetPath;
             } else {
