@@ -39,7 +39,14 @@ import java.util.Map;
 public class GetSessionDataFunction implements GetUserSessionDataFunction {
 
     private static final Log log = LogFactory.getLog(GetSessionDataFunction.class);
-
+    /**
+     * This function will contain the implementation for retrieving data.
+     *
+     * @param context AuthenticationContext object passed from Javascript
+     * @param map     parameter map
+     * @return Map of sessionID and sessions
+     * @throws FrameworkException
+     */
     @Override
     public Map<String, Session> getData(JsAuthenticationContext context, Map<String, String> map) throws
             FrameworkException {
