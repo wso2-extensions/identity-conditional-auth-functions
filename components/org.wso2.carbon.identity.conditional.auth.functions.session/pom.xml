@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>0.1.30-SNAPSHOT</version>
+        <version>0.1.30</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
