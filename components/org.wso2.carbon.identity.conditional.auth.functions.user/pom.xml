@@ -53,6 +53,10 @@
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.user.profile</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
             <scope>test</scope>
@@ -120,9 +124,11 @@
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph,
                             org.wso2.carbon.identity.application.authentication.framework.config.model,
                             org.wso2.carbon.identity.application.authentication.framework.context,
+                            org.wso2.carbon.identity.user.profile.mgt,
                             org.apache.commons.collections,
                             org.wso2.carbon.registry.core.service,
                             org.wso2.carbon.user.core,
+                            org.wso2.carbon.user.core.util,
                             org.wso2.carbon.user.core.service
                         </Import-Package>
                     </instructions>
