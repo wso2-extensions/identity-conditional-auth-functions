@@ -31,6 +31,8 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExistenceFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
@@ -57,22 +59,29 @@ public class UserFunctionsServiceComponent {
     @Activate
     protected void activate(ComponentContext ctxt) {
 
-        HasRoleFunction hasRoleFunctionImpl = new HasRoleFunctionImpl();
-        HasAnyOfTheRolesFunction hasAnyOfTheRolesFunctionImpl = new HasAnyOfTheRolesFunctionImpl();
-        AssignUserRolesFunction assignUserRolesFunctionImpl = new AssignUserRolesFunctionImpl();
-        RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
-        JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
-                hasAnyOfTheRolesFunctionImpl);
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRoles",
-                assignUserRolesFunctionImpl);
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRoles",
-                removeUserRolesFunctionImpl);
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "promptIdentifierForStep",
-                new PromptIdentifierFunctionImpl());
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSessionExistence",
-                new CheckSessionExistenceFunctionImpl());
+        try {
+            HasRoleFunction hasRoleFunctionImpl = new HasRoleFunctionImpl();
+            HasAnyOfTheRolesFunction hasAnyOfTheRolesFunctionImpl = new HasAnyOfTheRolesFunctionImpl();
+            AssignUserRolesFunction assignUserRolesFunctionImpl = new AssignUserRolesFunctionImpl();
+            RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
+            GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
+            JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
+                    hasAnyOfTheRolesFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRoles",
+                    assignUserRolesFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRoles",
+                    removeUserRolesFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "promptIdentifierForStep",
+                    new PromptIdentifierFunctionImpl());
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSessionExistence",
+                    new CheckSessionExistenceFunctionImpl());
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser",
+                    getAssociatedLocalUserFunctionImpl);
+        } catch (Throwable e) {
+            LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
+        }
     }
 
     @Deactivate
@@ -86,6 +95,7 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSessionExistence");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRoles");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRoles");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser");
         }
     }
 
