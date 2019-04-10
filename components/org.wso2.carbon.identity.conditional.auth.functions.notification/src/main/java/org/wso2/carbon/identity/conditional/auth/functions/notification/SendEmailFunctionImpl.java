@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.notification.internal
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.handler.notification.exception.NotificationRuntimeException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,9 +53,10 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
         Event identityMgtEvent = new Event(eventName, properties);
         try {
             NotificationFunctionServiceHolder.getInstance().getIdentityEventService().handleEvent(identityMgtEvent);
-        } catch (IdentityEventException e) {
+        } catch (IdentityEventException | NotificationRuntimeException e) {
             LOG.error(String.format("Error when sending notification of template %s to user %s", templateId, user
                     .getWrapped().toFullQualifiedUsername()), e);
+            return false;
         }
         return true;
     }
