@@ -53,6 +53,10 @@
             <artifactId>org.wso2.carbon.identity.conditional.auth.functions.user</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.user.store</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
         </dependency>
@@ -86,6 +90,7 @@
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.http</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.notification</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user.store</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpasyncclient</bundleDef>
                             </bundles>
                         </configuration>
