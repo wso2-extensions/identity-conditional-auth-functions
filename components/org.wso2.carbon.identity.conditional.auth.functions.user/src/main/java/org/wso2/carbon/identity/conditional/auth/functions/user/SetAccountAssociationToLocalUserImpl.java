@@ -1,4 +1,3 @@
-package org.wso2.carbon.identity.conditional.auth.functions.user;
 /*
  *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -17,10 +16,11 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
  *  under the License.
  */
 
+package org.wso2.carbon.identity.conditional.auth.functions.user;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.dao.UserProfileMgtDAO;
@@ -30,29 +30,44 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
     private static final Log log = LogFactory.getLog(SetAccountAssociationToLocalUserImpl.class);
 
     @Override
-    public void setAssociationToLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
-                                          String userStoreDomainName) {
+    public void doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
+                                           String userStoreDomainName) {
 
-        if (!federatedUser.getWrapped().isFederatedUser()) {
-            if (log.isDebugEnabled()) {
-                log.debug("User " + federatedUser.getWrapped().getUserName() + " is not a federated user.");
+        if (federatedUser != null) {
+            if (!federatedUser.getWrapped().isFederatedUser()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User " + federatedUser.getWrapped().getUserName() + " is not a federated user.");
+                }
             }
-        }
-        String externalSubject = federatedUser.getWrapped().getAuthenticatedSubjectIdentifier();
-        String externalIdpName = federatedUser.getWrapped().getFederatedIdPName();
-
-        try {
-            // Start tenant flow.
-            FrameworkUtils.startTenantFlow(tenantDomain);
-            associateID(externalIdpName, externalSubject, username, tenantDomain, userStoreDomainName);
-        } catch (UserProfileException e) {
-            log.error("Error while associate the local user to " + externalSubject, e);
-        } finally {
-            // end tenant flow
-            FrameworkUtils.endTenantFlow();
+            String externalSubject = federatedUser.getWrapped().getAuthenticatedSubjectIdentifier();
+            String externalIdpName = federatedUser.getWrapped().getFederatedIdPName();
+            if (externalSubject != null && externalIdpName != null) {
+                try {
+                    associateID(externalIdpName, externalSubject, username, tenantDomain, userStoreDomainName);
+                } catch (UserProfileException e) {
+                    log.error("Error while associate the local user to : " + externalSubject, e);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug(" Authenticated user or External IDP may be null " + " Authenticated User: " +
+                            externalSubject + " and the External IDP name: " + externalIdpName);
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(" Federated user is null ");
+            }
         }
     }
 
+    /**
+     * @param idpID               external IDP name
+     * @param associatedID        external authenticated user
+     * @param username            local user name
+     * @param tenantDomain        tenant domain
+     * @param userStoreDomainName user store domain name
+     * @throws UserProfileException Error occurred while retrieving user profile
+     */
     private void associateID(String idpID, String associatedID, String username, String tenantDomain,
                              String userStoreDomainName) throws UserProfileException {
 

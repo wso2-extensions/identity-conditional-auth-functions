@@ -1,4 +1,3 @@
-package org.wso2.carbon.identity.conditional.auth.functions.user;
 /*
  *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -16,19 +15,21 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
  *  specific language governing permissions and limitations
  *  under the License.
  */
+package org.wso2.carbon.identity.conditional.auth.functions.user;
+
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
 /**
  * Function to set associate local user to federated user.
  */
-
 @FunctionalInterface
 public interface SetAccountAssociationToLocalUser {
+
     /**
      * Set association to the local user with federated user.
      *
      * @param federatedUser federated user
      */
-    void setAssociationToLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
-                                   String userStoreDomainName);
+    void doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
+                                    String userStoreDomainName);
 }
