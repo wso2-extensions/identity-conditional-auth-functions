@@ -34,23 +34,21 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
                                            String userStoreDomainName) {
 
         if (federatedUser != null) {
-            if (!federatedUser.getWrapped().isFederatedUser()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("User " + federatedUser.getWrapped().getUserName() + " is not a federated user.");
-                }
-            }
-            String externalSubject = federatedUser.getWrapped().getAuthenticatedSubjectIdentifier();
-            String externalIdpName = federatedUser.getWrapped().getFederatedIdPName();
-            if (externalSubject != null && externalIdpName != null) {
-                try {
+            if (federatedUser.getWrapped().isFederatedUser()) {
+                String externalSubject = federatedUser.getWrapped().getAuthenticatedSubjectIdentifier();
+                String externalIdpName = federatedUser.getWrapped().getFederatedIdPName();
+                if (externalSubject != null && externalIdpName != null) {
                     associateID(externalIdpName, externalSubject, username, tenantDomain, userStoreDomainName);
-                } catch (UserProfileException e) {
-                    log.error("Error while associate the local user to : " + externalSubject, e);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug(" Authenticated user or External IDP may be null " + " Authenticated User: " +
+                                externalSubject + " and the External IDP name: " + externalIdpName);
+                    }
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug(" Authenticated user or External IDP may be null " + " Authenticated User: " +
-                            externalSubject + " and the External IDP name: " + externalIdpName);
+                    log.debug("User " + federatedUser.getWrapped().getAuthenticatedSubjectIdentifier() + " " +
+                            "is not a federated user." );
                 }
             }
         } else {
@@ -66,10 +64,9 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
      * @param username            local user name
      * @param tenantDomain        tenant domain
      * @param userStoreDomainName user store domain name
-     * @throws UserProfileException Error occurred while retrieving user profile
      */
     private void associateID(String idpID, String associatedID, String username, String tenantDomain,
-                             String userStoreDomainName) throws UserProfileException {
+                             String userStoreDomainName) {
 
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
@@ -78,7 +75,6 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
         } catch (UserProfileException e) {
             String msg = "Error while creating association for user: " + username + " with federated IdP: " + "" + idpID;
             log.error(msg, e);
-            throw new UserProfileException(msg, e);
         }
     }
 }
