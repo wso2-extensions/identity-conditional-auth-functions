@@ -50,6 +50,7 @@
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.session</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.client.assertion.parameters</module>
         <module>features/org.wso2.carbon.identity.conditional.auth.functions.server.feature</module>
+
     </modules>
 
     <dependencyManagement>

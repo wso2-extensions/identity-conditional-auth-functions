@@ -50,7 +50,7 @@ public class ClientAssertionParametersServiceComponent {
             ClientAssertionParametersImpl authParameterFunctions = new ClientAssertionParametersImpl();
             JsFunctionRegistry jsFunctionRegistry = ClientAssertionParametersServiceHolder.getInstance()
                     .getJsFunctionRegistry();
-            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAuthenticationRequestParamValue",
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getValueFromDecodedAssertion",
                     authParameterFunctions);
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
@@ -68,7 +68,7 @@ public class ClientAssertionParametersServiceComponent {
                 .getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
-                    "getAuthenticationRequestParamValue");
+                    "getValueFromDecodedAssertion");
         }
     }
 

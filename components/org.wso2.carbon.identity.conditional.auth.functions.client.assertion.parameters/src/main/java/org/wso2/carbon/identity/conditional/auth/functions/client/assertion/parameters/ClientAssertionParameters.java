@@ -22,5 +22,13 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 @FunctionalInterface
 public interface ClientAssertionParameters {
 
-    Object getAuthenticationRequestParamValue(String clientAssertion, String parameterName, boolean isParameterInBody) throws FrameworkException;
+    /**
+     * @param clientAssertion jwt assertion
+     * @param parameterName   parameter to be retrieved from jwt
+     * @param isParameterInBody whether parameter to be retrieved is in jwt body
+     * @return String representation of the decoded value of the parameter
+     * @throws FrameworkException
+     */
+    Object getValueFromDecodedAssertion(String clientAssertion, String parameterName, boolean isParameterInBody)
+            throws FrameworkException;
 }

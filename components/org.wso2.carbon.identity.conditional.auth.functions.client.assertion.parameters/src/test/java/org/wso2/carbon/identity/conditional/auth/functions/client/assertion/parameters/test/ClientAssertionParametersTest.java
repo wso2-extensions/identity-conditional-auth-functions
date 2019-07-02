@@ -38,7 +38,7 @@ public class ClientAssertionParametersTest {
     @Test
     public void testRetrieveAuthParamString() throws FrameworkException {
 
-        String decodedValue = (String) authenticationParameters.getAuthenticationRequestParamValue(clientAssertion,
+        String decodedValue = (String) authenticationParameters.getValueFromDecodedAssertion(clientAssertion,
                 "state", true);
         Assert.assertEquals("0pN0NBTHcv", decodedValue);
 
@@ -47,7 +47,7 @@ public class ClientAssertionParametersTest {
     @Test
     public void testRetrieveAuthParamJSONObject() throws FrameworkException {
 
-        String decodedValue = (String) authenticationParameters.getAuthenticationRequestParamValue(clientAssertion,
+        String decodedValue = (String) authenticationParameters.getValueFromDecodedAssertion(clientAssertion,
                 "claims", true);
         String claims = "{\"id_token\":{\"acr\":{\"values\":[\"urn:openbanking:psd2:ca\",\"urn:openbanking:psd2:sca\"]" +
                 ",\"essential\":true},\"openbanking_intent_id\":{\"value\":\"865e6fa3-c970-43f6-a7f3-07a8d7d2e66d\"," +
@@ -59,7 +59,7 @@ public class ClientAssertionParametersTest {
     @Test
     public void testRetrieveAuthParamJSONArray() throws FrameworkException {
 
-        String decodedValue = (String) authenticationParameters.getAuthenticationRequestParamValue(clientAssertion,
+        String decodedValue = (String) authenticationParameters.getValueFromDecodedAssertion(clientAssertion,
                 "crit", false);
         String crit = "[\"b64\",\"http://openbanking.org.uk/iat\",\"http://openbanking.org.uk/iss\",\"http://openbanking.org.uk/tan\"]";
         Assert.assertEquals(crit,decodedValue);
@@ -68,7 +68,7 @@ public class ClientAssertionParametersTest {
     @Test
     public void testWrongParameter() throws FrameworkException {
 
-        Object decodedValue = authenticationParameters.getAuthenticationRequestParamValue(clientAssertion,
+        Object decodedValue = authenticationParameters.getValueFromDecodedAssertion(clientAssertion,
                 "scope", false);
         Assert.assertFalse(decodedValue instanceof String);
     }
