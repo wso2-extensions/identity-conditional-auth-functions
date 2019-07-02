@@ -73,29 +73,6 @@ public class ClientAssertionParametersServiceComponent {
     }
 
     @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("RegistryService is set in the conditional authentication user functions bundle");
-        }
-        ClientAssertionParametersServiceHolder.getInstance().setRegistryService(registryService);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("RegistryService is unset in the conditional authentication user functions bundle");
-        }
-        ClientAssertionParametersServiceHolder.getInstance().setRegistryService(null);
-    }
-
-    @Reference(
             service = JsFunctionRegistry.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
