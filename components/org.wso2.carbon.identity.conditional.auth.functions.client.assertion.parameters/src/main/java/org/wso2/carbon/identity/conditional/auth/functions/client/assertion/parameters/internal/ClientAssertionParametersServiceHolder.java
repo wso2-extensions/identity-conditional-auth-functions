@@ -26,8 +26,6 @@ public class ClientAssertionParametersServiceHolder {
 
     private static ClientAssertionParametersServiceHolder instance = new ClientAssertionParametersServiceHolder();
 
-    private RealmService realmService;
-    private RegistryService registryService;
     private JsFunctionRegistry jsFunctionRegistry;
 
     private ClientAssertionParametersServiceHolder() {

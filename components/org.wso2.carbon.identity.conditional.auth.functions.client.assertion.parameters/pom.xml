@@ -39,9 +39,13 @@
             <artifactId>json</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.27.0</version>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -76,13 +80,11 @@
                             org.wso2.carbon.identity.conditional.auth.functions.client.assertion.parameters.*
                         </Export-Package>
                         <Import-Package>
-                            org.apache.commons.logging;version= "[1.1,2)",
-                            org.json;version="[3.0,4)",
-                            org.osgi.service.component;version="[1.2,2)",
-                            org.wso2.carbon.identity.application.authentication.framework;version="[5.12,6)",
-                            org.wso2.carbon.identity.application.authentication.framework.exception;version="[5.12,6)",
-                            org.wso2.carbon.registry.core.service;version="[1.0,2)",
-                            org.wso2.carbon.user.core.service;version="[4.4,5)"
+                            org.apache.commons.logging;version= "${commons.logging.import.version.range}",
+                            org.json;version="${json.wso2.version}",
+                            org.osgi.service.component;version="${org.osgi.service.imp.pkg.version}",
+                            org.wso2.carbon.identity.application.authentication.framework;version="${carbon.identity.framework.version}",
+                            org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.framework.version}"
                         </Import-Package>
                     </instructions>
                 </configuration>
@@ -94,11 +96,8 @@
         </plugins>
     </build>
     <properties>
-        <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
-        <carbon.user.package.import.version.range>[1.0.1, 2.0.0)</carbon.user.package.import.version.range>
-        <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
-        <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>
-        <commons-logging.wso2.osgi.version.range>[1.2.0,2.0.0)</commons-logging.wso2.osgi.version.range>
-        <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
+        <commons.logging.import.version.range>[1.1,2)</commons.logging.import.version.range>
+        <org.json.import.version.range>[3.0,4)</org.json.import.version.range>
+        <org.osgi.service.imp.pkg.version>[1.2,2)</org.osgi.service.imp.pkg.version>
     </properties>
 </project>
