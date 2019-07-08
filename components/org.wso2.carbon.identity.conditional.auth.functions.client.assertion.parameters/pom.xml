@@ -56,6 +56,12 @@
             <groupId>commons-lang.wso2</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>7.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -81,10 +87,11 @@
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging;version= "${commons.logging.import.version.range}",
-                            org.json;version="${json.wso2.version}",
                             org.osgi.service.component;version="${org.osgi.service.imp.pkg.version}",
                             org.wso2.carbon.identity.application.authentication.framework;version="${carbon.identity.framework.version}",
-                            org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.framework.version}"
+                            org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.framework.version}",
+                            com.nimbusds.jose.*;version="${nimbusds.osgi.version.range}",
+                            net.minidev.json; version="${net.minidev.json.imp.pkg.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>
@@ -99,5 +106,8 @@
         <commons.logging.import.version.range>[1.1,2)</commons.logging.import.version.range>
         <org.json.import.version.range>[3.0,4)</org.json.import.version.range>
         <org.osgi.service.imp.pkg.version>[1.2,2)</org.osgi.service.imp.pkg.version>
+        <net.minidev.json.import.package.range>[2.3,3)</net.minidev.json.import.package.range>
+        <nimbusds.osgi.version.range>[5.8.0,6.0.0)</nimbusds.osgi.version.range>
+        <net.minidev.json.imp.pkg.version.range>[1.3.0, 2.0.0)</net.minidev.json.imp.pkg.version.range>
     </properties>
 </project>

@@ -18,14 +18,14 @@
  */
 package org.wso2.carbon.identity.conditional.auth.functions.client.assertion.parameters;
 
+import com.nimbusds.jose.JWSObject;
+import net.minidev.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.text.ParseException;
+import java.util.ArrayList;
 
 /**
  * Represents javascript function provided in conditional authentication to decode a jwt assertion and retrieve
@@ -54,47 +54,33 @@ public class ClientAssertionParametersImpl implements ClientAssertionParameters 
                     log.debug("Valid assertion found: " + clientAssertion);
                 }
                 JSONObject decodedAssertion = null;
-                if (isParameterInPayload) {
-                    decodedAssertion = getDecodedAssertion(tokens[1]);
-                } else {
-                    decodedAssertion = getDecodedAssertion(tokens[0]);
+                try {
+                    decodedAssertion = getDecodedAssertion(clientAssertion, isParameterInPayload);
+                } catch (ParseException e) {
+
+                    log.error("Error while parsing the client assertion", e);
                 }
                 if (log.isDebugEnabled()) {
                     log.debug("Decoded assertion: " + decodedAssertion);
                 }
-                if (decodedAssertion != null && decodedAssertion.has(parameterName)) {
-                    //check whether the requested parameter is a json object, json array or a string
-                    Object parameterValue = decodedAssertion.get(parameterName);
-                    if (parameterValue instanceof String) {
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Requested parameter: " + decodedAssertion.getString(parameterName));
-                        }
-                        return decodedAssertion.getString(parameterName);
-                    } else if (parameterValue instanceof JSONObject) {
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Requested parameter: " + decodedAssertion.getJSONObject(parameterName));
-                        }
-                        return decodedAssertion.getJSONObject(parameterName).toString();
-                    } else if (parameterValue instanceof JSONArray) {
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Requested parameter: " + decodedAssertion.getJSONArray(parameterName));
-                        }
-                        return decodedAssertion.getJSONArray(parameterName).toString();
-                    }
+                if (decodedAssertion != null && decodedAssertion.containsKey(parameterName)) {
+                    return decodedAssertion.get(parameterName).toString();
                 }
             }
         }
         return new Object();
     }
 
-    public JSONObject getDecodedAssertion(String encodedAssertion) {
+    public JSONObject getDecodedAssertion(String encodedAssertion, boolean isParameterInPayload) throws ParseException {
 
-        String decodedAssertion = new String(Base64.getDecoder().decode(encodedAssertion.getBytes(StandardCharsets.UTF_8)),
-                StandardCharsets.UTF_8);
-        return new JSONObject(decodedAssertion);
+        JWSObject plainObject;
+
+        plainObject = JWSObject.parse(encodedAssertion);
+        if (isParameterInPayload) {
+            return plainObject.getPayload().toJSONObject();
+        } else {
+            return plainObject.getHeader().toJSONObject();
+        }
     }
 
 }
