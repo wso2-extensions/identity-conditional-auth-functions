@@ -18,10 +18,11 @@
  */
 package org.wso2.carbon.identity.conditional.auth.functions.client.assertion.parameters.test;
 
-
+import net.minidev.json.JSONArray;
 import org.mockito.Spy;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;import org.testng.Assert;
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.client.assertion.parameters.ClientAssertionParametersImpl;
 
@@ -58,7 +59,7 @@ public class ClientAssertionParametersTest {
 
         String decodedValue = (String) authenticationParameters.getValueFromDecodedAssertion(clientAssertion,
                 "state", true);
-        Assert.assertEquals("0pN0NBTHcv", decodedValue);
+        Assert.assertEquals(decodedValue, "0pN0NBTHcv");
 
     }
 
@@ -71,7 +72,7 @@ public class ClientAssertionParametersTest {
                 ",\"essential\":true},\"openbanking_intent_id\":{\"value\":\"865e6fa3-c970-43f6-a7f3-07a8d7d2e66d\"," +
                 "\"essential\":true}},\"userinfo\":{\"openbanking_intent_id\":{\"value\"" +
                 ":\"865e6fa3-c970-43f6-a7f3-07a8d7d2e66d\",\"essential\":true}}}";
-        Assert.assertEquals(claims, decodedValue);
+        Assert.assertEquals(decodedValue, claims);
     }
 
     @Test
@@ -79,8 +80,8 @@ public class ClientAssertionParametersTest {
 
         String decodedValue = (String) authenticationParameters.getValueFromDecodedAssertion(clientAssertion,
                 "crit", false);
-        String crit = "[\"b64\",\"http://openbanking.org.uk/iat\",\"http://openbanking.org.uk/iss\",\"http://openbanking.org.uk/tan\"]";
-        Assert.assertEquals(crit,decodedValue);
+        String crit = "[b64, http://openbanking.org.uk/iat, http://openbanking.org.uk/tan, http://openbanking.org.uk/iss]";
+        Assert.assertEquals(decodedValue, crit);
     }
 
     @Test
