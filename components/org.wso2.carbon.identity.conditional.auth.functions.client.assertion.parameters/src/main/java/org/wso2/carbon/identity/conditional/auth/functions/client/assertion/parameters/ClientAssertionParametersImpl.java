@@ -46,26 +46,19 @@ public class ClientAssertionParametersImpl implements ClientAssertionParameters 
     public Object getValueFromDecodedAssertion(String clientAssertion, String parameterName,
                                                boolean isParameterInPayload) throws FrameworkException {
 
-        String[] tokens;
         if (clientAssertion != null) {
-            tokens = clientAssertion.split("\\.");
-            if (tokens.length == 3) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Valid assertion found: " + clientAssertion);
-                }
-                JSONObject decodedAssertion = null;
-                try {
-                    decodedAssertion = getDecodedAssertion(clientAssertion, isParameterInPayload);
-                } catch (ParseException e) {
 
-                    log.error("Error while parsing the client assertion", e);
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Decoded assertion: " + decodedAssertion);
-                }
-                if (decodedAssertion != null && decodedAssertion.containsKey(parameterName)) {
-                    return decodedAssertion.get(parameterName).toString();
-                }
+            JSONObject decodedAssertion = null;
+            try {
+                decodedAssertion = getDecodedAssertion(clientAssertion, isParameterInPayload);
+            } catch (ParseException e) {
+                log.error("Error while parsing the client assertion", e);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Decoded assertion: " + decodedAssertion);
+            }
+            if (decodedAssertion != null && decodedAssertion.containsKey(parameterName)) {
+                return decodedAssertion.get(parameterName).toString();
             }
         }
         return new Object();
