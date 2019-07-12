@@ -25,7 +25,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 
 /**
  * Represents javascript function provided in conditional authentication to decode a jwt assertion and retrieve
@@ -43,7 +42,7 @@ public class ClientAssertionParametersImpl implements ClientAssertionParameters 
      * @throws FrameworkException
      */
     @Override
-    public Object getValueFromDecodedAssertion(String clientAssertion, String parameterName,
+    public String getValueFromDecodedAssertion(String clientAssertion, String parameterName,
                                                boolean isParameterInPayload) throws FrameworkException {
 
         if (clientAssertion != null) {
@@ -61,7 +60,7 @@ public class ClientAssertionParametersImpl implements ClientAssertionParameters 
                 return decodedAssertion.get(parameterName).toString();
             }
         }
-        return new Object();
+        return "";
     }
 
     public JSONObject getDecodedAssertion(String encodedAssertion, boolean isParameterInPayload) throws ParseException {
