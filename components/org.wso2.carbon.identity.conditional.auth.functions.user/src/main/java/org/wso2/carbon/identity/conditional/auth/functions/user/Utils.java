@@ -5,6 +5,7 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -67,4 +68,10 @@ public class Utils {
         }
         return userStore;
     }
+
+    public static int getTenantId (String tenantDomain) {
+        return (tenantDomain == null) ? org.wso2.carbon.utils.multitenancy.MultitenantConstants
+                .INVALID_TENANT_ID : IdentityTenantUtil.getTenantId(tenantDomain);
+    }
+
 }

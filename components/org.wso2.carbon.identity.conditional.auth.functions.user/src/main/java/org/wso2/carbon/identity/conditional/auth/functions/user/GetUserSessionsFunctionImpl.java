@@ -1,0 +1,49 @@
+package org.wso2.carbon.identity.conditional.auth.functions.user;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
+
+    private static final Log LOG = LogFactory.getLog(GetUserSessionsFunctionImpl.class);
+
+    @Override
+    public List<String> getUserSessions(JsAuthenticatedUser user) {
+        List<UserSession> sessionsForUser = null;
+        String tenantDomain = user.getWrapped().getTenantDomain();
+        String userStoreDomain = user.getWrapped().getUserStoreDomain();
+        String username = user.getWrapped().getUserName();
+
+        try {
+            UserRealm userRealm = Utils.getUserRealm(user.getWrapped().getTenantDomain());
+            if (userRealm != null) {
+                UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
+                if (userStore != null) {
+                    String userId = UserSessionStore.getInstance().getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
+                    sessionsForUser = UserFunctionsServiceHolder.getInstance().getUserSessionManagementService().getSessionsByUserId(userId);
+                }
+            }
+        } catch (SessionManagementException e) {
+            LOG.error("Error occurred while retrieving sessions: ", e);
+        } catch (FrameworkException e) {
+            LOG.error("Error in evaluating the function ", e);
+        } catch (UserSessionException e) {
+            LOG.error("Error occurred while retrieving the UserID: ", e);
+        } finally {
+            return sessionsForUser.stream().map(UserSession::getSessionId).collect(Collectors.toList());
+        }
+    }
+
+}
