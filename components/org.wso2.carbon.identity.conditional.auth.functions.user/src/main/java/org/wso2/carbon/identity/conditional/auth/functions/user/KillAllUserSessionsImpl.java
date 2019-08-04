@@ -31,7 +31,7 @@ public class KillAllUserSessionsImpl implements KillAllUserSessions {
                     result = UserFunctionsServiceHolder.getInstance().getUserSessionManagementService().terminateSessionsByUserId(userId);
                 }
             }
-            if (LOG.isDebugEnabled()) {
+            if (result && LOG.isDebugEnabled()) {
                 LOG.debug("All active sessions killed for user: " + username);
             }
         } catch (SessionManagementException e) {

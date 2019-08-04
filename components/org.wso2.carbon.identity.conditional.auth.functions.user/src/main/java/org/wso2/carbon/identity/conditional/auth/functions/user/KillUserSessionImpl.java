@@ -30,7 +30,7 @@ public class KillUserSessionImpl implements KillUserSession {
                     result = UserFunctionsServiceHolder.getInstance().getUserSessionManagementService().terminateSessionBySessionId(userId, sessionId);
                 }
             }
-            if (LOG.isDebugEnabled()) {
+            if (result && LOG.isDebugEnabled()) {
                 LOG.debug("Session: " + sessionId + " of user: " + username + " killed");
             }
         } catch (FrameworkException e) {
