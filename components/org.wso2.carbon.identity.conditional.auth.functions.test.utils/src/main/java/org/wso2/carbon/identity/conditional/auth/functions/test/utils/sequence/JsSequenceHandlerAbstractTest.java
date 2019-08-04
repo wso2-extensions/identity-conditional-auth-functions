@@ -67,7 +67,7 @@ public class JsSequenceHandlerAbstractTest {
                     try (FileOutputStream fos = new FileOutputStream(f)) {
                         targetChannel = fos.getChannel();
                         //Transfer data from input channel to output channel
-                        ((FileChannel) targetChannel).transferFrom(inputChannel, 0, Short.MAX_VALUE);
+                        ((FileChannel) targetChannel).transferFrom(inputChannel, 0, Long.MAX_VALUE);
                     }
                 }
                 inputStream.close();
