@@ -22,7 +22,17 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 
 import java.util.List;
 
+/**
+ * Function to get the active sessions for a given user.
+ */
 @FunctionalInterface
 public interface GetUserSessionsFunction {
+
+    /**
+     * Get active sessions for a given <code>user</code>.
+     *
+     * @param user           Authenticated user.
+     * @return a list of active sessionIds if there are any. Returns an empty list when there are no active sessions.
+     */
     List<String> getUserSessions(JsAuthenticatedUser user);
 }

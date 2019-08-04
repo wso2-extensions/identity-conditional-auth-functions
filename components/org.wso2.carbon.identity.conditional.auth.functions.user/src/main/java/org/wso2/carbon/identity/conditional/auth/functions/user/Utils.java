@@ -29,12 +29,12 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 
 /**
- * Utility methods required for user functions
+ * Utility methods required for user functions.
  */
 public class Utils {
 
     /**
-     * Get userRealm for the given tenantDomain
+     * Get userRealm for the given tenantDomain.
      *
      * @param tenantDomain Tenant domain relevant to the required userRealm
      * @return UserRealm as an object
@@ -54,7 +54,7 @@ public class Utils {
     }
 
     /**
-     * Get userStore manager for the given parameters
+     * Get userStore manager for the given parameters.
      *
      * @param tenantDomain Tenant domain relevant to the required userStore manager
      * @param realm        User realm name relevant to the userStore manager
@@ -87,6 +87,12 @@ public class Utils {
         return userStore;
     }
 
+    /**
+     * Get tenantId for the given tenantDomain.
+     *
+     * @param tenantDomain Tenant domain relevant to the required tenantId
+     * @return tenantId as an Integer
+     */
     public static int getTenantId (String tenantDomain) {
         return (tenantDomain == null) ? org.wso2.carbon.utils.multitenancy.MultitenantConstants
                 .INVALID_TENANT_ID : IdentityTenantUtil.getTenantId(tenantDomain);

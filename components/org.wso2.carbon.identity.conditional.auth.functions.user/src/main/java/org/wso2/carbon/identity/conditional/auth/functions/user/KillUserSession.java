@@ -20,7 +20,18 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
+/**
+ * Function to kill a session of user.
+ */
 @FunctionalInterface
 public interface KillUserSession {
+
+    /**
+     * Kill the active sessions of a given <code>user</code> with the given <code>sessionId</code>.
+     *
+     * @param user      Authenticated user. Ideally from a given step.
+     * @param sessionId SessionId of the session that needs to be killed.
+     * @return <code>true</code> if the kill operation was successful. <code>false</code> if the operation failed.
+     */
     boolean killUserSession(JsAuthenticatedUser user, String sessionId);
 }
