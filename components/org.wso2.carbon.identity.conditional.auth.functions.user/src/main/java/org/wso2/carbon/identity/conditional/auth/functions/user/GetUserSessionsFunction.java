@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSession;
 
 import java.util.List;
 
@@ -34,5 +35,5 @@ public interface GetUserSessionsFunction {
      * @param user           Authenticated user.
      * @return a list of active sessionIds if there are any. Returns an empty list when there are no active sessions.
      */
-    List<String> getUserSessions(JsAuthenticatedUser user);
+    List<JsUserSession> getUserSessions(JsAuthenticatedUser user);
 }

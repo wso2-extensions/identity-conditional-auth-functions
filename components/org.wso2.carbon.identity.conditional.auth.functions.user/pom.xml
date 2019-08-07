@@ -107,7 +107,7 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.conditional.auth.functions.user.internal,
-                            org.wso2.carbon.identity.conditional.auth.functions.user
+                            org.wso2.carbon.identity.conditional.auth.functions.user.*
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang,

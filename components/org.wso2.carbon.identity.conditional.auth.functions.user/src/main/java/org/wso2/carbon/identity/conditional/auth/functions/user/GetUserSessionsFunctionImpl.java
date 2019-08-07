@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSession;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 
@@ -38,7 +39,7 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
     private static final Log LOG = LogFactory.getLog(GetUserSessionsFunctionImpl.class);
 
     @Override
-    public List<String> getUserSessions(JsAuthenticatedUser user) {
+    public List<JsUserSession> getUserSessions(JsAuthenticatedUser user) {
         List<UserSession> sessionsForUser = null;
         String tenantDomain = user.getWrapped().getTenantDomain();
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
@@ -59,9 +60,8 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
             LOG.error("Error in evaluating the function ", e);
         } catch (UserSessionException e) {
             LOG.error("Error occurred while retrieving the UserID: ", e);
-        } finally {
-            return sessionsForUser.stream().map(UserSession::getSessionId).collect(Collectors.toList());
         }
+        return sessionsForUser.stream().map(JsUserSession::new).collect(Collectors.toList());
     }
 
 }
