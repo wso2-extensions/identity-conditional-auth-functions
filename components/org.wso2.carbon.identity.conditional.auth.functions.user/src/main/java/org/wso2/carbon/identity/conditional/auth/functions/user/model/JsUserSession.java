@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -33,8 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
  * @see UserSession
  */
 public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
-
-    private static final Log LOG = LogFactory.getLog(JsUserSession.class);
 
     public JsUserSession(UserSession wrappedUserSession) {
         super(wrappedUserSession);
