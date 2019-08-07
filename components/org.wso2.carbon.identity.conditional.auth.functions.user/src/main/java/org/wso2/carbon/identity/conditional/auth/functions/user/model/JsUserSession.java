@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 /**
  * Javascript wrapper for Java level UserSession.
@@ -40,15 +39,15 @@ public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
     public Object getMember(String name) {
 
         switch (name) {
-            case FrameworkConstants.JSAttributes.JS_USER_AGENT:
+            case "userAgent":
                 return getWrapped().getUserAgent();
-            case FrameworkConstants.JSAttributes.JS_IP_ADDRESS:
+            case "ip":
                 return getWrapped().getIp();
-            case FrameworkConstants.JSAttributes.JS_LOGIN_TIME:
+            case "loginTime":
                 return getWrapped().getLoginTime();
-            case FrameworkConstants.JSAttributes.JS_LAST_ACCESS_TIME:
+            case "lastAccessTime":
                 return getWrapped().getLastAccessTime();
-            case FrameworkConstants.JSAttributes.JS_SESSION_ID:
+            case "id":
                 return getWrapped().getSessionId();
             default:
                 return super.getMember(name);
