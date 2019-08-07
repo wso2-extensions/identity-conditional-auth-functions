@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRoles
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.user.KillAllUserSessionsImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.KillUserSessionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunction;
@@ -85,8 +84,6 @@ public class UserFunctionsServiceComponent {
                     getAssociatedLocalUserFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUserSessions",
                     new GetUserSessionsFunctionImpl());
-            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "killAllUserSessions",
-                    new KillAllUserSessionsImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "KillUserSession",
                     new KillUserSessionImpl());
         } catch (Throwable e) {
@@ -107,7 +104,6 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRoles");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUserSessions");
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "killAllUserSessions");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "KillUserSession");
         }
     }
