@@ -55,9 +55,8 @@ public class KillUserSessionImpl implements KillUserSession {
             LOG.error("Error in evaluating the function ", e);
         } catch (UserSessionException e) {
             LOG.error("Error occurred while retrieving the UserID: ", e);
-        } finally {
-            return result;
         }
+        return result;
     }
 
 }
