@@ -19,43 +19,34 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
-
-import java.util.stream.Collectors;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 
 /**
- * Javascript wrapper for Java level UserSession.
+ * Javascript wrapper for Java level Application.
  * This provides controlled access to UserSession object via provided javascript native syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
  * AuthenticatedUser.
  *
- * @see UserSession
+ * @see Application
  */
-public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
+public class JsApplication extends AbstractJSObjectWrapper<Application> {
 
-    public JsUserSession(UserSession wrappedUserSession) {
-        super(wrappedUserSession);
+    public JsApplication(Application wrappedApplication) {
+        super(wrappedApplication);
     }
 
     @Override
     public Object getMember(String name) {
 
         switch (name) {
-            case "userAgent":
-                return getWrapped().getUserAgent();
-            case "ip":
-                return getWrapped().getIp();
-            case "loginTime":
-                return getWrapped().getLoginTime();
-            case "lastAccessTime":
-                return getWrapped().getLastAccessTime();
-            case "id":
-                return getWrapped().getSessionId();
-            case "applications":
-                return getWrapped().getApplications().stream().map(JsApplication::new).collect(Collectors.toList());
+            case "subject":
+                return getWrapped().getSubject();
+            case "appName":
+                return getWrapped().getAppName();
+            case "appId":
+                return getWrapped().getAppId();
             default:
                 return super.getMember(name);
         }
     }
-
 }
