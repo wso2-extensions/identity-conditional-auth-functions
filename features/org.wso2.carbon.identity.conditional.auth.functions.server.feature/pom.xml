@@ -60,6 +60,14 @@
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ua.parser.wso2</groupId>
+            <artifactId>ua-parser</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections.wso2</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -92,6 +100,8 @@
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user.store</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpasyncclient</bundleDef>
+                                <bundleDef>ua.parser.wso2:ua-parser:${ua_parser.version}</bundleDef>
+                                <bundleDef>commons-collections.wso2:commons-collections:${apache.common.collection.version}</bundleDef>
                             </bundles>
                         </configuration>
                     </execution>

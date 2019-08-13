@@ -57,6 +57,10 @@
             <artifactId>org.wso2.carbon.identity.user.profile</artifactId>
         </dependency>
         <dependency>
+            <groupId>ua.parser.wso2</groupId>
+            <artifactId>ua-parser</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
             <scope>test</scope>
@@ -114,6 +118,7 @@
                             org.apache.commons.logging,
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
+                            ua_parser.*,
                             org.wso2.carbon,
                             org.wso2.carbon.core.util,
                             org.wso2.carbon.identity.application.authentication.framework,
