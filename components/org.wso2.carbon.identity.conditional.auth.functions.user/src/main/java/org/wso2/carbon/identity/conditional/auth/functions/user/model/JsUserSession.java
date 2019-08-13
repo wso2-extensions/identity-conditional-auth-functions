@@ -33,8 +33,11 @@ import java.util.stream.Collectors;
  */
 public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
 
+    private UserAgent userAgent;
+
     public JsUserSession(UserSession wrappedUserSession) {
         super(wrappedUserSession);
+        userAgent = new UserAgent(wrappedUserSession.getUserAgent());
     }
 
     @Override
@@ -42,7 +45,7 @@ public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
 
         switch (name) {
             case "userAgent":
-                return getWrapped().getUserAgent();
+                return new JsUserAgent(userAgent);
             case "ip":
                 return getWrapped().getIp();
             case "loginTime":
