@@ -41,7 +41,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.session.function.Kill
 )
 public class SessionBasedJSFunctionsComponent {
 
-    private static Log log = LogFactory.getLog(SessionBasedJSFunctionsComponent.class);
+    private static final Log log = LogFactory.getLog(SessionBasedJSFunctionsComponent.class);
 
     private JsFunctionRegistry jsFunctionRegistry;
     private IsWithinSessionLimitFunctionImpl isWithinSessionLimitFunction;
