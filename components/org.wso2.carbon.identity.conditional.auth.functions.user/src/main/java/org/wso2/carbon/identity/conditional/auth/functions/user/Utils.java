@@ -93,7 +93,8 @@ public class Utils {
      * @param tenantDomain Tenant domain relevant to the required tenantId
      * @return tenantId as an Integer
      */
-    public static int getTenantId (String tenantDomain) {
+    public static int getTenantId(String tenantDomain) {
+
         return (tenantDomain == null) ? org.wso2.carbon.utils.multitenancy.MultitenantConstants
                 .INVALID_TENANT_ID : IdentityTenantUtil.getTenantId(tenantDomain);
     }

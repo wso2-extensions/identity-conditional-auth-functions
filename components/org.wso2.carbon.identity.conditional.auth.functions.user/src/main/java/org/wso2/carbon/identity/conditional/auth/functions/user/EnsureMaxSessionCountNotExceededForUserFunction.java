@@ -25,11 +25,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
  */
 @FunctionalInterface
 public interface EnsureMaxSessionCountNotExceededForUserFunction {
+
     /**
      * Get active sessions and prompt to kill the sessions if the specified limit exceeds for a given <code>user</code>.
      *
-     * @param user              Authenticated user.
-     * @param maxSessionCount   Maximum number of active concurrent sessions.
+     * @param user            Authenticated user.
+     * @param maxSessionCount Maximum number of active concurrent sessions.
      */
     void ensureMaxSessionCountNotExceededForUser(JsAuthenticatedUser user, int maxSessionCount);
 }

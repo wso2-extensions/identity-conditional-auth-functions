@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Appli
 public class JsApplication extends AbstractJSObjectWrapper<Application> {
 
     public JsApplication(Application wrappedApplication) {
+
         super(wrappedApplication);
     }
 

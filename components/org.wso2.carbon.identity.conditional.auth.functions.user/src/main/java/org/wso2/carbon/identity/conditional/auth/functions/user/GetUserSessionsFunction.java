@@ -32,7 +32,7 @@ public interface GetUserSessionsFunction {
     /**
      * Get active sessions for a given <code>user</code>.
      *
-     * @param user           Authenticated user.
+     * @param user Authenticated user.
      * @return a list of active sessionIds if there are any. Returns an empty list when there are no active sessions.
      */
     List<JsUserSession> getUserSessions(JsAuthenticatedUser user);

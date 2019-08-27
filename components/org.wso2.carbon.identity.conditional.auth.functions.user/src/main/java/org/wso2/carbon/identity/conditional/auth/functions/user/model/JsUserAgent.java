@@ -31,11 +31,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 public class JsUserAgent extends AbstractJSObjectWrapper<UserAgent> {
 
     public JsUserAgent(UserAgent wrappedUserAgent) {
+
         super(wrappedUserAgent);
     }
 
     @Override
     public Object getMember(String name) {
+
         switch (name) {
             case "rawString":
                 return getWrapped().getRawString();

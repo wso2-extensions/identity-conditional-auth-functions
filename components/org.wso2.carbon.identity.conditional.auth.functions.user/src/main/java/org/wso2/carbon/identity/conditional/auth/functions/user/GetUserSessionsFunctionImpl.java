@@ -34,24 +34,30 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Function to retrieve the active sessions of the specified user.
+ */
 public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
 
     private static final Log LOG = LogFactory.getLog(GetUserSessionsFunctionImpl.class);
 
     @Override
     public List<JsUserSession> getUserSessions(JsAuthenticatedUser user) {
+
         List<UserSession> sessionsForUser = null;
         String tenantDomain = user.getWrapped().getTenantDomain();
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
         String username = user.getWrapped().getUserName();
 
         try {
-            UserRealm userRealm = Utils.getUserRealm(user.getWrapped().getTenantDomain());
+            UserRealm userRealm = Utils.getUserRealm(tenantDomain);
             if (userRealm != null) {
                 UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                 if (userStore != null) {
-                    String userId = UserSessionStore.getInstance().getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
-                    sessionsForUser = UserFunctionsServiceHolder.getInstance().getUserSessionManagementService().getSessionsByUserId(userId);
+                    String userId = UserSessionStore.getInstance()
+                            .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
+                    sessionsForUser = UserFunctionsServiceHolder.getInstance()
+                            .getUserSessionManagementService().getSessionsByUserId(userId);
                 }
             }
         } catch (SessionManagementException e) {

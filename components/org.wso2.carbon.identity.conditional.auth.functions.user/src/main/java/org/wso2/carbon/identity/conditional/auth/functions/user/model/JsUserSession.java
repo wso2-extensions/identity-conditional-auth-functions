@@ -36,6 +36,7 @@ public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
     private UserAgent userAgent;
 
     public JsUserSession(UserSession wrappedUserSession) {
+
         super(wrappedUserSession);
         userAgent = new UserAgent(wrappedUserSession.getUserAgent());
     }

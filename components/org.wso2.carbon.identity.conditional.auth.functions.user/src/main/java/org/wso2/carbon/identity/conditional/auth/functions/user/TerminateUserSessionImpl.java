@@ -28,28 +28,34 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFun
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 
-public class KillUserSessionImpl implements KillUserSession {
+/**
+ * Function to terminate the specified user's session with specified sessionId.
+ */
+public class TerminateUserSessionImpl implements TerminateUserSession {
 
-    private static final Log LOG = LogFactory.getLog(KillUserSession.class);
+    private static final Log LOG = LogFactory.getLog(TerminateUserSession.class);
 
     @Override
-    public boolean killUserSession(JsAuthenticatedUser user, String sessionId) {
+    public boolean terminateUserSession(JsAuthenticatedUser user, String sessionId) {
+
         boolean result = false;
         String tenantDomain = user.getWrapped().getTenantDomain();
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
         String username = user.getWrapped().getUserName();
 
         try {
-            UserRealm userRealm = Utils.getUserRealm(user.getWrapped().getTenantDomain());
+            UserRealm userRealm = Utils.getUserRealm(tenantDomain);
             if (userRealm != null) {
                 UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                 if (userStore != null) {
-                    String userId = UserSessionStore.getInstance().getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
-                    result = UserFunctionsServiceHolder.getInstance().getUserSessionManagementService().terminateSessionBySessionId(userId, sessionId);
+                    String userId = UserSessionStore.getInstance()
+                            .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
+                    result = UserFunctionsServiceHolder.getInstance()
+                            .getUserSessionManagementService().terminateSessionBySessionId(userId, sessionId);
                 }
             }
             if (result && LOG.isDebugEnabled()) {
-                LOG.debug("Session: " + sessionId + " of user: " + username + " killed");
+                LOG.debug("Session: " + sessionId + " of user: " + username + " terminated");
             }
         } catch (FrameworkException e) {
             LOG.error("Error in evaluating the function ", e);

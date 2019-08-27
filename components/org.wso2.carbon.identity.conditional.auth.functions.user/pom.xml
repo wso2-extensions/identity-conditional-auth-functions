@@ -125,6 +125,7 @@
                             org.wso2.carbon.identity.application.authentication.framework.util,
                             org.wso2.carbon.identity.application.authentication.framework.exception,
                             org.wso2.carbon.identity.application.authentication.framework.model,
+                            org.wso2.carbon.identity.application.authentication.framework.config,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph,
                             org.wso2.carbon.identity.application.authentication.framework.config.model,
