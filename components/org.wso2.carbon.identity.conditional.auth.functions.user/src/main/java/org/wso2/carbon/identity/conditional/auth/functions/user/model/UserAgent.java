@@ -26,7 +26,12 @@ import ua_parser.Parser;
 
 import java.io.IOException;
 
+/**
+ * Wrapper class for ua-parser library.
+ * Includes methods extract different attributes from a raw UserAgent String.
+ */
 public class UserAgent {
+
     private static final Log LOG = LogFactory.getLog(UserAgent.class);
     private static Parser parser;
     private String rawString;
@@ -35,13 +40,12 @@ public class UserAgent {
     private Device device;
 
     public UserAgent(String rawString) {
+
         this.rawString = rawString;
-        this.browser = getParser().parseUserAgent(rawString);
-        this.platform = getParser().parseOS(rawString);
-        this.device = getParser().parseDevice(rawString);
     }
 
     public static synchronized Parser getParser() {
+
         if (parser == null) {
             try {
                 parser = new Parser();
@@ -53,25 +57,39 @@ public class UserAgent {
     }
 
     public String getRawString() {
+
         return rawString;
     }
 
     public void setRawString(String rawString) {
+
         this.rawString = rawString;
-        this.browser = getParser().parseUserAgent(rawString);
-        this.platform = getParser().parseOS(rawString);
-        this.device = getParser().parseDevice(rawString);
+        this.browser = null;
+        this.platform = null;
+        this.device = null;
     }
 
     public String getBrowser() {
+
+        if (browser == null) {
+            browser = getParser().parseUserAgent(rawString);
+        }
         return browser.family;
     }
 
     public String getPlatform() {
+
+        if (platform == null) {
+            platform = getParser().parseOS(rawString);
+        }
         return platform.family;
     }
 
     public String getDevice() {
+
+        if (device == null) {
+            device = getParser().parseDevice(rawString);
+        }
         return device.family;
     }
 
