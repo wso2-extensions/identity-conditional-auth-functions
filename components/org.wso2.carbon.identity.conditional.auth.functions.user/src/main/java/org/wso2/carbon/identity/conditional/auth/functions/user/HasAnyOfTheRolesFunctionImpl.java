@@ -33,6 +33,9 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Function to check whether the specified user belongs to one of the roles specified in the list of user roles.
+ */
 public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
 
     private static final Log LOG = LogFactory.getLog(HasAnyOfTheRolesFunctionImpl.class);
@@ -46,9 +49,9 @@ public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
         String username = user.getWrapped().getUserName();
         try {
-            UserRealm userRealm = getUserRealm(user.getWrapped().getTenantDomain());
+            UserRealm userRealm = Utils.getUserRealm(user.getWrapped().getTenantDomain());
             if (userRealm != null) {
-                UserStoreManager userStore = getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
+                UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                 if (userStore != null) {
                     String[] roleListOfUser = userStore.getRoleListOfUser(username);
                     result = Arrays.stream(roleListOfUser).anyMatch(roleNames::contains);
@@ -63,40 +66,4 @@ public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
         return result;
     }
 
-    private UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
-
-        UserRealm realm;
-        try {
-            realm = AnonymousSessionUtil.getRealmByTenantDomain(UserFunctionsServiceHolder.getInstance()
-                    .getRegistryService(), UserFunctionsServiceHolder.getInstance().getRealmService(), tenantDomain);
-        } catch (CarbonException e) {
-            throw new FrameworkException(
-                    "Error occurred while retrieving the Realm for " + tenantDomain + " to retrieve user roles", e);
-        }
-        return realm;
-    }
-
-    private UserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm, String userDomain)
-            throws FrameworkException {
-
-        UserStoreManager userStore = null;
-        try {
-            if (StringUtils.isNotBlank(userDomain)) {
-                userStore = realm.getUserStoreManager().getSecondaryUserStoreManager(userDomain);
-            } else {
-                userStore = realm.getUserStoreManager();
-            }
-
-            if (userStore == null) {
-                throw new FrameworkException(
-                        String.format("Invalid user store domain (given : %s) or tenant domain (given: %s).",
-                                userDomain, tenantDomain));
-            }
-        } catch (UserStoreException e) {
-            throw new FrameworkException(
-                    "Error occurred while retrieving the UserStoreManager from Realm for " + tenantDomain
-                            + " to retrieve user roles", e);
-        }
-        return userStore;
-    }
 }
