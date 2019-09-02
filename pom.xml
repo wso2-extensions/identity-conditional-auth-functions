@@ -207,6 +207,11 @@
                 <artifactId>org.wso2.carbon.identity.event.handler.notification</artifactId>
                 <version>${identity.event.handler.notification.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.core</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
