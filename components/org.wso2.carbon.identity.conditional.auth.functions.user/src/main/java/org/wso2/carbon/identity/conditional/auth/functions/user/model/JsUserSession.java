@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.core.model.UserAgent;
 
 import java.util.stream.Collectors;
 
