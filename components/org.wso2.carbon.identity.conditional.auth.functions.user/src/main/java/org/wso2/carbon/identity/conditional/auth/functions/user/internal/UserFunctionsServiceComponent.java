@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.application.authentication.framework.UserSession
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExistenceFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.user.EnsureMaxSessionCountNotExceededForUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetUserSessionsFunctionImpl;
@@ -86,8 +85,6 @@ public class UserFunctionsServiceComponent {
                     new GetUserSessionsFunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "terminateUserSession",
                     new TerminateUserSessionImpl());
-            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "ensureMaxSessionCountNotExceededForUser",
-                    new EnsureMaxSessionCountNotExceededForUserFunctionImpl());
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }
@@ -107,7 +104,6 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUserSessions");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "terminateUserSession");
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "ensureMaxSessionCountNotExceededForUser");
         }
     }
 

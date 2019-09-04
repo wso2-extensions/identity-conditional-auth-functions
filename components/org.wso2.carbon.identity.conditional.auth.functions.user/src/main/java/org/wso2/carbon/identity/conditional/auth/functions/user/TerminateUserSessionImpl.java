@@ -23,10 +23,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.conditional.auth.functions.user.exception.UserSessionTerminationException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
 
 /**
  * Function to terminate the specified user's session with specified sessionId.
@@ -38,29 +39,36 @@ public class TerminateUserSessionImpl implements TerminateUserSession {
     @Override
     public boolean terminateUserSession(JsAuthenticatedUser user, String sessionId) {
 
+        try {
+            return terminateUserSession(user.getWrapped(), sessionId);
+        } catch (UserSessionTerminationException e) {
+            LOG.error("Error occurred while terminating user session: " + sessionId, e);
+            return false;
+        }
+    }
+
+    private boolean terminateUserSession(AuthenticatedUser authenticatedUser, String sessionId) throws UserSessionTerminationException {
+
         boolean result = false;
-        String tenantDomain = user.getWrapped().getTenantDomain();
-        String userStoreDomain = user.getWrapped().getUserStoreDomain();
-        String username = user.getWrapped().getUserName();
+        String tenantDomain = authenticatedUser.getTenantDomain();
+        String userStoreDomain = authenticatedUser.getUserStoreDomain();
+        String username = authenticatedUser.getUserName();
 
         try {
             UserRealm userRealm = Utils.getUserRealm(tenantDomain);
             if (userRealm != null) {
-                UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
-                if (userStore != null) {
-                    String userId = UserSessionStore.getInstance()
-                            .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
-                    result = UserFunctionsServiceHolder.getInstance()
-                            .getUserSessionManagementService().terminateSessionBySessionId(userId, sessionId);
-                }
+                String userId = UserSessionStore.getInstance()
+                        .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
+                result = UserFunctionsServiceHolder.getInstance()
+                        .getUserSessionManagementService().terminateSessionBySessionId(userId, sessionId);
             }
             if (result && LOG.isDebugEnabled()) {
                 LOG.debug("Session: " + sessionId + " of user: " + username + " terminated");
             }
         } catch (FrameworkException e) {
-            LOG.error("Error in evaluating the function ", e);
+            throw new UserSessionTerminationException("Error in evaluating the function ", e);
         } catch (UserSessionException e) {
-            LOG.error("Error occurred while retrieving the UserID: ", e);
+            throw new UserSessionTerminationException("Error occurred while retrieving the UserID: ", e);
         }
         return result;
     }

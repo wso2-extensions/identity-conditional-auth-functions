@@ -24,12 +24,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.conditional.auth.functions.user.exception.UserSessionRetrievalException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSession;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,30 +45,38 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
     @Override
     public List<JsUserSession> getUserSessions(JsAuthenticatedUser user) {
 
-        List<UserSession> sessionsForUser = null;
-        String tenantDomain = user.getWrapped().getTenantDomain();
-        String userStoreDomain = user.getWrapped().getUserStoreDomain();
-        String username = user.getWrapped().getUserName();
+        List<JsUserSession> sessionsForUser = null;
+        try {
+            sessionsForUser = getUserSessions(user.getWrapped()).stream().map(JsUserSession::new).collect(Collectors.toList());
+        } catch (UserSessionRetrievalException e) {
+            LOG.error(e);
+        }
+        return sessionsForUser;
+    }
+
+    private List<UserSession> getUserSessions(AuthenticatedUser authenticatedUser) throws UserSessionRetrievalException {
+
+        List<UserSession> userSessions = null;
+        String tenantDomain = authenticatedUser.getTenantDomain();
+        String userStoreDomain = authenticatedUser.getUserStoreDomain();
+        String username = authenticatedUser.getUserName();
 
         try {
             UserRealm userRealm = Utils.getUserRealm(tenantDomain);
             if (userRealm != null) {
-                UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
-                if (userStore != null) {
-                    String userId = UserSessionStore.getInstance()
-                            .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
-                    sessionsForUser = UserFunctionsServiceHolder.getInstance()
-                            .getUserSessionManagementService().getSessionsByUserId(userId);
-                }
+                String userId = UserSessionStore.getInstance()
+                        .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
+                userSessions = UserFunctionsServiceHolder.getInstance()
+                        .getUserSessionManagementService().getSessionsByUserId(userId);
             }
         } catch (SessionManagementException e) {
-            LOG.error("Error occurred while retrieving sessions: ", e);
+            throw new UserSessionRetrievalException("Error occurred while retrieving sessions: ", e);
         } catch (FrameworkException e) {
-            LOG.error("Error in evaluating the function ", e);
+            throw new UserSessionRetrievalException("Error in evaluating the function ", e);
         } catch (UserSessionException e) {
-            LOG.error("Error occurred while retrieving the UserID: ", e);
+            throw new UserSessionRetrievalException("Error occurred while retrieving the UserID: ", e);
         }
-        return sessionsForUser.stream().map(JsUserSession::new).collect(Collectors.toList());
+        return userSessions;
     }
 
 }
