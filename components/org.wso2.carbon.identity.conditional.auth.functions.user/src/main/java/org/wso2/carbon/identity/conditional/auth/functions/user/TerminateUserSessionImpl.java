@@ -47,7 +47,8 @@ public class TerminateUserSessionImpl implements TerminateUserSession {
         }
     }
 
-    private boolean terminateUserSession(AuthenticatedUser authenticatedUser, String sessionId) throws UserSessionTerminationException {
+    private boolean terminateUserSession(AuthenticatedUser authenticatedUser, String sessionId)
+            throws UserSessionTerminationException {
 
         boolean result = false;
         String tenantDomain = authenticatedUser.getTenantDomain();

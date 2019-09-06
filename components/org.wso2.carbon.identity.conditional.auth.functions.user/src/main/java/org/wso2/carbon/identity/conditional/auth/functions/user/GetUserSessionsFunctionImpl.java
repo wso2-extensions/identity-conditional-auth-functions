@@ -47,14 +47,16 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
 
         List<JsUserSession> sessionsForUser = null;
         try {
-            sessionsForUser = getUserSessions(user.getWrapped()).stream().map(JsUserSession::new).collect(Collectors.toList());
+            sessionsForUser = getUserSessions(user.getWrapped())
+                    .stream().map(JsUserSession::new).collect(Collectors.toList());
         } catch (UserSessionRetrievalException e) {
             LOG.error(e);
         }
         return sessionsForUser;
     }
 
-    private List<UserSession> getUserSessions(AuthenticatedUser authenticatedUser) throws UserSessionRetrievalException {
+    private List<UserSession> getUserSessions(AuthenticatedUser authenticatedUser)
+            throws UserSessionRetrievalException {
 
         List<UserSession> userSessions = null;
         String tenantDomain = authenticatedUser.getTenantDomain();
