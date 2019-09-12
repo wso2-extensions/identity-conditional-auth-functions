@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.conditional.auth.functions.user.exception.UserSessionTerminationException;
@@ -69,7 +70,11 @@ public class TerminateUserSessionImpl implements TerminateUserSession {
         } catch (FrameworkException e) {
             throw new UserSessionTerminationException("Error in evaluating the function ", e);
         } catch (UserSessionException e) {
-            throw new UserSessionTerminationException("Error occurred while retrieving the UserID: ", e);
+            throw new UserSessionTerminationException
+                    ("Error occurred while retrieving the UserID for user: " + username, e);
+        } catch (SessionManagementException e) {
+            throw new UserSessionTerminationException
+                    ("Error occurred while terminating the user session for sessionId: " + sessionId, e);
         }
         return result;
     }
