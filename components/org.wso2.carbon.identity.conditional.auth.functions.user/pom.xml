@@ -111,7 +111,7 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.conditional.auth.functions.user.internal,
-                            org.wso2.carbon.identity.conditional.auth.functions.user
+                            org.wso2.carbon.identity.conditional.auth.functions.user.*
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang,
@@ -119,15 +119,21 @@
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
-                            org.wso2.carbon.core.util,
+                            org.wso2.carbon.core.util.*,
                             org.wso2.carbon.identity.application.authentication.framework,
                             org.wso2.carbon.identity.application.authentication.framework.util,
                             org.wso2.carbon.identity.application.authentication.framework.exception,
                             org.wso2.carbon.identity.application.authentication.framework.model,
+                            org.wso2.carbon.identity.application.authentication.framework.config,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph,
                             org.wso2.carbon.identity.application.authentication.framework.config.model,
                             org.wso2.carbon.identity.application.authentication.framework.context,
+                            org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt,
+                            org.wso2.carbon.identity.application.authentication.framework.store,
+                            org.wso2.carbon.identity.base.*,
+                            org.wso2.carbon.identity.core.util.*,
+                            org.wso2.carbon.identity.core.model.*,
                             org.wso2.carbon.identity.user.profile.mgt,
                             org.wso2.carbon.identity.user.profile.mgt.dao,
                             org.wso2.carbon.identity.core.util,
