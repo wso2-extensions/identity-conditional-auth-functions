@@ -136,7 +136,6 @@
                             org.wso2.carbon.identity.core.model.*,
                             org.wso2.carbon.identity.user.profile.mgt,
                             org.wso2.carbon.identity.user.profile.mgt.dao,
-                            org.wso2.carbon.identity.core.util,
                             org.apache.commons.collections,
                             org.wso2.carbon.registry.core.service,
                             org.wso2.carbon.user.core,
