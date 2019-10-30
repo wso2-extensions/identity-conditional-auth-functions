@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRoles
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.IsAnyOfTheRolesAssignedToUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunctionImpl;
@@ -90,6 +91,8 @@ public class UserFunctionsServiceComponent {
                     new TerminateUserSessionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "doAssociationWithLocalUser",
                     setAccountAssociationToLocalUserImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isAnyOfTheRolesAssignedToUser",
+                    new IsAnyOfTheRolesAssignedToUserFunctionImpl());
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }
@@ -110,6 +113,7 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUserSessions");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "terminateUserSession");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "doAssociationWithLocalUser");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isAnyOfTheRolesAssignedToUser");
         }
     }
 

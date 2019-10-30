@@ -140,6 +140,7 @@
                             org.wso2.carbon.registry.core.service,
                             org.wso2.carbon.user.core,
                             org.wso2.carbon.user.core.util,
+                            org.wso2.carbon.user.core.common,
                             org.wso2.carbon.user.core.service
                         </Import-Package>
                     </instructions>
