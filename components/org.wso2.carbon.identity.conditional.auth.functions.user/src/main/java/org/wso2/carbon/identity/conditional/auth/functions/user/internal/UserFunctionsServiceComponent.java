@@ -28,11 +28,13 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExistenceFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.GetUserSessionsFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
@@ -40,6 +42,9 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionI
 import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.TerminateUserSessionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUserImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUser;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -47,7 +52,6 @@ import org.wso2.carbon.user.core.service.RealmService;
  * OSGi declarative services component which handles registration and de-registration of user conditional auth
  * functions.
  */
-
 @Component(
         name = "identity.conditional.auth.functions.user.component",
         immediate = true
@@ -65,6 +69,7 @@ public class UserFunctionsServiceComponent {
             AssignUserRolesFunction assignUserRolesFunctionImpl = new AssignUserRolesFunctionImpl();
             RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
             GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
+            SetAccountAssociationToLocalUser setAccountAssociationToLocalUserImpl = new SetAccountAssociationToLocalUserImpl();
             JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
@@ -79,6 +84,12 @@ public class UserFunctionsServiceComponent {
                     new CheckSessionExistenceFunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser",
                     getAssociatedLocalUserFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUserSessions",
+                    new GetUserSessionsFunctionImpl());
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "terminateUserSession",
+                    new TerminateUserSessionImpl());
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "doAssociationWithLocalUser",
+                    setAccountAssociationToLocalUserImpl);
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }
@@ -96,6 +107,9 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRoles");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRoles");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUserSessions");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "terminateUserSession");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "doAssociationWithLocalUser");
         }
     }
 
@@ -143,6 +157,29 @@ public class UserFunctionsServiceComponent {
             LOG.debug("RegistryService is unset in the conditional authentication user functions bundle");
         }
         UserFunctionsServiceHolder.getInstance().setRegistryService(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService",
+            service = UserSessionManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserSessionManagementService"
+    )
+    protected void setUserSessionManagementService(UserSessionManagementService userSessionManagementService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("UserSessionManagementService is set in the conditional authentication user functions bundle");
+        }
+        UserFunctionsServiceHolder.getInstance().setUserSessionManagementService(userSessionManagementService);
+    }
+
+    protected void unsetUserSessionManagementService(UserSessionManagementService userSessionManagementService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("UserSessionManagementService is unset in the conditional authentication user functions bundle");
+        }
+        UserFunctionsServiceHolder.getInstance().setUserSessionManagementService(null);
     }
 
     @Reference(

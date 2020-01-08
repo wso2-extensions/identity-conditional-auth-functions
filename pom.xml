@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
     <artifactId>identity-conditional-auth-functions</artifactId>
-    <version>0.1.35-SNAPSHOT</version>
+    <version>0.1.41-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - IAM Conditional Authentication Functions</name>
     <url>http://wso2.org</url>
@@ -223,6 +223,11 @@
                 <groupId>org.wso2.carbon.identity.event.handler.notification</groupId>
                 <artifactId>org.wso2.carbon.identity.event.handler.notification</artifactId>
                 <version>${identity.event.handler.notification.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.core</artifactId>
+                <version>${carbon.identity.framework.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -438,7 +443,7 @@
     </build>
     <properties>
         <carbon.kernel.version>4.4.32</carbon.kernel.version>
-        <carbon.identity.framework.version>5.12.60</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.14.62</carbon.identity.framework.version>
         <identity.governance.version>1.1.17</identity.governance.version>
         <identity.event.handler.notification.version>[1.0.23,2.0.0)</identity.event.handler.notification.version>
 
@@ -459,7 +464,6 @@
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
         <com.googlecode.json-simple.wso2.version>1.1.wso2v1</com.googlecode.json-simple.wso2.version>
-        <ua_parser.version>1.3.0.wso2v1</ua_parser.version>
         <msf4j.version>2.6.2</msf4j.version>
         <httpasyncclient.version>4.0.2.wso2v1</httpasyncclient.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
