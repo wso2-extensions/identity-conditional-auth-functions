@@ -30,7 +30,7 @@
     </parent>
 
     <artifactId>org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</artifactId>
-    <name>Conditional Authentication - JWT Decode functions</name>
+    <name>Conditional Authentication - JWT decoding Function</name>
     <packaging>bundle</packaging>
 
     <dependencies>
