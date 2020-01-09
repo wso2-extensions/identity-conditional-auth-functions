@@ -87,7 +87,7 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
-                <artifactId>org.wso2.carbon.identity.conditional.auth.functions.client.assertion.parameters</artifactId>
+                <artifactId>org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

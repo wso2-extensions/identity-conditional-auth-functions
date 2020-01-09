@@ -25,12 +25,12 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>0.1.35-SNAPSHOT</version>
+        <version>0.1.41-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</artifactId>
-    <name>Conditional Authentication - Client assertion decoding Function</name>
+    <name>Conditional Authentication - JWT Decode functions</name>
     <packaging>bundle</packaging>
 
     <dependencies>
