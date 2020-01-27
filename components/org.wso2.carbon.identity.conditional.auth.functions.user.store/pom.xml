@@ -36,8 +36,8 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -106,7 +106,7 @@
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.wso2.osgi.version.range}",
+                            org.apache.commons.logging,
                             org.apache.commons.collections,
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
@@ -136,7 +136,6 @@
         </plugins>
     </build>
     <properties>
-        <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.user.package.import.version.range>[1.0.1, 2.0.0)</carbon.user.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
         <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>

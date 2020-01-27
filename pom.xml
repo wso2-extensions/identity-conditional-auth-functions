@@ -96,9 +96,9 @@
                 <version>${commons-lang.wso2.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.logging</artifactId>
-                <version>${commons-logging.version}</version>
+                <groupId>org.ops4j.pax.logging</groupId>
+                <artifactId>pax-logging-api</artifactId>
+                <version>${pax.logging.api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
@@ -448,19 +448,20 @@
     </build>
     <properties>
         <carbon.kernel.version>4.6.0-alpha3</carbon.kernel.version>
+        <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.identity.framework.version>5.14.62</carbon.identity.framework.version>
         <identity.governance.version>1.1.17</identity.governance.version>
         <identity.event.handler.notification.version>[1.0.23,2.0.0)</identity.event.handler.notification.version>
 
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
-        <commons-logging.version>4.4.3</commons-logging.version>
+        <pax.logging.api.version>1.10.1</pax.logging.api.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
         <org.testng.version>6.9.10</org.testng.version>
         <org.powermock.version>1.7.3</org.powermock.version>
         <com.h2database.version>1.2.140.wso2v3</com.h2database.version>
 
         <org.json.version.range>[3.0,4)</org.json.version.range>
-        <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
+        <maven.scr.plugin.version>1.26.0</maven.scr.plugin.version>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>

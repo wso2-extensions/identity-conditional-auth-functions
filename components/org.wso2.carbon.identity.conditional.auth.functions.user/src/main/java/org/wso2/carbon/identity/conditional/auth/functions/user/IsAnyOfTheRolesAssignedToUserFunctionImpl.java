@@ -67,14 +67,13 @@ public class IsAnyOfTheRolesAssignedToUserFunctionImpl implements IsAnyOfTheRole
 
         String tenantDomain = user.getTenantDomain();
         String userStoreDomain = user.getUserStoreDomain();
-        String username = user.getUserName();
         try {
             UserRealm userRealm = Utils.getUserRealm(user.getTenantDomain());
             if (userRealm != null) {
                 return Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
             }
         } catch (FrameworkException e) {
-            LOG.error("Error in evaluating the function ", e);
+            LOG.error("Error occurred while getting the user store.", e);
         }
         return null;
     }

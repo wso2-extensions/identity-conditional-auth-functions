@@ -39,8 +39,8 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -151,8 +151,8 @@
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph,
                             org.wso2.carbon.identity.core.util,
                             org.wso2.carbon.registry.core.service,
-                            org.wso2.carbon.user.core,
-                            org.wso2.carbon.user.core.service,
+                            org.wso2.carbon.user.core; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.conditional.auth.functions.common.utils,
                             org.wso2.carbon.identity.conditional.auth.functions.common.auth,
                         </Import-Package>

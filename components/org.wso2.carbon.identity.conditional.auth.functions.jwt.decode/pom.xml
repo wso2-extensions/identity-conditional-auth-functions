@@ -90,7 +90,7 @@
                             org.wso2.carbon.identity.conditional.auth.functions.jwt.decode.*
                         </Export-Package>
                         <Import-Package>
-                            org.apache.commons.logging;version= "${commons.logging.import.version.range}",
+                            org.apache.commons.logging,
                             org.osgi.service.component;version="${org.osgi.service.imp.pkg.version}",
                             org.wso2.carbon.identity.application.authentication.framework;version="${carbon.identity.framework.version}",
                             org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.framework.version}",

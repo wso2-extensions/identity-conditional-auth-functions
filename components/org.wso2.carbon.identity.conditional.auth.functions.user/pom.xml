@@ -37,8 +37,8 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -119,7 +119,7 @@
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
-                            org.wso2.carbon.core.util.*,
+                            org.wso2.carbon.core.util.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework,
                             org.wso2.carbon.identity.application.authentication.framework.util,
                             org.wso2.carbon.identity.application.authentication.framework.exception,
@@ -138,10 +138,10 @@
                             org.wso2.carbon.identity.user.profile.mgt.dao,
                             org.apache.commons.collections,
                             org.wso2.carbon.registry.core.service,
-                            org.wso2.carbon.user.core,
-                            org.wso2.carbon.user.core.util,
-                            org.wso2.carbon.user.core.common,
-                            org.wso2.carbon.user.core.service
+                            org.wso2.carbon.user.core; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.common; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>
