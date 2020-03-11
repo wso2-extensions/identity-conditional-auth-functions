@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,7 +25,7 @@ import java.util.Map;
  * Function to call OPA endpoints. Function will post to the given OPA endpoint reference with input data as a json.
  */
 @FunctionalInterface
-public interface EvaluateOPAFunction {
+public interface InvokeOpaFunction {
 
     /**
      *  POST data to the given endpoint.
@@ -35,5 +35,5 @@ public interface EvaluateOPAFunction {
      * @param options the kind of authentication.
      * @param eventHandlers event handlers.
      */
-    void evaluateOPA(String epUrl, Map<String, Object>  payload,Map<String, String> options, Map<String, Object> eventHandlers);
+    void invokeOPA(String epUrl, Map<String, Object>  payload,Map<String, String> options, Map<String, Object> eventHandlers);
 }

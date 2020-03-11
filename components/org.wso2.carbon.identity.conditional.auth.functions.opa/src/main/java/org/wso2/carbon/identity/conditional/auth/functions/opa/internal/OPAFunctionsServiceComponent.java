@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,8 +25,8 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.*;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.conditional.auth.functions.opa.EvaluateOPAFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.opa.EvaluateOPAFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.opa.InvokeOpaFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.opa.InvokeOpaFunctionImpl;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 
 
@@ -42,7 +42,7 @@ public class OPAFunctionsServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(OPAFunctionsServiceComponent.class);
 
-    public static final String FUNC_EVALUATE_OPA = "evaluateOPA";
+    public static final String FUNC_INVOKE_OPA = "invokeOPA";
 
 
     @Activate
@@ -50,8 +50,8 @@ public class OPAFunctionsServiceComponent {
 
         try {
             JsFunctionRegistry jsFunctionRegistry = OPAFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
-            EvaluateOPAFunction evaluateOPA = new EvaluateOPAFunctionImpl();
-            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_EVALUATE_OPA, evaluateOPA);
+            InvokeOpaFunction invokeOPA = new InvokeOpaFunctionImpl();
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_INVOKE_OPA, invokeOPA);
         } catch (Throwable e) {
             LOG.error(e);
         }
@@ -63,7 +63,7 @@ public class OPAFunctionsServiceComponent {
 
         JsFunctionRegistry jsFunctionRegistry = OPAFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_EVALUATE_OPA);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_INVOKE_OPA);
         }
     }
 
