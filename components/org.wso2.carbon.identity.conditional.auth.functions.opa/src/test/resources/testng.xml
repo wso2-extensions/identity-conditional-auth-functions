@@ -18,7 +18,7 @@
 <suite name="Identity-connector-opa-validation-test-suite">
     <test name="opa-validation-authenticator-all" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.conditional.auth.opa.test.InvokeOpaFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.opa.InvokeOpaFunctionImplTest"/>
         </classes>
     </test>
 </suite>

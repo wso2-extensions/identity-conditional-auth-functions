@@ -156,6 +156,7 @@
                 <artifactId>org.wso2.carbon.identity.testutil</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.wso2.carbon.identity.governance</groupId>
                 <artifactId>org.wso2.carbon.identity.governance</artifactId>
@@ -194,6 +195,12 @@
                 <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
                 <artifactId>org.wso2.carbon.identity.conditional.auth.functions.test.utils</artifactId>
                 <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+                <version>${org.wso2.carbon.identity.testutil.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -442,6 +449,7 @@
         <org.powermock.version>1.7.3</org.powermock.version>
         <com.h2database.version>1.2.140.wso2v3</com.h2database.version>
 
+        <org.wso2.carbon.identity.testutil.version>5.10.0</org.wso2.carbon.identity.testutil.version>
         <org.json.version.range>[3.0,4)</org.json.version.range>
         <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>

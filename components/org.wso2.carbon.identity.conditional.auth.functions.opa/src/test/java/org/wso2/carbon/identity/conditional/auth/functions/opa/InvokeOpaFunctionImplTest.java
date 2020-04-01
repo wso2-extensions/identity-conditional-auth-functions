@@ -18,7 +18,7 @@
          * under the License.
          */
 
-        package org.wso2.carbon.identity.conditional.auth.opa;
+        package org.wso2.carbon.identity.conditional.auth.functions.opa;
 
         import org.apache.http.HttpEntity;
         import org.apache.http.StatusLine;
