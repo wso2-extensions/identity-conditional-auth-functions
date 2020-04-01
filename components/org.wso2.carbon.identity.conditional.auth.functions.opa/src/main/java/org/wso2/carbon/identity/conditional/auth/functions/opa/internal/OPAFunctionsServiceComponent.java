@@ -16,7 +16,6 @@
  * under the License.
  *
  */
-
 package org.wso2.carbon.identity.conditional.auth.functions.opa.internal;
 
 import org.apache.commons.logging.Log;
@@ -27,12 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.conditional.auth.functions.opa.InvokeOpaFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.opa.InvokeOpaFunctionImpl;
-import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 
-
-/**
- * OSGi declarative services component which handle cookie related conditional auth functions.
- */
 
 @Component(
         name = "identity.conditional.auth.functions.opa.component",
@@ -53,9 +47,9 @@ public class OPAFunctionsServiceComponent {
             InvokeOpaFunction invokeOPA = new InvokeOpaFunctionImpl();
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_INVOKE_OPA, invokeOPA);
         } catch (Throwable e) {
-            LOG.error(e);
-        }
 
+            LOG.error("Error occurred while registering invokeOPA function");
+        }
     }
 
     @Deactivate
@@ -83,24 +77,6 @@ public class OPAFunctionsServiceComponent {
         OPAFunctionsServiceHolder.getInstance().setJsFunctionRegistry(null);
     }
 
-    @Reference(
-            name = "identityCoreInitializedEventService",
-            service = IdentityCoreInitializedEvent.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdentityCoreInitializedEventService")
-    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-
-    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
-
-    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-
-    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
-
     @Reference(name = "claim.meta.mgt.service",
             service = ClaimMetadataManagementService.class,
             cardinality = ReferenceCardinality.MANDATORY,
@@ -115,4 +91,5 @@ public class OPAFunctionsServiceComponent {
 
         OPAFunctionsServiceHolder.getInstance().setClaimMetadataManagementService(null);
     }
+
 }

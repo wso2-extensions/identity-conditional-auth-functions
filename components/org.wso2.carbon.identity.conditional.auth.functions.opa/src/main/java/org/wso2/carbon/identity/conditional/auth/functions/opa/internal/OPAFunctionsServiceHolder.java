@@ -16,24 +16,26 @@
  * under the License.
  *
  */
-
 package org.wso2.carbon.identity.conditional.auth.functions.opa.internal;
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 
-
+/**
+ * ServiceHolder for OPAFunction
+ */
 public class OPAFunctionsServiceHolder {
 
     private static OPAFunctionsServiceHolder instance = new OPAFunctionsServiceHolder();
-
     private JsFunctionRegistry jsFunctionRegistry;
 
     public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
         return claimMetadataManagementService;
     }
 
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
         this.claimMetadataManagementService = claimMetadataManagementService;
     }
 
@@ -57,4 +59,5 @@ public class OPAFunctionsServiceHolder {
 
         this.jsFunctionRegistry = jsFunctionRegistry;
     }
+
 }

@@ -19,6 +19,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.opa;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.config.RequestConfig;
@@ -38,16 +39,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
-import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.conditional.auth.functions.opa.internal.OPAFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.opa.util.OPAConstants;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -62,12 +60,20 @@ public class InvokeOpaFunctionImpl implements InvokeOpaFunction {
 
     private CloseableHttpClient client;
 
+    public CloseableHttpClient getClient() {
+        return client;
+    }
+
+    public void setClient(CloseableHttpClient client) {
+        this.client = client;
+    }
+
     public InvokeOpaFunctionImpl() {
 
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
-                .setConnectionRequestTimeout(ConfigProvider.getInstance().getConnectionRequestTimeout())
-                .setSocketTimeout(ConfigProvider.getInstance().getReadTimeout())
+                .setConnectTimeout(5000)
+                .setConnectionRequestTimeout(5000)
+                .setSocketTimeout(5000)
                 .build();
         client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
     }
@@ -75,26 +81,22 @@ public class InvokeOpaFunctionImpl implements InvokeOpaFunction {
     @Override
     public void invokeOPA(String epUrl, Map<String, Object> payload, Map<String, String> options, Map<String, Object> eventHandlers) {
 
-        JsAuthenticationContext context1 = (JsAuthenticationContext) (payload.get("context"));
+        JsAuthenticationContext context1 = (JsAuthenticationContext) (payload.get(OPAConstants.CONTEXT));
         JsStep slot = (JsStep) (((JsSteps) context1.getMember(FrameworkConstants.JSAttributes.JS_STEPS)).getSlot(1));
         JsAuthenticatedUser user = (JsAuthenticatedUser) slot.getMember(FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT);
         String userStoreDomain = (String) user.getMember(FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN);
 
-        JSONObject userClaims = new JSONObject();
-        String[] roles = null;
+        JSONObject userClaims = null;
+        List<?> roles = new ArrayList<>();
 
-        if (Boolean.parseBoolean(options.get("sendClaims"))) {
-            try {
-                userClaims = getClaims(user);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else if (Boolean.parseBoolean(options.get("sendRoles"))) {
-            roles = (String[]) user.getMember(FrameworkConstants.JSAttributes.JS_LOCAL_ROLES);
+        if (Boolean.parseBoolean(options.get(OPAConstants.SEND_CLAIMS))) {
+            userClaims = getClaims(user);
+        } else if (Boolean.parseBoolean(options.get(OPAConstants.SEND_ROLES))) {
+            roles = getUserRoles(user);
         }
 
         JSONObject finalUserClaims = userClaims;
-        String[] finalRoles = roles;
+        List<?> finalRoles = roles;
         AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
             JSONObject json = null;
             int responseCode;
@@ -105,24 +107,22 @@ public class InvokeOpaFunctionImpl implements InvokeOpaFunction {
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
-
                 JSONObject finalJsonObject = new JSONObject();
                 for (Map.Entry<String, Object> dataElements : payload.entrySet()) {
-                    if (dataElements.getValue() != payload.get("context")) {
+                    if (dataElements.getValue() != payload.get(OPAConstants.CONTEXT)) {
                         finalJsonObject.put(dataElements.getKey(), dataElements.getValue());
                     }
                 }
 
                 JSONObject userJsonObject = new JSONObject();
+                JSONObject input = new JSONObject();
+
                 userJsonObject.put(OPAConstants.CLAIMS, finalUserClaims);
                 userJsonObject.put(OPAConstants.ROLES, finalRoles);
                 userJsonObject.put(OPAConstants.USER_STORE_DOMAIN, userStoreDomain);
                 userJsonObject.put(OPAConstants.USER_CONTEXT_DETAILS, getUserDetails(user));
-
                 finalJsonObject.put(OPAConstants.USER_DETAILS, userJsonObject);
-                finalJsonObject.put(OPAConstants.CONTEXT_DETAILS, getContextDetails(context1));
 
-                JSONObject input = new JSONObject();
                 input.put("input", finalJsonObject);
 
                 request.setEntity(new StringEntity(input.toJSONString()));
@@ -159,7 +159,6 @@ public class InvokeOpaFunctionImpl implements InvokeOpaFunction {
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
     }
 
-
     private JSONObject getClaims(JsAuthenticatedUser user) {
 
         JSONObject claims = new JSONObject();
@@ -169,22 +168,24 @@ public class InvokeOpaFunctionImpl implements InvokeOpaFunction {
         try {
             localClaims = OPAFunctionsServiceHolder.getInstance().getClaimMetadataManagementService().getLocalClaims(tenantDomain);
         } catch (ClaimMetadataException e) {
-            LOG.error("Error while getting local claims ", e);
-            e.printStackTrace();
+            LOG.error("Error while getting local claims in tenant domain : " + user.getMember(FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN));
         }
 
-        assert localClaims != null;
-        for (LocalClaim localClaim : localClaims) {
-            String claimUri = localClaim.getClaimURI();
-            String claimValue = (String) ((JsClaims) user.getMember(FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS)).getMember(claimUri);
-            if (claimValue != null) {
-                claims.put(claimUri, claimValue);
+        if (localClaims != null) {
+            for (LocalClaim localClaim : localClaims) {
+                String claimUri = localClaim.getClaimURI();
+                JsClaims jsclaims = ((JsClaims) user.getMember(FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS));
+                String claimValue = (String) (jsclaims.getMember(claimUri));
+                if (StringUtils.isNotBlank(claimValue)) {
+                    claims.put(claimUri, claimValue);
+                }
             }
         }
         return claims;
     }
 
     private JSONObject getUserDetails(JsAuthenticatedUser user) {
+
         JSONObject uerDetails = new JSONObject();
         String authenticatedSubjectIdentifier = (String) user.getMember(FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT_IDENTIFIER);
         uerDetails.put(OPAConstants.JS_AUTHENTICATED_SUBJECT_IDENTIFIER, authenticatedSubjectIdentifier);
@@ -195,10 +196,16 @@ public class InvokeOpaFunctionImpl implements InvokeOpaFunction {
         return uerDetails;
     }
 
-    private JSONObject getContextDetails(JsAuthenticationContext context) {
-        JSONObject contextDetails = new JSONObject();
-        String serviceProvider = context.getContext().getServiceProviderName();
-        contextDetails.put(OPAConstants.SERVICE_PROVIDER, serviceProvider);
-        return contextDetails;
+    private List<?> getUserRoles(JsAuthenticatedUser user) {
+
+        Object userRoles = user.getMember(FrameworkConstants.JSAttributes.JS_LOCAL_ROLES);
+        List<?> list = new ArrayList<>();
+        if (userRoles.getClass().isArray()) {
+            list = Arrays.asList((Object[]) userRoles);
+        } else if (userRoles instanceof Collection) {
+            list = new ArrayList<>((Collection<?>) userRoles);
+        }
+        return list;
     }
+
 }

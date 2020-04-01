@@ -20,9 +20,13 @@
 package org.wso2.carbon.identity.conditional.auth.functions.opa.util;
 
 /**
- * Set of the constants used in the cookie related functions.
+ * Set of the constants used in the opa related functions.
  */
 public class OPAConstants {
+
+    public static final String CONTEXT = "context";
+    public static final String SEND_CLAIMS = "sendClaims";
+    public static final String SEND_ROLES = "sendRoles";
     public static final String JS_AUTHENTICATED_SUBJECT_IDENTIFIER = "authenticatedSubjectIdentifier";
     public static final String JS_USERNAME = "userName";
     public static final String JS_TENANT_DOMAIN = "tenantDomain";
@@ -33,4 +37,5 @@ public class OPAConstants {
     public static final String USER_CONTEXT_DETAILS = "userContextDetails";
     public static final String USER_DETAILS = "userDetails";
     public static final String CONTEXT_DETAILS = "contextDetails";
+
 }

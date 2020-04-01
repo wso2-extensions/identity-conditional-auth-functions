@@ -15,25 +15,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.carbon.identity.conditional.auth.functions.opa;
 
 import java.util.Map;
-
 
 /**
  * Function to call OPA endpoints. Function will post to the given OPA endpoint reference with input data as a json.
  */
 @FunctionalInterface
 public interface InvokeOpaFunction {
-
     /**
-     *  POST data to the given endpoint.
+     * POST data to the given endpoint.
      *
-     * @param epUrl Endpoint url.
-     * @param payload context and other data.
-     * @param options the kind of authentication.
+     * @param epUrl         Endpoint url.
+     * @param payload       context and other data.
+     * @param options       the kind of authentication.
      * @param eventHandlers event handlers.
      */
-    void invokeOPA(String epUrl, Map<String, Object>  payload,Map<String, String> options, Map<String, Object> eventHandlers);
+    void invokeOPA(String epUrl, Map<String, Object> payload, Map<String, String> options, Map<String, Object> eventHandlers);
 }
