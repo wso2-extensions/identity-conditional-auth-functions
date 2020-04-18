@@ -45,7 +45,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
             ".HTTPConnectionRequestTimeout";
     public static final String HOSTNAME_VERIFIER = "adaptive_authentication.analytics.hostnameVerfier";
 
-    public static final String DEFAULT_TARGET_HOST = "http://localhost:8280/";
+    public static final String DEFAULT_TARGET_HOST = "https://localhost:8280/";
     public static final String DEFAULT_AUTHENTICATION_ENABLED = "true";
     public static final String DEFAULT_USERNAME = "change-me";
     public static final String DEFAULT_CREDENTIAL = "change-me";
