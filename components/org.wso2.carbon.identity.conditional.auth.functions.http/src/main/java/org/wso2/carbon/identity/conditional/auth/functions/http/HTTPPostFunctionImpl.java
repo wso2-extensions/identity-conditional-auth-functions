@@ -73,8 +73,8 @@ public class HTTPPostFunctionImpl implements HTTPPostFunction {
             int responseCode;
             String outcome;
 
-            HttpPost request = new HttpPost(epUrl);
             try {
+                HttpPost request = new HttpPost(epUrl);
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
@@ -96,7 +96,9 @@ public class HTTPPostFunctionImpl implements HTTPPostFunction {
                         outcome = Constants.OUTCOME_FAIL;
                     }
                 }
-
+            } catch (IllegalArgumentException e) {
+                LOG.error("Invalid Url: " + epUrl, e);
+                outcome = Constants.OUTCOME_FAIL;
             } catch (ConnectTimeoutException e) {
                 LOG.error("Error while waiting to connect to " + epUrl, e);
                 outcome = Constants.OUTCOME_TIMEOUT;

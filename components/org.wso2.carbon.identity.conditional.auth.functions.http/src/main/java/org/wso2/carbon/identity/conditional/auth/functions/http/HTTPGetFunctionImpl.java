@@ -70,8 +70,8 @@ public class HTTPGetFunctionImpl implements HTTPGetFunction {
             int responseCode;
             String outcome;
 
-            HttpGet request = new HttpGet(epUrl);
             try {
+                HttpGet request = new HttpGet(epUrl);
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
 
                 try (CloseableHttpResponse response = client.execute(request)) {
@@ -87,6 +87,9 @@ public class HTTPGetFunctionImpl implements HTTPGetFunction {
                     }
                 }
 
+            } catch (IllegalArgumentException e) {
+                LOG.error("Invalid Url: " + epUrl, e);
+                outcome = Constants.OUTCOME_FAIL;
             } catch (ConnectTimeoutException e) {
                 LOG.error("Error while waiting to connect to " + epUrl, e);
                 outcome = Constants.OUTCOME_TIMEOUT;
