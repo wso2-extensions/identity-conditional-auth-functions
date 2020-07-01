@@ -68,7 +68,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     @Override
     public String getCategory() {
 
-        return "Analytics Engine";
+        return "Other Settings";
     }
 
     @Override
@@ -165,7 +165,8 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     }
 
     @Override
-    public Map<String, String> getDefaultPropertyValues(String[] strings, String s) throws IdentityGovernanceException {
+    public Map<String, String> getDefaultPropertyValues(String[] strings, String s)
+            throws IdentityGovernanceException {
 
         return null;
     }
