@@ -26,6 +26,8 @@ import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.SignatureUtil;
@@ -88,7 +90,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
         String cookieValue = cookieValueJson.toString();
 
         cookieValue = Base64.encode((cookieValue.getBytes(Charsets.UTF_8)));
-        Cookie cookie = new Cookie(name, cookieValue);
+        ServletCookie cookie = new ServletCookie(name, cookieValue);
         if (properties != null) {
             Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN))
                     .ifPresent(cookie::setDomain);
@@ -104,6 +106,9 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                     .ifPresent(cookie::setHttpOnly);
             Optional.ofNullable((Boolean) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_SECURE))
                     .ifPresent(cookie::setSecure);
+            String sameSite = (String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_SAMESITE);
+            Optional.ofNullable((sameSite != null) ? SameSiteCookie.valueOf(sameSite) : null)
+                    .ifPresent(cookie::setSameSite);
         }
         response.addCookie(cookie);
     }
