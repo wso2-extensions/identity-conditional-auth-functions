@@ -76,6 +76,7 @@ public class HasRoleFunctionImplTest extends JsSequenceHandlerAbstractTest {
         SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, sp1);
         context.setSequenceConfig(sequenceConfig);
+        context.initializeAnalyticsData();
 
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();

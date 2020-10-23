@@ -55,6 +55,7 @@ function onLoginRequest(context) {
 						"secure" : true,
 						"version" : 1,
 						"comment" : "some comments",
+						"sameSite" : "NONE",
 						"encrypt" : false,
 						"sign" : false});
         }

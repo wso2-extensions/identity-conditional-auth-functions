@@ -140,6 +140,7 @@
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
+                            org.wso2.carbon.core,
                             org.wso2.carbon.core.util,
                             org.apache.axiom.om.util,
                             org.wso2.carbon.identity.application.authentication.framework,
