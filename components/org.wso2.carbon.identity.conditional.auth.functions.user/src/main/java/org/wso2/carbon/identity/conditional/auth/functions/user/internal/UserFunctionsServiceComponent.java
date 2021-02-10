@@ -35,6 +35,8 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExis
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetUserSessionsFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheGroupsFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheGroupsFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
@@ -66,6 +68,7 @@ public class UserFunctionsServiceComponent {
 
         try {
             HasRoleFunction hasRoleFunctionImpl = new HasRoleFunctionImpl();
+            HasAnyOfTheGroupsFunction hasAnyOfTheGroupsFunctionImpl = new HasAnyOfTheGroupsFunctionImpl();
             HasAnyOfTheRolesFunction hasAnyOfTheRolesFunctionImpl = new HasAnyOfTheRolesFunctionImpl();
             AssignUserRolesFunction assignUserRolesFunctionImpl = new AssignUserRolesFunctionImpl();
             RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
@@ -75,6 +78,8 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
                     hasAnyOfTheRolesFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheGroups",
+                    hasAnyOfTheGroupsFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRoles",
                     assignUserRolesFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRoles",
@@ -105,6 +110,7 @@ public class UserFunctionsServiceComponent {
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheGroups");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "promptIdentifierForStep");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSessionExistence");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRoles");
