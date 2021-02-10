@@ -23,18 +23,18 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import java.util.List;
 
 /**
- * Function to check if the given user has at least one of the given groups.
+ * Function to check if the given user is a member in at least one of the given groups.
  * The purpose is to perform dynamic authentication selection based on user groups.
  */
 @FunctionalInterface
-public interface HasAnyOfTheGroupsFunction {
+public interface IsMemberOfAnyOfGroupsFunction {
 
     /**
-     * Checks if the given user has one of the given group names.
+     * Checks if the given user is a member in one of the given group names.
      *
      * @param user       Authenticated user.
      * @param groupNames Groups to be checked.
-     * @return True if the user has at least one of the given groups.
+     * @return True if the user is a member in at least one of the given groups.
      */
-    boolean hasAnyOfTheGroups(JsAuthenticatedUser user, List<String> groupNames);
+    boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames);
 }

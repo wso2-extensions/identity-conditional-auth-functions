@@ -34,12 +34,12 @@ import java.util.List;
 /**
  * Function to check whether the specified user belongs to one of the groups specified in the list of user groups.
  */
-public class HasAnyOfTheGroupsFunctionImpl implements HasAnyOfTheGroupsFunction {
+public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsFunction {
 
-    private static final Log LOG = LogFactory.getLog(HasAnyOfTheGroupsFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(IsMemberOfAnyOfGroupsFunctionImpl.class);
 
     @Override
-    public boolean hasAnyOfTheGroups(JsAuthenticatedUser user, List<String> groupNames) {
+    public boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames) {
 
         boolean result = false;
         String tenantDomain = user.getWrapped().getTenantDomain();
@@ -53,7 +53,7 @@ public class HasAnyOfTheGroupsFunctionImpl implements HasAnyOfTheGroupsFunction 
             if (userRealm != null) {
                 UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                 if (userStore != null) {
-                    // List returned by the usertore will contain the roles and groups.
+                    // List returned by the user store will contain the roles and groups.
                     String[] roleListOfUser = userStore.getRoleListOfUser(username);
                     result = Arrays.stream(roleListOfUser).anyMatch(groupsWithDomain::contains);
                 }
