@@ -88,12 +88,6 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
         sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
-
-        HttpServletRequest secondReq = sequenceHandlerRunner.createHttpServletRequest();
-        secondReq.setAttribute("s", "S");
-        HttpServletResponse secondResp = sequenceHandlerRunner.createHttpServletResponse();
-
-        sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
         assertNotNull(context.getSelectedAcr());
         assertEquals(Boolean.parseBoolean(context.getSelectedAcr()), steppedUp);
 
