@@ -44,7 +44,6 @@ import java.util.Map;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
-
 /**
  * Implementation of the {@link HTTPPostFunction}
  */
