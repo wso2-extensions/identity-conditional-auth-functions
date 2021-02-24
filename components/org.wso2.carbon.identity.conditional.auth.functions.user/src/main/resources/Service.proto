@@ -1,0 +1,21 @@
+syntax = "proto3";
+option java_package = "org.wso2.carbon.identity.conditional.auth.functions.user.grpc";
+
+service grpcService{
+  rpc grpcInvoke(Request) returns (Response){};
+  rpc sendJson(JsonRequest) returns (JsonResponse){};
+}
+
+message Request{
+  map<string, string> payloadData = 1;
+}
+message Response{
+  map<string, string> payloadData = 1;
+}
+
+message JsonRequest{
+  string JsonString = 1;
+}
+message JsonResponse{
+  string JsonString = 1;
+}
