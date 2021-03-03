@@ -162,6 +162,10 @@
             <groupId>com.googlecode.json-simple.wso2</groupId>
             <artifactId>json-simple</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.common</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

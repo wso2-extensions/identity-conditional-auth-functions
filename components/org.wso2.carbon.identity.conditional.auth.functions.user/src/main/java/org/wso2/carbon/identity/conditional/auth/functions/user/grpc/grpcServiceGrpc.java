@@ -27,68 +27,36 @@ public final class grpcServiceGrpc {
   public static final String SERVICE_NAME = "grpcService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request,
-      org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response> getGrpcInvokeMethod;
+  private static volatile io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest,
+      org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> getGrpcInvokeMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "grpcInvoke",
-      requestType = org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request.class,
-      responseType = org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response.class,
+      requestType = org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest.class,
+      responseType = org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request,
-      org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response> getGrpcInvokeMethod() {
-    io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request, org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response> getGrpcInvokeMethod;
+  public static io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest,
+      org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> getGrpcInvokeMethod() {
+    io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest, org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> getGrpcInvokeMethod;
     if ((getGrpcInvokeMethod = grpcServiceGrpc.getGrpcInvokeMethod) == null) {
       synchronized (grpcServiceGrpc.class) {
         if ((getGrpcInvokeMethod = grpcServiceGrpc.getGrpcInvokeMethod) == null) {
           grpcServiceGrpc.getGrpcInvokeMethod = getGrpcInvokeMethod = 
-              io.grpc.MethodDescriptor.<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request, org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response>newBuilder()
+              io.grpc.MethodDescriptor.<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest, org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
                   "grpcService", "grpcInvoke"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request.getDefaultInstance()))
+                  org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response.getDefaultInstance()))
+                  org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse.getDefaultInstance()))
                   .setSchemaDescriptor(new grpcServiceMethodDescriptorSupplier("grpcInvoke"))
                   .build();
           }
         }
      }
      return getGrpcInvokeMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest,
-      org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> getSendJsonMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "sendJson",
-      requestType = org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest.class,
-      responseType = org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest,
-      org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> getSendJsonMethod() {
-    io.grpc.MethodDescriptor<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest, org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> getSendJsonMethod;
-    if ((getSendJsonMethod = grpcServiceGrpc.getSendJsonMethod) == null) {
-      synchronized (grpcServiceGrpc.class) {
-        if ((getSendJsonMethod = grpcServiceGrpc.getSendJsonMethod) == null) {
-          grpcServiceGrpc.getSendJsonMethod = getSendJsonMethod = 
-              io.grpc.MethodDescriptor.<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest, org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "grpcService", "sendJson"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new grpcServiceMethodDescriptorSupplier("sendJson"))
-                  .build();
-          }
-        }
-     }
-     return getSendJsonMethod;
   }
 
   /**
@@ -120,16 +88,9 @@ public final class grpcServiceGrpc {
 
     /**
      */
-    public void grpcInvoke(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request request,
-        io.grpc.stub.StreamObserver<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response> responseObserver) {
-      asyncUnimplementedUnaryCall(getGrpcInvokeMethod(), responseObserver);
-    }
-
-    /**
-     */
-    public void sendJson(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest request,
+    public void grpcInvoke(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest request,
         io.grpc.stub.StreamObserver<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getSendJsonMethod(), responseObserver);
+      asyncUnimplementedUnaryCall(getGrpcInvokeMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
@@ -138,16 +99,9 @@ public final class grpcServiceGrpc {
             getGrpcInvokeMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request,
-                org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response>(
-                  this, METHODID_GRPC_INVOKE)))
-          .addMethod(
-            getSendJsonMethod(),
-            asyncUnaryCall(
-              new MethodHandlers<
                 org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest,
                 org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse>(
-                  this, METHODID_SEND_JSON)))
+                  this, METHODID_GRPC_INVOKE)))
           .build();
     }
   }
@@ -172,18 +126,10 @@ public final class grpcServiceGrpc {
 
     /**
      */
-    public void grpcInvoke(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request request,
-        io.grpc.stub.StreamObserver<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response> responseObserver) {
-      asyncUnaryCall(
-          getChannel().newCall(getGrpcInvokeMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     */
-    public void sendJson(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest request,
+    public void grpcInvoke(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest request,
         io.grpc.stub.StreamObserver<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getSendJsonMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGrpcInvokeMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -207,16 +153,9 @@ public final class grpcServiceGrpc {
 
     /**
      */
-    public org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response grpcInvoke(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request request) {
+    public org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse grpcInvoke(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest request) {
       return blockingUnaryCall(
           getChannel(), getGrpcInvokeMethod(), getCallOptions(), request);
-    }
-
-    /**
-     */
-    public org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse sendJson(org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest request) {
-      return blockingUnaryCall(
-          getChannel(), getSendJsonMethod(), getCallOptions(), request);
     }
   }
 
@@ -240,23 +179,14 @@ public final class grpcServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response> grpcInvoke(
-        org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request request) {
-      return futureUnaryCall(
-          getChannel().newCall(getGrpcInvokeMethod(), getCallOptions()), request);
-    }
-
-    /**
-     */
-    public com.google.common.util.concurrent.ListenableFuture<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> sendJson(
+    public com.google.common.util.concurrent.ListenableFuture<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse> grpcInvoke(
         org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getSendJsonMethod(), getCallOptions()), request);
+          getChannel().newCall(getGrpcInvokeMethod(), getCallOptions()), request);
     }
   }
 
   private static final int METHODID_GRPC_INVOKE = 0;
-  private static final int METHODID_SEND_JSON = 1;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -276,11 +206,7 @@ public final class grpcServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_GRPC_INVOKE:
-          serviceImpl.grpcInvoke((org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Request) request,
-              (io.grpc.stub.StreamObserver<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.Response>) responseObserver);
-          break;
-        case METHODID_SEND_JSON:
-          serviceImpl.sendJson((org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest) request,
+          serviceImpl.grpcInvoke((org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonRequest) request,
               (io.grpc.stub.StreamObserver<org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service.JsonResponse>) responseObserver);
           break;
         default:
@@ -345,7 +271,6 @@ public final class grpcServiceGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new grpcServiceFileDescriptorSupplier())
               .addMethod(getGrpcInvokeMethod())
-              .addMethod(getSendJsonMethod())
               .build();
         }
       }

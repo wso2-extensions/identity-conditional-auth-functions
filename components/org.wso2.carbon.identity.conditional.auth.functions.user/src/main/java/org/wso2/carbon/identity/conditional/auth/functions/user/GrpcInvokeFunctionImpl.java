@@ -19,53 +19,128 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service;
 import org.wso2.carbon.identity.conditional.auth.functions.user.grpc.grpcServiceGrpc;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_SUCCESS;
 
 /**
- * Function to invoke gRPC function on a remote server.
+ * Function to send Json object to a remote gRPC server.
  */
 public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
 
     private static final Log log = LogFactory.getLog(GrpcInvokeFunctionImpl.class);
+    String jsonResponse = null;
 
     @Override
-    public String grpcInvoke(String host, String port, Object params) {
+    public String grpcInvoke(String host, String port, Object params, Map<String, Object> eventHandlers) {
 
-        Map<String, String> properties = null;
+        AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
 
-        if (params instanceof Map) {
+            JSONObject jsonObject = new JSONObject();
+            Map<String, Object> properties = null;
 
-            properties = (Map<String, String>) params;
+            if (params instanceof Map) {
 
-            // Create the channel for gRPC server.
-            ManagedChannel channel = NettyChannelBuilder.forAddress(host, Integer.parseInt(port)).usePlaintext()
-                    .build();
+                properties = (Map<String, Object>) params;
+                for (Map.Entry<String, Object> entry : properties.entrySet()) {
 
-            // Create the gRPC client stub.
-            grpcServiceGrpc.grpcServiceBlockingStub clientStub = grpcServiceGrpc.newBlockingStub(channel);
+                    jsonObject.put(entry.getKey(), entry.getValue());
+                }
+                // Converts the Json object into a Json string.
+                String jsonString = jsonObject.toJSONString();
 
-            // Define the request message.
-            Service.Request request = Service.Request.newBuilder().putAllPayloadData(properties).build();
+                // Create the channel for gRPC server.
+                ManagedChannel channel = NettyChannelBuilder.forAddress(host, Integer.parseInt(port)).usePlaintext()
+                        .build();
 
-            // Obtain response message from gRPC server.
-            Map<String, String> response = clientStub.grpcInvoke(request).getPayloadDataMap();
+                // Create the gRPC client stub.
+                grpcServiceGrpc.grpcServiceBlockingStub clientStub = grpcServiceGrpc.newBlockingStub(channel);
 
-            String jsResponse = "gRPC server returns: " + response.toString();
+                // Define the request message.
+                Service.JsonRequest jsonRequest = Service.JsonRequest.newBuilder().setJsonString(jsonString).build();
 
-            return jsResponse;
+                // Obtain response message from gRPC server and sets a deadline.
+                try {
+                    jsonResponse = clientStub.withDeadlineAfter(5000, TimeUnit.MILLISECONDS)
+                            .grpcInvoke(jsonRequest).getJsonString();
+                    channel.shutdown();
+                    log.debug(jsonResponse);
 
-        } else {
+                    //  Validate the gRPC server response object type.
+                    try {
+                        JSONParser jsonParser = new JSONParser();
+                        JSONObject jsonObject1 = (JSONObject) jsonParser.parse(jsonResponse);
+                        asyncReturn.accept(context, jsonObject1, OUTCOME_SUCCESS);
 
-            log.error("Cannot find a map object in method parameters");
-            return "Cannot find a map object. Incorrect definition of method parameters.";
+                    } catch (ParseException e) {
+                        log.error("gRPC server returns non Json string.", e);
+                        jsonResponse = null;
+                        asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
 
-        }
+                    }
+
+                    // Handle the exceptions.
+                } catch (StatusRuntimeException e) {
+                    if (e.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
+                        log.error("gRPC connection deadline exceeded.", e);
+                        jsonResponse = null;
+                        asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
+
+                    } else if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+                        log.error("gRPC service is unavailable at " + host + ":" + port, e);
+                        jsonResponse = null;
+                        asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
+
+                    } else if (e.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
+                        log.error("Operation not implemented in the service at " + host + ":" + port, e);
+                        jsonResponse = null;
+                        asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
+
+                    } else if (e.getStatus().getCode() == Status.Code.UNKNOWN) {
+                        log.error("gRPC server threw unknown exception at " + host + ":" + port, e);
+                        jsonResponse = null;
+                        asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
+
+                    } else {
+                        log.error("gRPC service failure. " + e.getStatus().toString());
+                        jsonResponse = null;
+                        asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
+                    }
+
+                } catch (FrameworkException e) {
+                    log.error("Error while proceeding after successful response from gRPC server", e);
+                }
+
+            } else {
+
+                log.error("Incorrect definition of method parameters. Cannot find a Json Object.");
+                jsonResponse = null;
+                asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
+
+            }
+        });
+
+        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+
+        return jsonResponse;
 
     }
+
 }
