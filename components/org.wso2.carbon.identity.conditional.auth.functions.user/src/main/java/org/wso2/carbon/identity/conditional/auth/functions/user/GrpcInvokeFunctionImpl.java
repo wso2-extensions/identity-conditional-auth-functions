@@ -22,13 +22,14 @@ import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONObject;
 import org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service;
 import org.wso2.carbon.identity.conditional.auth.functions.user.grpc.grpcServiceGrpc;
 
 import java.util.Map;
 
 /**
- * Function to invoke gRPC function on a remote server.
+ * Function to send Json object to a remote gRPC server.
  */
 public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
 
@@ -37,11 +38,18 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
     @Override
     public String grpcInvoke(String host, String port, Object params) {
 
-        Map<String, String> properties = null;
+        JSONObject jsonObject = new JSONObject();
+        Map<String, Object> properties = null;
 
         if (params instanceof Map) {
 
-            properties = (Map<String, String>) params;
+            properties = (Map<String, Object>) params;
+            for (Map.Entry<String, Object> entry : properties.entrySet()) {
+
+                jsonObject.put(entry.getKey(), entry.getValue());
+            }
+            // Converts the Json object into a Json string.
+            String jsonString = jsonObject.toJSONString();
 
             // Create the channel for gRPC server.
             ManagedChannel channel = NettyChannelBuilder.forAddress(host, Integer.parseInt(port)).usePlaintext()
@@ -51,12 +59,12 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
             grpcServiceGrpc.grpcServiceBlockingStub clientStub = grpcServiceGrpc.newBlockingStub(channel);
 
             // Define the request message.
-            Service.Request request = Service.Request.newBuilder().putAllPayloadData(properties).build();
+            Service.JsonRequest jsonRequest = Service.JsonRequest.newBuilder().setJsonString(jsonString).build();
 
             // Obtain response message from gRPC server.
-            Map<String, String> response = clientStub.grpcInvoke(request).getPayloadDataMap();
+            String jsonResponse = clientStub.grpcInvoke(jsonRequest).getJsonString();
 
-            String jsResponse = "gRPC server returns: " + response.toString();
+            String jsResponse = "gRPC server returns Json String: " + jsonResponse;
 
             return jsResponse;
 
@@ -66,6 +74,5 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
             return "Cannot find a map object. Incorrect definition of method parameters.";
 
         }
-
     }
 }

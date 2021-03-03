@@ -36,7 +36,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLoc
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetUserSessionsFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GrpcInvokeFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.user.GrpcJsonFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunction;
@@ -102,8 +101,6 @@ public class UserFunctionsServiceComponent {
                     new IsAnyOfTheRolesAssignedToUserFunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "grpcInvoke",
                     new GrpcInvokeFunctionImpl());
-            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "sendJson",
-                    new GrpcJsonFunctionImpl());
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }
@@ -127,7 +124,6 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "doAssociationWithLocalUser");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isAnyOfTheRolesAssignedToUser");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "grpcInvoke");
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "sendJson");
         }
     }
 
