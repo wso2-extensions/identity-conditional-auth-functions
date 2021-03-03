@@ -19,10 +19,11 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 /**
- * Function to invoke gRPC function on a remote server.
+ * Function to send Json object to a remote gRPC server.
  */
 @FunctionalInterface
 public interface GrpcInvokeFunction {
 
     String grpcInvoke(String host, String port, Object params);
+
 }

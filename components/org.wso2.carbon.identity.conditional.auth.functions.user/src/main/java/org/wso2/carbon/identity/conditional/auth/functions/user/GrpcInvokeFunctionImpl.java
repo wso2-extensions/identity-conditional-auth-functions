@@ -19,16 +19,22 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service;
 import org.wso2.carbon.identity.conditional.auth.functions.user.grpc.grpcServiceGrpc;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Function to invoke gRPC function on a remote server.
+ * Function to send Json object to a remote gRPC server.
  */
 public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
 
@@ -37,11 +43,18 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
     @Override
     public String grpcInvoke(String host, String port, Object params) {
 
-        Map<String, String> properties = null;
+        JSONObject jsonObject = new JSONObject();
+        Map<String, Object> properties = null;
 
         if (params instanceof Map) {
 
-            properties = (Map<String, String>) params;
+            properties = (Map<String, Object>) params;
+            for (Map.Entry<String, Object> entry : properties.entrySet()) {
+
+                jsonObject.put(entry.getKey(), entry.getValue());
+            }
+            // Converts the Json object into a Json string.
+            String jsonString = jsonObject.toJSONString();
 
             // Create the channel for gRPC server.
             ManagedChannel channel = NettyChannelBuilder.forAddress(host, Integer.parseInt(port)).usePlaintext()
@@ -51,21 +64,51 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
             grpcServiceGrpc.grpcServiceBlockingStub clientStub = grpcServiceGrpc.newBlockingStub(channel);
 
             // Define the request message.
-            Service.Request request = Service.Request.newBuilder().putAllPayloadData(properties).build();
+            Service.JsonRequest jsonRequest = Service.JsonRequest.newBuilder().setJsonString(jsonString).build();
 
-            // Obtain response message from gRPC server.
-            Map<String, String> response = clientStub.grpcInvoke(request).getPayloadDataMap();
+            // Obtain response message from gRPC server and sets a deadline.
+            try {
+                String jsonResponse = clientStub.withDeadlineAfter(5000, TimeUnit.MILLISECONDS)
+                        .grpcInvoke(jsonRequest).getJsonString();
 
-            String jsResponse = "gRPC server returns: " + response.toString();
+                //  Validate the gRPC server response object type.
+                try {
+                    JSONParser jsonParser = new JSONParser();
+                    JSONObject jsonObject1 = (JSONObject) jsonParser.parse(jsonResponse);
+                    return jsonResponse;
+                } catch (ParseException e) {
+                    log.error("gRPC server returns non Json string.", e);
+                    return null;
+                }
 
-            return jsResponse;
+                // Handle the exceptions.
+            } catch (StatusRuntimeException e) {
+                if (e.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
+                    log.error("gRPC connection deadline exceeded.", e);
+                    return null;
+                }
+                if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+                    log.error("gRPC service is unavailable at " + host + ":" + port, e);
+                    return null;
+                }
+                if (e.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
+                    log.error("Operation not implemented in the service at " + host + ":" + port, e);
+                    return null;
+                }
+                if (e.getStatus().getCode() == Status.Code.UNKNOWN) {
+                    log.error("gRPC server threw unknown exception at " + host + ":" + port, e);
+                    return null;
+                }
+                log.error("gRPC service failure. " + e.getStatus().toString());
+                return null;
+            }
 
         } else {
 
-            log.error("Cannot find a map object in method parameters");
-            return "Cannot find a map object. Incorrect definition of method parameters.";
+            log.error("Cannot find a Json object in method parameters. Incorrect definition of method parameters.");
+            return null;
 
         }
-
     }
+
 }
