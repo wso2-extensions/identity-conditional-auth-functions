@@ -41,7 +41,7 @@ import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.C
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_SUCCESS;
 
 /**
- * Function to send Json object to a remote gRPC server.
+ * Implementation of the {@link GrpcInvokeFunction}.
  */
 public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
 
@@ -109,7 +109,7 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
                         asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
 
                     } else if (e.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
-                        log.error("Operation not implemented in the service at " + host + ":" + port, e);
+                        log.error("Operation not implemented in the gRPC service at " + host + ":" + port, e);
                         jsonResponse = null;
                         asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
 
@@ -129,7 +129,6 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
                 }
 
             } else {
-
                 log.error("Incorrect definition of method parameters. Cannot find a Json Object.");
                 jsonResponse = null;
                 asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
