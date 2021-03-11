@@ -26,6 +26,10 @@ import java.util.Map;
 @FunctionalInterface
 public interface GrpcInvokeFunction {
 
+<<<<<<< HEAD
     String grpcInvoke(String host, String port, Object params, Map<String, Object> eventHandlers);
+=======
+    String grpcInvoke(String host, String port, Object params);
+>>>>>>> 4a946ea0bcd4b3fbbbeff7ab7e4d7e53dd744ecf
 
 }

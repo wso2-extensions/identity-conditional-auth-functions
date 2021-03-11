@@ -27,18 +27,24 @@ import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+<<<<<<< HEAD
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+=======
+>>>>>>> 4a946ea0bcd4b3fbbbeff7ab7e4d7e53dd744ecf
 import org.wso2.carbon.identity.conditional.auth.functions.user.grpc.Service;
 import org.wso2.carbon.identity.conditional.auth.functions.user.grpc.grpcServiceGrpc;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+<<<<<<< HEAD
 
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_SUCCESS;
+=======
+>>>>>>> 4a946ea0bcd4b3fbbbeff7ab7e4d7e53dd744ecf
 
 /**
  * Function to send Json object to a remote gRPC server.
@@ -70,18 +76,33 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
                 ManagedChannel channel = NettyChannelBuilder.forAddress(host, Integer.parseInt(port)).usePlaintext()
                         .build();
 
+<<<<<<< HEAD
                 // Create the gRPC client stub.
                 grpcServiceGrpc.grpcServiceBlockingStub clientStub = grpcServiceGrpc.newBlockingStub(channel);
+=======
+        JSONObject jsonObject = new JSONObject();
+        Map<String, Object> properties = null;
+>>>>>>> 4a946ea0bcd4b3fbbbeff7ab7e4d7e53dd744ecf
 
                 // Define the request message.
                 Service.JsonRequest jsonRequest = Service.JsonRequest.newBuilder().setJsonString(jsonString).build();
 
+<<<<<<< HEAD
                 // Obtain response message from gRPC server and sets a deadline.
                 try {
                     jsonResponse = clientStub.withDeadlineAfter(5000, TimeUnit.MILLISECONDS)
                             .grpcInvoke(jsonRequest).getJsonString();
                     channel.shutdown();
                     log.debug(jsonResponse);
+=======
+            properties = (Map<String, Object>) params;
+            for (Map.Entry<String, Object> entry : properties.entrySet()) {
+
+                jsonObject.put(entry.getKey(), entry.getValue());
+            }
+            // Converts the Json object into a Json string.
+            String jsonString = jsonObject.toJSONString();
+>>>>>>> 4a946ea0bcd4b3fbbbeff7ab7e4d7e53dd744ecf
 
                     //  Validate the gRPC server response object type.
                     try {
@@ -94,6 +115,7 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
                         jsonResponse = null;
                         asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
 
+<<<<<<< HEAD
                     }
 
                     // Handle the exceptions.
@@ -112,12 +134,54 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
                         log.error("Operation not implemented in the service at " + host + ":" + port, e);
                         jsonResponse = null;
                         asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
+=======
+            // Define the request message.
+            Service.JsonRequest jsonRequest = Service.JsonRequest.newBuilder().setJsonString(jsonString).build();
+
+            // Obtain response message from gRPC server and sets a deadline.
+            try {
+                String jsonResponse = clientStub.withDeadlineAfter(5000, TimeUnit.MILLISECONDS)
+                        .grpcInvoke(jsonRequest).getJsonString();
+
+                //  Validate the gRPC server response object type.
+                try {
+                    JSONParser jsonParser = new JSONParser();
+                    JSONObject jsonObject1 = (JSONObject) jsonParser.parse(jsonResponse);
+                    return jsonResponse;
+                } catch (ParseException e) {
+                    log.error("gRPC server returns non Json string.", e);
+                    return null;
+                }
+
+                // Handle the exceptions.
+            } catch (StatusRuntimeException e) {
+                if (e.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
+                    log.error("gRPC connection deadline exceeded.", e);
+                    return null;
+                }
+                if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+                    log.error("gRPC service is unavailable at " + host + ":" + port, e);
+                    return null;
+                }
+                if (e.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
+                    log.error("Operation not implemented in the service at " + host + ":" + port, e);
+                    return null;
+                }
+                if (e.getStatus().getCode() == Status.Code.UNKNOWN) {
+                    log.error("gRPC server threw unknown exception at " + host + ":" + port, e);
+                    return null;
+                }
+                log.error("gRPC service failure. " + e.getStatus().toString());
+                return null;
+            }
+>>>>>>> 4a946ea0bcd4b3fbbbeff7ab7e4d7e53dd744ecf
 
                     } else if (e.getStatus().getCode() == Status.Code.UNKNOWN) {
                         log.error("gRPC server threw unknown exception at " + host + ":" + port, e);
                         jsonResponse = null;
                         asyncReturn.accept(context, Collections.emptyMap(), OUTCOME_FAIL);
 
+<<<<<<< HEAD
                     } else {
                         log.error("gRPC service failure. " + e.getStatus().toString());
                         jsonResponse = null;
@@ -141,6 +205,12 @@ public class GrpcInvokeFunctionImpl implements GrpcInvokeFunction {
 
         return jsonResponse;
 
+=======
+            log.error("Cannot find a Json object in method parameters. Incorrect definition of method parameters.");
+            return null;
+
+        }
+>>>>>>> 4a946ea0bcd4b3fbbbeff7ab7e4d7e53dd744ecf
     }
 
 }
