@@ -99,6 +99,7 @@ function onLoginRequest(context) {
             var username = context.steps[1].subject.username;
             callAnalytics({'ReceiverUrl': '/RiskBasedLogin/InputStream'}, {"username": username}, {
                 onSuccess: function (context, data) {
+                    Log.info('current risk score is ' + data.event.riskScore);
                     if (data.event.riskScore > 0) {
                         Log.info('data.event.riskScore > 0');
                         context.selectedAcr = ''+ data.event.riskScore;

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
@@ -30,6 +31,8 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.conditional.auth.functions.user.exception.UserSessionRetrievalException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSession;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.graal.GraalJsUserSession;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.nashorn.NashornJsUserSession;
 import org.wso2.carbon.user.core.UserRealm;
 
 import java.util.List;
@@ -47,8 +50,13 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
 
         List<JsUserSession> sessionsForUser = null;
         try {
-            sessionsForUser = getUserSessions(user.getWrapped())
-                    .stream().map(JsUserSession::new).collect(Collectors.toList());
+            if (user instanceof NashornJsAuthenticatedUser) {
+                sessionsForUser = getUserSessions(user.getWrapped())
+                        .stream().map(NashornJsUserSession::new).collect(Collectors.toList());
+            } else {
+                sessionsForUser = getUserSessions(user.getWrapped())
+                        .stream().map(GraalJsUserSession::new).collect(Collectors.toList());
+            }
         } catch (UserSessionRetrievalException e) {
             LOG.error(e);
         }

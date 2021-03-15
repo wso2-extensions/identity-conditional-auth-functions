@@ -61,9 +61,9 @@ public class HTTPFunctionsServiceComponent {
         CookieFunctionImpl cookieFunction = new CookieFunctionImpl();
         JsFunctionRegistry jsFunctionRegistry = HTTPFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_SET_COOKIE,
-                (SetCookieFunction) cookieFunction::setCookie);
+                cookieFunction);
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_GET_COOKIE_VALUE,
-                (GetCookieFunction) cookieFunction::getCookieValue);
+                cookieFunction);
 
         HTTPPostFunction httpPost = new HTTPPostFunctionImpl();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST, httpPost);

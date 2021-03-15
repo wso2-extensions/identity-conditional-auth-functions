@@ -25,6 +25,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -55,9 +56,10 @@ import static org.mockito.Mockito.verify;
 public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @BeforeMethod
-    protected void setUp() throws Exception {
+    @Parameters({"scriptEngine"})
+    protected void setUp(String scriptEngine) throws Exception {
 
-        super.setUp();
+        super.setUp(scriptEngine);
         sequenceHandlerRunner.registerJsFunction("setCookie", (SetCookieFunction) new CookieFunctionImpl()::setCookie);
         sequenceHandlerRunner.registerJsFunction("getCookieValue", (GetCookieFunction) new CookieFunctionImpl()
                 ::getCookieValue);

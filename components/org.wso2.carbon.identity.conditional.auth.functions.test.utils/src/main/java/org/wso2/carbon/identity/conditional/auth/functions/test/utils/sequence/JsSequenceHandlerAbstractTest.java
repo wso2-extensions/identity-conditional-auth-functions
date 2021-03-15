@@ -20,8 +20,14 @@ package org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactorySingleton;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.io.File;
@@ -79,7 +85,9 @@ public class JsSequenceHandlerAbstractTest {
     }
 
     @BeforeMethod
-    protected void setUp() throws Exception {
+    @Parameters({"scriptEngine"})
+    protected void setUp(String scriptEngine) throws Exception {
+
 
         if (sequenceHandlerRunner == null) {
             sequenceHandlerRunner = new JsSequenceHandlerRunner();
@@ -88,7 +96,17 @@ public class JsSequenceHandlerAbstractTest {
             if (applicationAuthenticatorFileName != null) {
                 url = this.getClass().getClassLoader().getResource(applicationAuthenticatorFileName);
             }
-            sequenceHandlerRunner.init(url);
+            sequenceHandlerRunner.init(url, scriptEngine);
         }
+    }
+
+    @AfterMethod
+    protected void unSet() throws Exception {
+        JsWrapperFactorySingleton.clearInstance();
+    }
+
+    @DataProvider(name = "script-engine-provider")
+    public Object[][] dpMethod(){
+        return new Object[][] {{new JsNashornGraphBuilderFactory()}, {new JsPolyglotGraphBuilderFactory()}};
     }
 }
