@@ -52,9 +52,9 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
     private RealmService realmService;
 
     @BeforeMethod
-    protected void setUp() throws Exception {
+    protected void setUp(String scriptEngine) throws Exception {
 
-        super.setUp();
+        super.setUp(scriptEngine);
         sequenceHandlerRunner.registerJsFunction("isMemberOfAnyOfGroups",
                 new IsMemberOfAnyOfGroupsFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);
