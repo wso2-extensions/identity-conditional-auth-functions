@@ -28,10 +28,13 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GraalJsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.NashornJsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
@@ -98,7 +101,7 @@ public class JsSequenceHandlerRunner {
 
     private static final String DEFAULT_APPLICATION_AUTHENTICATION_XML_FILE_NAME = "application-authentication-test.xml";
 
-    public void init(URL applicationAuthenticatorConfigFileLocation , String scriptEngine) throws InvocationTargetException {
+    public void init(URL applicationAuthenticatorConfigFileLocation , String scriptEngine) throws InvocationTargetException, NoSuchFieldException, IllegalAccessException {
 
         this.applicationAuthenticatorConfigFileLocation = applicationAuthenticatorConfigFileLocation;
         configurationLoader = new UIBasedConfigurationLoader();
@@ -112,6 +115,14 @@ public class JsSequenceHandlerRunner {
 
         graphBuilderFactory.init();
         FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
+
+        Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperFactory");
+        wrapperFactory.setAccessible(true);
+        if (graphBuilderFactory instanceof JsNashornGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new NashornJsWrapperFactory());
+        } else if (graphBuilderFactory instanceof  JsPolyglotGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new GraalJsWrapperFactory());
+        }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();

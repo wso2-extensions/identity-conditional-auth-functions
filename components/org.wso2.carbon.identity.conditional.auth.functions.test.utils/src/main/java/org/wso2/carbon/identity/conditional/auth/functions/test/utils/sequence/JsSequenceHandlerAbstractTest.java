@@ -100,11 +100,6 @@ public class JsSequenceHandlerAbstractTest {
         }
     }
 
-    @AfterMethod
-    protected void unSet() throws Exception {
-        JsWrapperFactoryProvider.clearInstance();
-    }
-
     @DataProvider(name = "script-engine-provider")
     public Object[][] dpMethod(){
         return new Object[][] {{new JsNashornGraphBuilderFactory()}, {new JsPolyglotGraphBuilderFactory()}};
