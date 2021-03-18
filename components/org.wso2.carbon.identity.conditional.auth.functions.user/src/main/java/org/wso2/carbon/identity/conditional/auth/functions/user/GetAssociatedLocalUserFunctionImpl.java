@@ -21,13 +21,12 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactorySingleton;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUserFunction {
@@ -68,7 +67,8 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
                     .addTenantDomainToEntry(associatedID, tenantDomain));
             AuthenticatedUser authenticatedUser =
                     AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId);
-            return JsWrapperFactorySingleton.getInstance().createJsAuthenticatedUser(authenticatedUser);
+            return JsWrapperFactoryProvider.getInstance().
+                    getWrapperFactory().createJsAuthenticatedUser(authenticatedUser);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("User " + federatedUser.getWrapped().getUserName() + " doesn't have an associated local" +

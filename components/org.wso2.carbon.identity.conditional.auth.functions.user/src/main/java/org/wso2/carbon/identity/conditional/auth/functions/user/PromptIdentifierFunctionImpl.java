@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactorySingleton;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 
 import java.util.HashMap;
@@ -48,7 +48,8 @@ public class PromptIdentifierFunctionImpl implements PromptIdentifierFunction {
         }
 
         if (validators.get(ShowPromptNode.preHandler) == null) {
-            validators.put(ShowPromptNode.preHandler, JsWrapperFactorySingleton.getInstance().createSerializableFunction(DEFAULT_PRE_HANDLER_FUNC, true));
+            validators.put(ShowPromptNode.preHandler, JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                    .createSerializableFunction(DEFAULT_PRE_HANDLER_FUNC, true));
         }
         Map<String, Object> promptParameters = new HashMap<>();
         promptParameters.put(STEP_PARAM, step);

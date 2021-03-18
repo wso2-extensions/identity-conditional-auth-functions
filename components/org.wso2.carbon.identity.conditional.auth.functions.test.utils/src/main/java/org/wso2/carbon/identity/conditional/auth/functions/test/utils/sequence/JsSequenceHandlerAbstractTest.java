@@ -27,7 +27,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Parameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactorySingleton;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.io.File;
@@ -102,7 +102,7 @@ public class JsSequenceHandlerAbstractTest {
 
     @AfterMethod
     protected void unSet() throws Exception {
-        JsWrapperFactorySingleton.clearInstance();
+        JsWrapperFactoryProvider.clearInstance();
     }
 
     @DataProvider(name = "script-engine-provider")

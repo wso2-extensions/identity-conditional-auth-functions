@@ -74,17 +74,8 @@
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging,
-<!--                            org.apache.http.entity,-->
-<!--                            org.apache.http.util,-->
-<!--                            org.apache.http.client.methods,-->
-<!--                            org.apache.http.client.config,-->
-<!--                            org.apache.http.impl.client,-->
-<!--                            org.apache.http.conn,-->
-<!--                            org.apache.http.conn.ssl,-->
-<!--                            org.apache.http.conn.socket,-->
                             org.json.simple,
                             org.json.simple.parser,
-<!--                            org.apache.http,-->
                             org.osgi.service.component; version="${org.osgi.service.imp.pkg.version}",
                             org.osgi.service.component.annotations; version="${org.osgi.service.imp.pkg.version}",
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
@@ -102,15 +93,8 @@
                             org.wso2.carbon.identity.governance,
                             org.wso2.carbon.identity.governance.common,
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
-<!--                            org.wso2.carbon.identity.conditional.auth.functions.common.utils,-->
-<!--                            org.wso2.carbon.identity.conditional.auth.functions.common.auth,-->
-<!--                            javax.net.ssl,-->
-<!--                            org.apache.http.impl.conn,-->
                             org.osgi.framework,
                             org.wso2.carbon.base.api,
-<!--                            org.apache.http.impl.nio.*,-->
-<!--                            org.apache.http.concurrent,-->
-<!--                            org.apache.http.nio.*,-->
                             org.apache.axis2.context,
                             org.wso2.carbon.utils,
                             org.wso2.carbon.context,

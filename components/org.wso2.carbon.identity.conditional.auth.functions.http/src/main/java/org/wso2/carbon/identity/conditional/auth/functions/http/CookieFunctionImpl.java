@@ -110,7 +110,6 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
             Optional.ofNullable((sameSite != null) ? SameSiteCookie.valueOf(sameSite) : null)
                     .ifPresent(cookie::setSameSite);
         }
-        //TODO: use response.addCookie(cookie)
         response.getWrapped().getWrapped().addCookie(cookie);
     }
 

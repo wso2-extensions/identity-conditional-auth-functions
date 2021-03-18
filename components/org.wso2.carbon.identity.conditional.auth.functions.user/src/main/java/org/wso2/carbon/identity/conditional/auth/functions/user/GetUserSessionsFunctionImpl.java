@@ -57,6 +57,7 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
                 sessionsForUser = getUserSessions(user.getWrapped())
                         .stream().map(GraalJsUserSession::new).collect(Collectors.toList());
             }
+
         } catch (UserSessionRetrievalException e) {
             LOG.error(e);
         }
