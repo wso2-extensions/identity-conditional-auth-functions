@@ -26,11 +26,11 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.dao.UserProfileMgtDAO;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementService;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +38,7 @@ import java.util.Map;
 
 public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociationToLocalUser {
 
+    private final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
     private static final Log log = LogFactory.getLog(SetAccountAssociationToLocalUserImpl.class);
 
     @Override
@@ -49,7 +50,7 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
             if (federatedUser != null) {
                 if (federatedUser.getWrapped().isFederatedUser()) {
                     federatedIdpName = federatedUser.getWrapped().getFederatedIdPName();
-                    String userIdClaimURI = getUserIdClaimURI(federatedIdpName);
+                    String userIdClaimURI = getUserIdClaimURI(federatedIdpName, tenantDomain);
                     String externalSubject;
                     if (StringUtils.isNotEmpty(userIdClaimURI)) {
                         externalSubject = federatedUser.getWrapped().getUserAttributes().entrySet().stream().filter(
@@ -65,21 +66,15 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
                     if (externalSubject != null && externalIdpName != null) {
                         associateID(externalIdpName, externalSubject, username, tenantDomain, userStoreDomainName);
                     } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug(" Authenticated user or External IDP may be null " + " Authenticated User: " +
-                                    externalSubject + " and the External IDP name: " + externalIdpName);
-                        }
+                        log.warn(" Authenticated user or External IDP may be null " + " Authenticated User: " +
+                                externalSubject + " and the External IDP name: " + externalIdpName);
                     }
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("User " + federatedUser.getWrapped().getAuthenticatedSubjectIdentifier() + " " +
-                                "is not a federated user.");
-                    }
+                    log.warn("User " + federatedUser.getWrapped().getAuthenticatedSubjectIdentifier() + " " +
+                            "is not a federated user.");
                 }
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug(" Federated user is null ");
-                }
+                log.warn(" Federated user is null ");
             }
         } catch (IdentityProviderManagementException e) {
             String msg =
@@ -88,12 +83,13 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
         }
     }
 
-    private String getUserIdClaimURI(String federatedIdpName) throws IdentityProviderManagementException {
+    private String getUserIdClaimURI(String federatedIdpName, String tenantDomain)
+            throws IdentityProviderManagementException {
 
         String userIdClaimURI = null;
-        String userNameLocalClaim = "http://wso2.org/claims/username";
-        IdentityProviderManagementService idpManager = new IdentityProviderManagementService();
-        IdentityProvider idp = idpManager.getIdPByName(federatedIdpName);
+        IdentityProvider idp =
+                UserFunctionsServiceHolder.getInstance().getIdentityProviderManagementService()
+                        .getIdPByName(federatedIdpName, tenantDomain);
         if (idp == null) {
             return null;
         }
@@ -106,7 +102,7 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
             return null;
         }
         ClaimMapping userNameClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
-                StringUtils.equals(userNameLocalClaim, claimMapping.getLocalClaim().getClaimUri()))
+                StringUtils.equals(USERNAME_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
                 .findFirst()
                 .orElse(null);
         if (userNameClaimMapping != null) {

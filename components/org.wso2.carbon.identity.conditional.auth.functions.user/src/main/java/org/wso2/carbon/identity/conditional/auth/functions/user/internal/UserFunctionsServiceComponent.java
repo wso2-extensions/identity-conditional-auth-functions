@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesF
 import org.wso2.carbon.identity.conditional.auth.functions.user.TerminateUserSessionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUserImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUser;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -206,6 +207,29 @@ public class UserFunctionsServiceComponent {
     public void unsetJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
         UserFunctionsServiceHolder.getInstance().setJsFunctionRegistry(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.idp.mgt.IdpManager",
+            service = IdpManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityProviderManagementService"
+    )
+    protected void setIdentityProviderManagementService(IdpManager idpManager) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("IdpManager service is set in the conditional authentication user functions bundle");
+        }
+        UserFunctionsServiceHolder.getInstance().setIdentityProviderManagementService(idpManager);
+    }
+
+    protected void unsetIdentityProviderManagementService(IdpManager idpManager) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("IdpManager service is unset in the conditional authentication user functions bundle");
+        }
+        UserFunctionsServiceHolder.getInstance().setIdentityProviderManagementService(null);
     }
 
 }
