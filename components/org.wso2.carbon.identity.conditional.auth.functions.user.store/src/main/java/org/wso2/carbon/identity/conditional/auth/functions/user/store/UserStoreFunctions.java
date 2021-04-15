@@ -107,7 +107,8 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
                     AuthenticatedUser authenticatedUser = new AuthenticatedUser();
                     if (username.indexOf(CarbonConstants.DOMAIN_SEPARATOR) > 0) {
                         String[] subjectIdentifierSplits = username.split(CarbonConstants.DOMAIN_SEPARATOR, 2);
-                            authenticatedUser.setUserStoreDomain(subjectIdentifierSplits[0]);
+                        authenticatedUser.setUserStoreDomain(subjectIdentifierSplits[0]);
+                        username = subjectIdentifierSplits[1];
                     } else {
                         authenticatedUser.setUserStoreDomain(IdentityUtil.getPrimaryDomainName());
                     }
