@@ -18,44 +18,97 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.dao.UserProfileMgtDAO;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociationToLocalUser {
 
+    private final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
     private static final Log log = LogFactory.getLog(SetAccountAssociationToLocalUserImpl.class);
 
     @Override
     public void doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
                                            String userStoreDomainName) {
 
-        if (federatedUser != null) {
-            if (federatedUser.getWrapped().isFederatedUser()) {
-                String externalSubject = federatedUser.getWrapped().getAuthenticatedSubjectIdentifier();
-                String externalIdpName = federatedUser.getWrapped().getFederatedIdPName();
-                if (externalSubject != null && externalIdpName != null) {
-                    associateID(externalIdpName, externalSubject, username, tenantDomain, userStoreDomainName);
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug(" Authenticated user or External IDP may be null " + " Authenticated User: " +
+        String federatedIdpName = null;
+        try {
+            if (federatedUser != null) {
+                if (federatedUser.getWrapped().isFederatedUser()) {
+                    federatedIdpName = federatedUser.getWrapped().getFederatedIdPName();
+                    String userIdClaimURI = getUserIdClaimURI(federatedIdpName, tenantDomain);
+                    String externalSubject;
+                    if (StringUtils.isNotEmpty(userIdClaimURI)) {
+                        externalSubject = federatedUser.getWrapped().getUserAttributes().entrySet().stream().filter(
+                                userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
+                                        .equals(userIdClaimURI))
+                                .map(Map.Entry::getValue)
+                                .findFirst()
+                                .orElse(null);
+                    } else {
+                        externalSubject = federatedUser.getWrapped().getAuthenticatedSubjectIdentifier();
+                    }
+                    String externalIdpName = federatedUser.getWrapped().getFederatedIdPName();
+                    if (externalSubject != null && externalIdpName != null) {
+                        associateID(externalIdpName, externalSubject, username, tenantDomain, userStoreDomainName);
+                    } else {
+                        log.warn(" Authenticated user or External IDP may be null " + " Authenticated User: " +
                                 externalSubject + " and the External IDP name: " + externalIdpName);
                     }
+                } else {
+                    log.warn("User " + federatedUser.getWrapped().getAuthenticatedSubjectIdentifier() + " " +
+                            "is not a federated user.");
                 }
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("User " + federatedUser.getWrapped().getAuthenticatedSubjectIdentifier() + " " +
-                            "is not a federated user." );
-                }
+                log.warn(" Federated user is null ");
             }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug(" Federated user is null ");
-            }
+        } catch (IdentityProviderManagementException e) {
+            String msg =
+                    "Error while retrieving identity provider by name: " + federatedIdpName;
+            log.error(msg, e);
         }
+    }
+
+    private String getUserIdClaimURI(String federatedIdpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String userIdClaimURI = null;
+        IdentityProvider idp =
+                UserFunctionsServiceHolder.getInstance().getIdentityProviderManagementService()
+                        .getIdPByName(federatedIdpName, tenantDomain);
+        if (idp == null) {
+            return null;
+        }
+        ClaimConfig claimConfigs = idp.getClaimConfig();
+        if (claimConfigs == null) {
+            return null;
+        }
+        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        if (CollectionUtils.isEmpty(Collections.singleton(userIdClaimURI))) {
+            return null;
+        }
+        ClaimMapping userNameClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
+                StringUtils.equals(USERNAME_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
+                .findFirst()
+                .orElse(null);
+        if (userNameClaimMapping != null) {
+            userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
+        }
+        return userIdClaimURI;
     }
 
     /**
