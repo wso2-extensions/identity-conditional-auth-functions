@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -52,9 +53,10 @@ public class HasAnyOfTheRolesFunctionImplTest extends JsSequenceHandlerAbstractT
     private RealmService realmService;
 
     @BeforeMethod
-    protected void setUp() throws Exception {
+    @Parameters({"scriptEngine"})
+    protected void setUp(String scriptEngine) throws Exception {
 
-        super.setUp();
+        super.setUp(scriptEngine);
 
         sequenceHandlerRunner.registerJsFunction("hasAnyOfTheRoles", new HasAnyOfTheRolesFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);

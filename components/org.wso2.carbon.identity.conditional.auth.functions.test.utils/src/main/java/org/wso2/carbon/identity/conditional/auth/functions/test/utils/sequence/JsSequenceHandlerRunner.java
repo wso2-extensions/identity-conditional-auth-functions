@@ -22,13 +22,19 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.testng.annotations.Parameters;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GraalJsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.NashornJsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
@@ -60,6 +66,7 @@ import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import javax.script.ScriptEngine;
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
@@ -94,17 +101,28 @@ public class JsSequenceHandlerRunner {
 
     private static final String DEFAULT_APPLICATION_AUTHENTICATION_XML_FILE_NAME = "application-authentication-test.xml";
 
-    public void init(URL applicationAuthenticatorConfigFileLocation) throws InvocationTargetException {
+    public void init(URL applicationAuthenticatorConfigFileLocation , String scriptEngine) throws InvocationTargetException, NoSuchFieldException, IllegalAccessException {
 
         this.applicationAuthenticatorConfigFileLocation = applicationAuthenticatorConfigFileLocation;
         configurationLoader = new UIBasedConfigurationLoader();
-        graphBuilderFactory = new JsGraphBuilderFactory();
-
+        if (scriptEngine.contentEquals("nashorn")){
+            graphBuilderFactory = new JsNashornGraphBuilderFactory();
+        } else if (scriptEngine.contentEquals("graaljs")){
+            graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
+        }
         jsFunctionRegistry = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
 
         graphBuilderFactory.init();
         FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
+
+        Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperFactory");
+        wrapperFactory.setAccessible(true);
+        if (graphBuilderFactory instanceof JsNashornGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new NashornJsWrapperFactory());
+        } else if (graphBuilderFactory instanceof  JsPolyglotGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new GraalJsWrapperFactory());
+        }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();

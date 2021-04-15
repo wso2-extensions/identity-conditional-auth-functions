@@ -18,49 +18,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
-import org.wso2.carbon.identity.core.model.UserAgent;
 
-import java.util.stream.Collectors;
+public interface JsUserSession {
 
-/**
- * Javascript wrapper for Java level UserSession.
- * This provides controlled access to UserSession object via provided javascript native syntax.
- * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
- * AuthenticatedUser.
- *
- * @see UserSession
- */
-public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
-
-    private UserAgent userAgent;
-
-    public JsUserSession(UserSession wrappedUserSession) {
-
-        super(wrappedUserSession);
-        userAgent = new UserAgent(wrappedUserSession.getUserAgent());
-    }
-
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case "userAgent":
-                return new JsUserAgent(userAgent);
-            case "ip":
-                return getWrapped().getIp();
-            case "loginTime":
-                return getWrapped().getLoginTime();
-            case "lastAccessTime":
-                return getWrapped().getLastAccessTime();
-            case "id":
-                return getWrapped().getSessionId();
-            case "applications":
-                return getWrapped().getApplications().stream().map(JsApplication::new).collect(Collectors.toList());
-            default:
-                return super.getMember(name);
-        }
-    }
-
+    UserSession getWrapped();
 }

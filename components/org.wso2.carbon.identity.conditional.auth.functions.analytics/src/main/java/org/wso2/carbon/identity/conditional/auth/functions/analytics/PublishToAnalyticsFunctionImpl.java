@@ -64,7 +64,7 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
                 LOG.error("Target path cannot be found.");
                 return;
             }
-            String tenantDomain = context.getContext().getTenantDomain();
+            String tenantDomain = context.getWrapped().getTenantDomain();
             String targetHostUrl = CommonUtils.getConnectorConfig(AnalyticsEngineConfigImpl.RECEIVER, tenantDomain);
             if (targetHostUrl == null) {
                 LOG.error("Target host cannot be found.");
@@ -105,11 +105,11 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
                         if (responseCode == 200) {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("Successfully published data to the analytics for session data key: " +
-                                        context.getContext().getContextIdentifier());
+                                        context.getWrapped().getContextIdentifier());
                             }
                         } else {
                             LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                    context.getContext().getContextIdentifier() + ". Request completed successfully. " +
+                                    context.getWrapped().getContextIdentifier() + ". Request completed successfully. " +
                                     "But response code was not 200");
                         }
                     }
@@ -118,25 +118,25 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
                     public void failed(final Exception ex) {
 
                         LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                context.getContext().getContextIdentifier() + ". Request failed with: " + ex);
+                                context.getWrapped().getContextIdentifier() + ". Request failed with: " + ex);
                     }
 
                     @Override
                     public void cancelled() {
 
                         LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                context.getContext().getContextIdentifier() + ". Request canceled.");
+                                context.getWrapped().getContextIdentifier() + ". Request canceled.");
                     }
                 });
             }
 
         } catch (IOException e) {
-            LOG.error("Error while calling analytics engine for tenant: " + context.getContext().getTenantDomain(), e);
+            LOG.error("Error while calling analytics engine for tenant: " + context.getWrapped().getTenantDomain(), e);
         } catch (IdentityEventException e) {
-            LOG.error("Error while preparing authentication information for tenant: " + context.getContext()
+            LOG.error("Error while preparing authentication information for tenant: " + context.getWrapped()
                     .getTenantDomain(), e);
         } catch (FrameworkException e) {
-            LOG.error("Error while building client to invoke analytics engine for tenant: " + context.getContext()
+            LOG.error("Error while building client to invoke analytics engine for tenant: " + context.getWrapped()
                     .getTenantDomain(), e);
         }
     }

@@ -18,38 +18,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.core.model.UserAgent;
 
-/**
- * Javascript wrapper for Java level UserAgent.
- * This provides controlled access to UserSession object via provided javascript native syntax.
- * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
- * AuthenticatedUser.
- *
- * @see UserAgent
- */
-public class JsUserAgent extends AbstractJSObjectWrapper<UserAgent> {
+public interface JsUserAgent {
 
-    public JsUserAgent(UserAgent wrappedUserAgent) {
-
-        super(wrappedUserAgent);
-    }
-
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case "rawString":
-                return getWrapped().getRawString();
-            case "browser":
-                return getWrapped().getBrowser();
-            case "platform":
-                return getWrapped().getPlatform();
-            case "device":
-                return getWrapped().getDevice();
-            default:
-                return super.getMember(name);
-        }
-    }
+    UserAgent getWrapped();
 }
