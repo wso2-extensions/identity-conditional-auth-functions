@@ -96,6 +96,11 @@
                 <version>${commons-lang.wso2.version}</version>
             </dependency>
             <dependency>
+                <groupId>xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+                <version>${xml.apis.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.ops4j.pax.logging</groupId>
                 <artifactId>pax-logging-api</artifactId>
                 <version>${pax.logging.api.version}</version>
@@ -486,6 +491,7 @@
         <net.minidev.json.imp.pkg.version.range>[2.3,3)</net.minidev.json.imp.pkg.version.range>
         <mockito.version>1.10.19</mockito.version>
         <org.osgi.service.imp.pkg.version>[1.2,2)</org.osgi.service.imp.pkg.version>
+        <xml.apis.version>1.4.01</xml.apis.version>
         <sonar.coverage.exclusions>
             **/*Exception.java,
             **/*Constants*.java,
