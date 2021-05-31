@@ -27,9 +27,11 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.user.exception.UserSessionRetrievalException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSession;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserRealm;
 
 import java.util.List;
@@ -66,8 +68,8 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
         try {
             UserRealm userRealm = Utils.getUserRealm(tenantDomain);
             if (userRealm != null) {
-                String userId = UserSessionStore.getInstance()
-                        .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
+                String userId = FrameworkUtils.resolveUserIdFromUsername(IdentityTenantUtil.getTenantIdOfUser(username),
+                        userStoreDomain, username);
                 userSessions = UserFunctionsServiceHolder.getInstance()
                         .getUserSessionManagementService().getSessionsByUserId(userId);
             }
