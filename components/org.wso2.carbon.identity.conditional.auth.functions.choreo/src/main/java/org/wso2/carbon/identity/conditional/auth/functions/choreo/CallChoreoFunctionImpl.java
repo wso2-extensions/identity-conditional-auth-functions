@@ -1,0 +1,129 @@
+package org.wso2.carbon.identity.conditional.auth.functions.choreo;
+
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils;
+import org.wso2.carbon.identity.event.IdentityEventException;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_SUCCESS;
+
+public class CallChoreoFunctionImpl extends AbstractChoreoFunction implements CallChoreoFunction {
+
+    private static final Log LOG = LogFactory.getLog(CallChoreoFunction.class);
+    private static final String TYPE_APPLICATION_JSON = "application/json";
+
+    @Override
+    public void callChoreo(String serviceName, Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
+
+        AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
+
+            try {
+
+                String tenantDomain = authenticationContext.getTenantDomain();
+                String targetHostUrl = CommonUtils.getConnectorConfig(ChoreoConfigImpl.RECEIVER,
+                        tenantDomain);
+
+                if (targetHostUrl == null) {
+                    throw new FrameworkException("Target host cannot be found.");
+                }
+                String epUrl = targetHostUrl + serviceName;
+
+                HttpPost request = new HttpPost(epUrl);
+                request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+                request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+              /*  String API_KEY = "YOUR API KEY";
+                String basicAuth = "Basic" + new String(Base64.getEncoder().encode(API_KEY.getBytes()));
+                request.setHeader(AUTHORIZATION, basicAuth);*/
+                handleAuthentication(request, tenantDomain);
+
+                JSONObject jsonObject = new JSONObject();
+                JSONObject event = new JSONObject();
+                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                    event.put(dataElements.getKey(), dataElements.getValue());
+                }
+                jsonObject.put("event", event);
+                request.setEntity(new StringEntity(jsonObject.toJSONString()));
+
+                CloseableHttpAsyncClient client = ClientManager.getInstance().getClient(tenantDomain);
+                client.execute(request, new FutureCallback<HttpResponse>() {
+
+                    @Override
+                    public void completed(final HttpResponse response) {
+
+                        int responseCode = response.getStatusLine().getStatusCode();
+                        try {
+                            if (responseCode == 200) {
+                                try {
+                                    String jsonString = EntityUtils.toString(response.getEntity());
+                                    JSONParser parser = new JSONParser();
+                                    JSONObject json = (JSONObject) parser.parse(jsonString);
+                                    asyncReturn.accept(authenticationContext, json, OUTCOME_SUCCESS);
+                                } catch (ParseException e) {
+                                    LOG.error("Error while building response from Choreo call for " +
+                                            "session data key: " + authenticationContext.getContextIdentifier(), e);
+                                    asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                                } catch (IOException e) {
+                                    LOG.error("Error while reading response from Choreo call for " +
+                                            "session data key: " + authenticationContext.getContextIdentifier(), e);
+                                    asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                                }
+                            } else {
+                                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                            }
+                        } catch (FrameworkException e) {
+                            LOG.error("Error while proceeding after successful response from Choreo " +
+                                            "call for session data key: " + authenticationContext.getContextIdentifier(),
+                                    e);
+                        }
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+
+                        LOG.error("Failed to invoke Choreo for session data key: " +
+                                authenticationContext.getContextIdentifier(), ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+
+                        LOG.error("Invocation Choreo for session data key: " +
+                                authenticationContext.getContextIdentifier() + " is cancelled.");
+                    }
+                });
+            }
+            catch (IllegalArgumentException e) {
+                LOG.error("Invalid Url: ", e);
+                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            } catch (IOException e) {
+                LOG.error("Error while calling endpoint. ", e);
+                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            } catch (IdentityEventException e) {
+                LOG.error("Error while creating authentication. ", e);
+                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            }
+          });
+        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+    }
+
+    }
