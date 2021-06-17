@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 
 import java.io.IOException;
+import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 import javax.net.ssl.SSLContext;
@@ -54,6 +56,10 @@ public class ClientManager {
     private static ClientManager instance = new ClientManager();
 
     private static Map<Integer, CloseableHttpAsyncClient> clientMap = new HashMap<>();
+
+    private static int HTTP_CONNECTION_TIMEOUT = 300;
+    private static int HTTP_READ_TIMEOUT = 300;
+    private static int HTTP_CONNECTION_REQUEST_TIMEOUT =300;
 
     public static ClientManager getInstance() {
 
@@ -96,59 +102,10 @@ public class ClientManager {
 
     private RequestConfig createRequestConfig(String tenantDomain) {
 
-        int defaultTimeout = 5000;
-        String connectionTimeoutString = null;
-        String readTimeoutString = null;
-        String connectionRequestTimeoutString = null;
-        try {
-            connectionTimeoutString = CommonUtils.getConnectorConfig(ChoreoConfigImpl
-                    .HTTP_CONNECTION_TIMEOUT, tenantDomain);
-        } catch (IdentityEventException e) {
-            // Ignore. If there was error while getting the property, continue with default value.
-        }
-        try {
-            readTimeoutString = CommonUtils.getConnectorConfig(ChoreoConfigImpl
-                    .HTTP_READ_TIMEOUT, tenantDomain);
-        } catch (IdentityEventException e) {
-            // Ignore. If there was error while getting the property, continue with default value.
-        }
-        try {
-            connectionRequestTimeoutString = CommonUtils.getConnectorConfig(ChoreoConfigImpl
-                    .HTTP_CONNECTION_REQUEST_TIMEOUT, tenantDomain);
-        } catch (IdentityEventException e) {
-            // Ignore. If there was error while getting the property, continue with default value.
-        }
-
-        int connectionTimeout = defaultTimeout;
-        int readTimeout = defaultTimeout;
-        int connectionRequestTimeout = defaultTimeout;
-
-        if (connectionTimeoutString != null) {
-            try {
-                connectionTimeout = Integer.parseInt(connectionTimeoutString);
-            } catch (NumberFormatException e) {
-                LOG.error("Error while parsing connection timeout : " + connectionTimeoutString, e);
-            }
-        }
-        if (readTimeoutString != null) {
-            try {
-                readTimeout = Integer.parseInt(readTimeoutString);
-            } catch (NumberFormatException e) {
-                LOG.error("Error while parsing read timeout : " + connectionTimeoutString, e);
-            }
-        }
-        if (connectionRequestTimeoutString != null) {
-            try {
-                connectionRequestTimeout = Integer.parseInt(connectionRequestTimeoutString);
-            } catch (NumberFormatException e) {
-                LOG.error("Error while parsing connection request timeout : " + connectionTimeoutString, e);
-            }
-        }
-
         return RequestConfig.custom()
-                .setConnectTimeout(connectionTimeout)
-                .setConnectionRequestTimeout(connectionRequestTimeout)
-                .setSocketTimeout(readTimeout)
+                .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
+                .setConnectionRequestTimeout(HTTP_CONNECTION_REQUEST_TIMEOUT)
+                .setSocketTimeout(HTTP_READ_TIMEOUT)
                 .build();
     }
 
@@ -199,20 +156,16 @@ public class ClientManager {
     private void addSslContext(HttpAsyncClientBuilder builder, String tenantDomain) {
 
         try {
+
+            ChoreoFunctionServiceHolder choreoFunctionServiceHolder = ChoreoFunctionServiceHolder.getInstance();
+            KeyStore keyStore = choreoFunctionServiceHolder.getTrustStore();
+            SSLContextBuilder sslContextBuilder = SSLContexts.custom();
+            SSLContextBuilder sslContextBuilder1= sslContextBuilder.loadTrustMaterial(keyStore);
             SSLContext sslContext = SSLContexts.custom()
                     .loadTrustMaterial(ChoreoFunctionServiceHolder.getInstance().getTrustStore())
                     .build();
 
-            String hostnameVerifierConfig = CommonUtils.getConnectorConfig(ChoreoConfigImpl
-                    .HOSTNAME_VERIFIER, tenantDomain);
-            X509HostnameVerifier hostnameVerifier;
-            if (ChoreoConfigImpl.HOSTNAME_VERIFIER_STRICT.equalsIgnoreCase(hostnameVerifierConfig)) {
-                hostnameVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
-            } else if (ChoreoConfigImpl.HOSTNAME_VERIFIER_ALLOW_ALL.equalsIgnoreCase(hostnameVerifierConfig)) {
-                hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
-            } else {
-                hostnameVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
-            }
+            X509HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
 
             builder.setSSLContext(sslContext);
             builder.setHostnameVerifier(hostnameVerifier);

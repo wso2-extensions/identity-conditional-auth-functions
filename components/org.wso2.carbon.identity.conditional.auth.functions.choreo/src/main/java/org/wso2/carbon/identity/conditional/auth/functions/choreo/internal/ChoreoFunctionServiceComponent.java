@@ -32,7 +32,6 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.CallChoreoFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.CallChoreoFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.choreo.ChoreoConfigImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.listener.ChoreoAxis2ConfigurationContextObserver;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
@@ -70,8 +69,6 @@ public class ChoreoFunctionServiceComponent {
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_CHOREO, callChoreo);
 
         BundleContext bundleContext = context.getBundleContext();
-        ChoreoConfigImpl choreoConfig = new ChoreoConfigImpl();
-        bundleContext.registerService(IdentityConnectorConfig.class.getName(), choreoConfig, null);
 
         ChoreoAxis2ConfigurationContextObserver observer = new ChoreoAxis2ConfigurationContextObserver();
         bundleContext.registerService(Axis2ConfigurationContextObserver.class.getName(), observer, null);
