@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
@@ -44,41 +45,41 @@ import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_SUCCESS;
 
-public class CallChoreoFunctionImpl extends AbstractChoreoFunction implements CallChoreoFunction {
+public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
     private static final Log LOG = LogFactory.getLog(CallChoreoFunction.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
 
     @Override
-    public void callChoreo(String serviceName, Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
+    public void callChoreo(HashMap<String,String> connection, Map<String, Object> payloadData,
+                           Map<String, Object> eventHandlers) {
 
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
 
             try {
-
+                String epUrl= connection.get("url");
                 String tenantDomain = authenticationContext.getTenantDomain();
-                String targetHostUrl = CommonUtils.getConnectorConfig(ChoreoConfigImpl.RECEIVER,
-                        tenantDomain);
+                if (epUrl == null) {
+                    String targetHostUrl = CommonUtils.getConnectorConfig(ChoreoConfigImpl.RECEIVER,
+                            tenantDomain);
 
-                if (targetHostUrl == null) {
-                    throw new FrameworkException("Target host cannot be found.");
+                    if (targetHostUrl == null) {
+                        throw new FrameworkException("Target host cannot be found.");
+                    }
+                    epUrl = targetHostUrl;
                 }
-                String epUrl = targetHostUrl + serviceName;
 
                 HttpPost request = new HttpPost(epUrl);
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
-              /*  String API_KEY = "YOUR API KEY";
-                String basicAuth = "Basic" + new String(Base64.getEncoder().encode(API_KEY.getBytes()));
-                request.setHeader(AUTHORIZATION, basicAuth);*/
-                handleAuthentication(request, tenantDomain);
+
+                String apiKey = connection.get("apiKey");
+                request.setHeader("API-Key", apiKey);
 
                 JSONObject jsonObject = new JSONObject();
-                JSONObject event = new JSONObject();
                 for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                    event.put(dataElements.getKey(), dataElements.getValue());
+                    jsonObject.put(dataElements.getKey(), dataElements.getValue());
                 }
-                jsonObject.put("event", event);
                 request.setEntity(new StringEntity(jsonObject.toJSONString()));
 
                 CloseableHttpAsyncClient client = ClientManager.getInstance().getClient(tenantDomain);

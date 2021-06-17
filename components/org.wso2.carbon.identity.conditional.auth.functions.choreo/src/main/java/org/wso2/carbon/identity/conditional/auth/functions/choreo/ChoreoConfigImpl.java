@@ -33,19 +33,13 @@ import java.util.Properties;
 public class ChoreoConfigImpl implements IdentityConnectorConfig {
 
     public static final String RECEIVER = "adaptive_authentication.choreo.receiver";
-    public static final String BASIC_AUTH_ENABLED = "adaptive_authentication.choreo.basicAuth.enabled";
-    public static final String USERNAME = "adaptive_authentication.choreo.basicAuth.username";
-    public static final String CREDENTIAL = "__secret__adaptive_authentication.choreo.basicAuth.password";
     public static final String HTTP_CONNECTION_TIMEOUT = "adaptive_authentication.choreo.HTTPConnectionTimeout";
     public static final String HTTP_READ_TIMEOUT = "adaptive_authentication.choreo.HTTPReadTimeout";
     public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "adaptive_authentication.choreo" +
             ".HTTPConnectionRequestTimeout";
-    public static final String HOSTNAME_VERIFIER = "adaptive_authentication.choreo.hostnameVerfier";
+    public static final String HOSTNAME_VERIFIER = "adaptive_authentication.choreo.hostnameVerifier";
 
     public static final String DEFAULT_TARGET_HOST = "https://riskcalculation-chanikaruchini-test.choreo.dev/";
-    public static final String DEFAULT_AUTHENTICATION_ENABLED = "true";
-    public static final String DEFAULT_USERNAME = "change-me";
-    public static final String DEFAULT_CREDENTIAL = "change-me";
     public static final String HOSTNAME_VERIFIER_STRICT = "STRICT";
     public static final String HOSTNAME_VERIFIER_ALLOW_ALL = "ALLOW_ALL";
     public static final String DEFAULT_HOSTNAME_VERIFIER = HOSTNAME_VERIFIER_STRICT;
@@ -86,9 +80,6 @@ public class ChoreoConfigImpl implements IdentityConnectorConfig {
         Map<String, String> mapping = new HashMap<>();
 
         mapping.put(RECEIVER, "Target Host");
-        mapping.put(BASIC_AUTH_ENABLED, "Enable Basic Authentication");
-        mapping.put(USERNAME, "User ID");
-        mapping.put(CREDENTIAL, "Secret");
         mapping.put(HTTP_CONNECTION_TIMEOUT, "HTTP Connection Timeout");
         mapping.put(HTTP_READ_TIMEOUT, "HTTP Read Timeout");
         mapping.put(HTTP_CONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout");
@@ -103,9 +94,6 @@ public class ChoreoConfigImpl implements IdentityConnectorConfig {
         Map<String, String> mapping = new HashMap<>();
 
         mapping.put(RECEIVER, "Target Host");
-        mapping.put(BASIC_AUTH_ENABLED, "Enable Basic Authentication");
-        mapping.put(USERNAME, "Target Host Secured User ID");
-        mapping.put(CREDENTIAL, "Target Host Secured Secret");
         mapping.put(HTTP_CONNECTION_TIMEOUT, "HTTP Connection Timeout in milliseconds");
         mapping.put(HTTP_READ_TIMEOUT, "HTTP Read Timeout in milliseconds");
         mapping.put(HTTP_CONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout in milliseconds");
@@ -119,9 +107,6 @@ public class ChoreoConfigImpl implements IdentityConnectorConfig {
 
         List<String> properties = new ArrayList<>();
         properties.add(RECEIVER);
-        properties.add(BASIC_AUTH_ENABLED);
-        properties.add(USERNAME);
-        properties.add(CREDENTIAL);
         properties.add(HTTP_CONNECTION_TIMEOUT);
         properties.add(HTTP_READ_TIMEOUT);
         properties.add(HTTP_CONNECTION_REQUEST_TIMEOUT);
@@ -136,13 +121,6 @@ public class ChoreoConfigImpl implements IdentityConnectorConfig {
 
         String targetHost = IdentityUtil.getProperty(Constants.RECEIVER_URL);
         defaultProperties.put(RECEIVER, targetHost != null ? targetHost : DEFAULT_TARGET_HOST);
-        String basicAuthEnable = IdentityUtil.getProperty(Constants.AUTHENTICATION_ENABLED);
-        defaultProperties.put(BASIC_AUTH_ENABLED, basicAuthEnable != null ? basicAuthEnable :
-                DEFAULT_AUTHENTICATION_ENABLED);
-        String username = IdentityUtil.getProperty(Constants.AUTHENTICATION_USERNAME);
-        defaultProperties.put(USERNAME, username != null ? username : DEFAULT_USERNAME);
-        String password = IdentityUtil.getProperty(Constants.AUTHENTICATION_CREDENTIAL);
-        defaultProperties.put(CREDENTIAL, password != null ? password : DEFAULT_CREDENTIAL);
         defaultProperties.put(HTTP_CONNECTION_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
                 .getConnectionTimeout()));
         defaultProperties.put(HTTP_READ_TIMEOUT, String.valueOf(ConfigProvider.getInstance()
