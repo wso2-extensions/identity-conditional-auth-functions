@@ -34,8 +34,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.choreo.CallChoreoFunc
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.CallChoreoFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.listener.ChoreoAxis2ConfigurationContextObserver;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.identity.governance.IdentityGovernanceService;
-import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
 import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
 
 import java.io.FileInputStream;
@@ -151,28 +149,5 @@ public class ChoreoFunctionServiceComponent {
             LOG.debug("Unsetting the ServerConfigurationService");
         }
         ChoreoFunctionServiceHolder.getInstance().setServerConfigurationService(null);
-    }
-
-    @Reference(
-            name = "identity.governance.service",
-            service = IdentityGovernanceService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdentityGovernanceService"
-    )
-    protected void setIdentityGovernanceService(IdentityGovernanceService identityGovernanceService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Identity Governance service is set form functions");
-        }
-        // Do nothing. Wait for the service before registering the governance connector.
-    }
-
-    protected void unsetIdentityGovernanceService(IdentityGovernanceService identityGovernanceService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Identity Governance service is unset from functions");
-        }
-        // Do nothing.
     }
 }

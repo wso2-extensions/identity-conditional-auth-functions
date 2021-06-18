@@ -22,13 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Function to publish events to analytics engine and get the output event synchronously.
+ * Function to publish events to Choreo and get the output event synchronously.
  */
 @FunctionalInterface
 public interface CallChoreoFunction {
 
     /**
-     *  Publish data to analytics engine and get the decision.
+     *  send data to Choreo and get the decision.
      *
      * @param connection Metadata to call the endpoint.
      * @param payloadData payload data.

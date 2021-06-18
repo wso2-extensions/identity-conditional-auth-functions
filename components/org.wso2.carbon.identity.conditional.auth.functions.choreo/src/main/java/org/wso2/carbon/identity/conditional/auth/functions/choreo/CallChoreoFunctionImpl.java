@@ -43,10 +43,16 @@ import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_SUCCESS;
 
+/**
+ * Implementation of the {@link CallChoreoFunction}
+ */
 public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
     private static final Log LOG = LogFactory.getLog(CallChoreoFunction.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
+    private static final String CONNECTION_URL = "url";
+    private static final String API_KEY = "apiKey";
+
 
     @Override
     public void callChoreo(HashMap<String,String> connection, Map<String, Object> payloadData,
@@ -55,14 +61,14 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
 
             try {
-                String epUrl= connection.get("url");
+                String epUrl= connection.get(CONNECTION_URL);
                 String tenantDomain = authenticationContext.getTenantDomain();
 
                 HttpPost request = new HttpPost(epUrl);
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
-                String apiKey = connection.get("apiKey");
+                String apiKey = connection.get(API_KEY);
                 request.setHeader("API-Key", apiKey);
 
                 JSONObject jsonObject = new JSONObject();
