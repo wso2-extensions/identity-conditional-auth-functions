@@ -146,6 +146,7 @@
                             org.apache.http.client.config,
                             org.apache.http.impl.client,
                             org.apache.http.conn,
+                            org.apache.http.conn.ssl,
                             org.json.simple,
                             org.json.simple.parser,
                             org.apache.http,

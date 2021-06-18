@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
@@ -34,14 +33,11 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.nio.reactor.IOReactorException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
-import org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.event.IdentityEventException;
 
 import java.io.IOException;
-import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 import javax.net.ssl.SSLContext;
@@ -85,11 +81,11 @@ public class ClientManager {
 
             PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = createPoolingConnectionManager();
 
-            RequestConfig config = createRequestConfig(tenantDomain);
+            RequestConfig config = createRequestConfig();
 
             HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClients.custom().setDefaultRequestConfig(config);
 
-           // addSslContext(httpClientBuilder, tenantDomain);
+            addSslContext(httpClientBuilder, tenantDomain);
             httpClientBuilder.setConnectionManager(poolingHttpClientConnectionManager);
 
             client = httpClientBuilder.build();
@@ -100,7 +96,7 @@ public class ClientManager {
         return client;
     }
 
-    private RequestConfig createRequestConfig(String tenantDomain) {
+    private RequestConfig createRequestConfig() {
 
         return RequestConfig.custom()
                 .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
@@ -157,10 +153,6 @@ public class ClientManager {
 
         try {
 
-            ChoreoFunctionServiceHolder choreoFunctionServiceHolder = ChoreoFunctionServiceHolder.getInstance();
-            KeyStore keyStore = choreoFunctionServiceHolder.getTrustStore();
-            SSLContextBuilder sslContextBuilder = SSLContexts.custom();
-            SSLContextBuilder sslContextBuilder1= sslContextBuilder.loadTrustMaterial(keyStore);
             SSLContext sslContext = SSLContexts.custom()
                     .loadTrustMaterial(ChoreoFunctionServiceHolder.getInstance().getTrustStore())
                     .build();
@@ -174,5 +166,4 @@ public class ClientManager {
                     tenantDomain, e);
         }
     }
-
 }
