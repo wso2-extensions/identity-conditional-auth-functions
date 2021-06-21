@@ -45,5 +45,3 @@ public class ChoreoAxis2ConfigurationContextObserver extends AbstractAxis2Config
         }
     }
 }
-
-
