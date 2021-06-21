@@ -55,7 +55,7 @@ public class ClientManager {
 
     private static int HTTP_CONNECTION_TIMEOUT = 300;
     private static int HTTP_READ_TIMEOUT = 300;
-    private static int HTTP_CONNECTION_REQUEST_TIMEOUT =300;
+    private static int HTTP_CONNECTION_REQUEST_TIMEOUT = 300;
 
     public static ClientManager getInstance() {
 

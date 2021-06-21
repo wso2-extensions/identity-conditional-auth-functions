@@ -27,6 +27,9 @@ import org.wso2.carbon.utils.AbstractAxis2ConfigurationContextObserver;
 
 import java.io.IOException;
 
+/**
+ * This class is responsible for closing the http client used for the tenant when the tenant is unloaded.
+ */
 public class ChoreoAxis2ConfigurationContextObserver extends AbstractAxis2ConfigurationContextObserver {
 
     private static final Log log = LogFactory.getLog(

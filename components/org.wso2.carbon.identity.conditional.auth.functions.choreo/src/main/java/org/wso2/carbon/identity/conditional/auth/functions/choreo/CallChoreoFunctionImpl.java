@@ -53,15 +53,14 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String CONNECTION_URL = "url";
     private static final String API_KEY = "apiKey";
 
-
     @Override
-    public void callChoreo(HashMap<String,String> connection, Map<String, Object> payloadData,
+    public void callChoreo(HashMap<String, String> connection, Map<String, Object> payloadData,
                            Map<String, Object> eventHandlers) {
 
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
 
             try {
-                String epUrl= connection.get(CONNECTION_URL);
+                String epUrl = connection.get(CONNECTION_URL);
                 String tenantDomain = authenticationContext.getTenantDomain();
 
                 HttpPost request = new HttpPost(epUrl);
@@ -124,8 +123,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                 authenticationContext.getContextIdentifier() + " is cancelled.");
                     }
                 });
-            }
-            catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException e) {
                 LOG.error("Invalid Url: ", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (IOException e) {
@@ -136,4 +134,4 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
     }
 
-    }
+}
