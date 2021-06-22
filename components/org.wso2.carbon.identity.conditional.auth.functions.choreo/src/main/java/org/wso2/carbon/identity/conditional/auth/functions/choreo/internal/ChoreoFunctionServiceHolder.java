@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.choreo.internal;
 
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.conditional.auth.functions.choreo.ClientManager;
 
 import java.security.KeyStore;
 
@@ -30,6 +31,7 @@ public class ChoreoFunctionServiceHolder {
     private JsFunctionRegistry jsFunctionRegistry;
     private ServerConfigurationService serverConfigurationService;
     private KeyStore trustStore;
+    private ClientManager clientManager;
 
     public KeyStore getTrustStore() {
 
@@ -66,4 +68,13 @@ public class ChoreoFunctionServiceHolder {
         this.jsFunctionRegistry = jsFunctionRegistry;
     }
 
+    public void setClientManager(ClientManager clientManager) {
+
+        this.clientManager = clientManager;
+    }
+
+    public ClientManager getClientManager() {
+
+        return clientManager;
+    }
 }

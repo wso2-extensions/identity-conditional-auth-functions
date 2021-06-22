@@ -31,6 +31,7 @@ import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.nio.reactor.IOReactorException;
+
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
@@ -38,6 +39,9 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.net.ssl.SSLContext;
@@ -49,20 +53,18 @@ public class ClientManager {
 
     private static final Log LOG = LogFactory.getLog(ClientManager.class);
 
-    private static ClientManager instance = new ClientManager();
-
     private static Map<Integer, CloseableHttpAsyncClient> clientMap = new HashMap<>();
+
+    private PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager;
 
     private static int HTTP_CONNECTION_TIMEOUT = 300;
     private static int HTTP_READ_TIMEOUT = 300;
     private static int HTTP_CONNECTION_REQUEST_TIMEOUT = 300;
+    private static int DEFAULT_MAX_CONNECTIONS = 20;
 
-    public static ClientManager getInstance() {
+    public ClientManager() throws FrameworkException {
 
-        return instance;
-    }
-
-    private ClientManager() {
+        poolingHttpClientConnectionManager = createPoolingConnectionManager();
 
     }
 
@@ -72,14 +74,12 @@ public class ClientManager {
      * @param tenantDomain tenant domain of the service provider.
      * @return HttpClient
      */
-    public CloseableHttpAsyncClient getClient(String tenantDomain) throws FrameworkException {
+    public CloseableHttpAsyncClient getClient(String tenantDomain) throws FrameworkException, IOException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         CloseableHttpAsyncClient client = clientMap.get(tenantId);
 
         if (client == null) {
-
-            PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = createPoolingConnectionManager();
 
             RequestConfig config = createRequestConfig();
 
@@ -110,18 +110,21 @@ public class ClientManager {
         String maxConnectionsString = IdentityUtil.getProperty(Constants.CONNECTION_POOL_MAX_CONNECTIONS);
         String maxConnectionsPerRouteString = IdentityUtil.getProperty(Constants
                 .CONNECTION_POOL_MAX_CONNECTIONS_PER_ROUTE);
-        int defaultMaxConnections = 20;
-        int maxConnections = defaultMaxConnections;
-        int maxConnectionsPerRoute = defaultMaxConnections;
+        int maxConnections = DEFAULT_MAX_CONNECTIONS;
+        int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS;
         try {
             maxConnections = Integer.parseInt(maxConnectionsString);
         } catch (NumberFormatException e) {
             // Ignore. Default value is used.
+            LOG.error("Error while converting MaxConnection " + maxConnections + " to integer. So proceed with " +
+                    "default value ", e);
         }
         try {
             maxConnectionsPerRoute = Integer.parseInt(maxConnectionsPerRouteString);
         } catch (NumberFormatException e) {
             // Ignore. Default value is used.
+            LOG.error("Error while converting MaxConnectionsPerRoute " + maxConnectionsPerRoute + " to integer. " +
+                    "So proceed with default value ", e);
         }
 
         ConnectingIOReactor ioReactor;
@@ -149,7 +152,7 @@ public class ClientManager {
         }
     }
 
-    private void addSslContext(HttpAsyncClientBuilder builder, String tenantDomain) {
+    private void addSslContext(HttpAsyncClientBuilder builder, String tenantDomain) throws IOException {
 
         try {
 
@@ -157,13 +160,16 @@ public class ClientManager {
                     .loadTrustMaterial(ChoreoFunctionServiceHolder.getInstance().getTrustStore())
                     .build();
 
-            X509HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+            X509HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
 
             builder.setSSLContext(sslContext);
             builder.setHostnameVerifier(hostnameVerifier);
-        } catch (Exception e) {
+
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             LOG.error("Error while creating ssl context for Choreo endpoint invocation in tenant domain: " +
                     tenantDomain, e);
+            throw new IOException("Error while creating ssl context for Choreo endpoint invocation in tenant " +
+                    "domain: " + tenantDomain, e);
         }
     }
 }

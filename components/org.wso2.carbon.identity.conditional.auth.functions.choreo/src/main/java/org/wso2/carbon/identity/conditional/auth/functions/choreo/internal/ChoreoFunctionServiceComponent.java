@@ -30,8 +30,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.CallChoreoFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.CallChoreoFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.choreo.ClientManager;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.listener.ChoreoAxis2ConfigurationContextObserver;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
@@ -59,7 +61,7 @@ public class ChoreoFunctionServiceComponent {
     private static final Log LOG = LogFactory.getLog(ChoreoFunctionServiceComponent.class);
 
     @Activate
-    protected void activate(ComponentContext context) {
+    protected void activate(ComponentContext context) throws FrameworkException {
 
         JsFunctionRegistry jsFunctionRegistry = ChoreoFunctionServiceHolder.getInstance().getJsFunctionRegistry();
 
@@ -73,6 +75,9 @@ public class ChoreoFunctionServiceComponent {
         ServerConfigurationService config = ChoreoFunctionServiceHolder.getInstance()
                 .getServerConfigurationService();
 
+        ClientManager clientManager = new ClientManager();
+        ChoreoFunctionServiceHolder.getInstance().setClientManager(clientManager);
+
         String filePath = config.getFirstProperty("Security.TrustStore.Location");
         String keyStoreType = config.getFirstProperty("Security.TrustStore.Type");
         String password = config.getFirstProperty("Security.TrustStore.Password");
@@ -82,6 +87,7 @@ public class ChoreoFunctionServiceComponent {
             ChoreoFunctionServiceHolder.getInstance().setTrustStore(keyStore);
         } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
             LOG.error("Error while loading truststore.", e);
+            throw new FrameworkException("Error while trying to load Key Store.", e);
         }
     }
 

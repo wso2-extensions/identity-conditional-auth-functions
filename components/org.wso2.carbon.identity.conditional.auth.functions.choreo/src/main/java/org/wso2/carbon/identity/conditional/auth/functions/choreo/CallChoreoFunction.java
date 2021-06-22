@@ -18,22 +18,22 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.choreo;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Function to publish events to Choreo and get the output event synchronously.
+ * Function to send HTTP requests to the Choreo and get the response synchronously.
  */
 @FunctionalInterface
 public interface CallChoreoFunction {
 
     /**
-     *  send data to Choreo and get the decision.
+     * send data to Choreo and get the riskScore.
      *
-     * @param connection Metadata to call the endpoint.
-     * @param payloadData payload data.
-     * @param eventHandlers event handlers.
+     * @param connectionMetaData Metadata to call the endpoint. This connectionMetaData map consists with connection url
+     *                          (connectionMetaData.url) and api-key (connectionMetaData.apikey)
+     * @param payloadData        payload data.
+     * @param eventHandlers      event handlers.
      */
-    void callChoreo(HashMap<String,String> connection, Map<String, Object> payloadData,
+    void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
                     Map<String, Object> eventHandlers);
 }
