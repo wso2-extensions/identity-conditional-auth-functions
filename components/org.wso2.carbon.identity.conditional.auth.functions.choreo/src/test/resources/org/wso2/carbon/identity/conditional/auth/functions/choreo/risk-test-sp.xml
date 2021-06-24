@@ -1,0 +1,128 @@
+<!--
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<ServiceProvider>
+    <ApplicationID>1</ApplicationID>
+    <ApplicationName>default</ApplicationName>
+    <Description>Default Service Provider</Description>
+    <InboundAuthenticationConfig>
+        <InboundAuthenticationRequestConfigs>
+            <InboundAuthenticationRequestConfig>
+                <InboundAuthKey>default</InboundAuthKey>
+                <InboundAuthType></InboundAuthType>
+                <Properties></Properties>
+            </InboundAuthenticationRequestConfig>
+        </InboundAuthenticationRequestConfigs>
+    </InboundAuthenticationConfig>
+    <LocalAndOutBoundAuthenticationConfig>
+        <AuthenticationSteps>
+            <AuthenticationStep>
+                <StepOrder>1</StepOrder>
+                <LocalAuthenticatorConfigs>
+                    <LocalAuthenticatorConfig>
+                        <Name>BasicMockAuthenticator</Name>
+                        <DisplayName>basicauth</DisplayName>
+                        <IsEnabled>true</IsEnabled>
+                    </LocalAuthenticatorConfig>
+                </LocalAuthenticatorConfigs>
+                <SubjectStep>true</SubjectStep>
+                <AttributeStep>true</AttributeStep>
+            </AuthenticationStep>
+            <AuthenticationStep>
+                <StepOrder>2</StepOrder>
+                <FederatedIdentityProviders>
+                    <IdentityProvider>
+                        <IdentityProviderName>HwkMockAuthenticator</IdentityProviderName>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAuthenticatorConfig>HwkMockAuthenticator</DefaultAuthenticatorConfig>
+                        <FederatedAuthenticatorConfigs>
+                            <FederatedAuthenticatorConfig>
+                                <Name>HwkMockAuthenticator</Name>
+                                <IsEnabled>true</IsEnabled>
+                            </FederatedAuthenticatorConfig>
+                        </FederatedAuthenticatorConfigs>
+                    </IdentityProvider>
+                </FederatedIdentityProviders>
+                <SubjectStep>false</SubjectStep>
+                <AttributeStep>false</AttributeStep>
+            </AuthenticationStep>
+            <AuthenticationStep>
+                <StepOrder>3</StepOrder>
+                <FederatedIdentityProviders>
+                    <IdentityProvider>
+                        <IdentityProviderName>FptMockAuthenticator</IdentityProviderName>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAuthenticatorConfig>FptMockAuthenticator</DefaultAuthenticatorConfig>
+                        <FederatedAuthenticatorConfigs>
+                            <FederatedAuthenticatorConfig>
+                                <Name>FptMockAuthenticator</Name>
+                                <IsEnabled>true</IsEnabled>
+                            </FederatedAuthenticatorConfig>
+                        </FederatedAuthenticatorConfigs>
+                    </IdentityProvider>
+                </FederatedIdentityProviders>
+                <SubjectStep>false</SubjectStep>
+                <AttributeStep>false</AttributeStep>
+            </AuthenticationStep>
+            <AuthenticationStep>
+                <StepOrder>4</StepOrder>
+                <LocalAuthenticatorConfigs>
+                    <LocalAuthenticatorConfig>
+                        <Name>MockFallbackAuthenticator</Name>
+                        <DisplayName>basicauthfallback</DisplayName>
+                        <IsEnabled>true</IsEnabled>
+                    </LocalAuthenticatorConfig>
+                </LocalAuthenticatorConfigs>
+                <SubjectStep>true</SubjectStep>
+                <AttributeStep>true</AttributeStep>
+            </AuthenticationStep>
+        </AuthenticationSteps>
+        <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
+
+var connectionMetaData = {};
+connectionMetaData.url = "http://localhost:%s/dummyurl"
+connectionMetaData.apiKey = "eyJraWQiOiJnYXRld2F5X2NlcnRpZmljYXRlX2FsaWFzIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJjaG9yZW9fcHJvZF9hcGltX2FkbWluQGNhcmJvbi5zdXBlciIsImlzcyI6Imh0dHBzOlwvXC9hcGltLmNob3Jlby5kZXY6NDQzXC9vYXV0aDJcL3Rva2VuIiwia2V5dHlwZSI6IlBST0RVQ1RJT04iLCJzdWJzY3JpYmVkQVBJcyI6W3sic3Vic2NyaWJlclRlbmFudERvbWFpbiI6bnVsbCwibmFtZSI6ImR1bW15UG9zdCIsImNvbnRleHQiOiJcL2NoYW5pa2FydWNoaW5pXC9kdW1teXBvc3RcLzEuMC4wIiwicHVibGlzaGVyIjoiY2hvcmVvX3Byb2RfYXBpbV9hZG1pbiIsInZlcnNpb24iOiIxLjAuMCIsInN1YnNjcmlwdGlvblRpZXIiOm51bGx9XSwiZXhwIjoxNjI0Mzk1MTM2LCJ0b2tlbl90eXBlIjoiSW50ZXJuYWxLZXkiLCJpYXQiOjE2MjQzMzUxMzYsImp0aSI6IjlkZGMyNGUwLTQ1ZjMtNDUzYy1hOWNlLTYwNTViMzZmYjcwMyJ9.oLLrzvbZcQxT0HPAuFFMrR-jZ4r5l04i-92Al8ye9_aQUMfmfto9vM5d5jnS1x4-yFw7khTuLQSN203bS_ddSunnfJfjfVFRSEa_nuPb7DhZWOAAPtCz03ZxvovgUyGrkKeFo23CLyYRtCCZ09Vlo4-IOoncFKs-hF4jTpqwd6-WI9nqcf8Yua3Gs5iHpY-raGEpyFI3D0XRgKehDy1TgJrhe3_vj6jvRA-g4v5NH0FDNYILoHG0bXbQSrL2TM-LETkX1TMDzg4PqREXlgf-tCHpjO8A9VriujJLHFd5RqhCZ18evvolurjmcmhiQo7T3RJvwdcKAyIZhcpT3XENvt-55AWmftWlJxmg2HsSq50iFv1lBijBUArnSh5R0mpZy5_sSiYythiw-Lbu4QHlFa6noUZW5YaX0iUpioEXIIzgG6nqE2T0x8CHtuncthG4haVv4dW3p3D0nOgo6RsVCGLmZ7vyNwiBW0kCINoRkzIyGBUODvzv72y3ErWahQhOM4ZMxkGXPV6j1HWRUpW5irP-X9ntGuj6nkQKJx7Dx98Md0-OJKHO4WjDkqqdJBEqrd6sorP7dKGmBbRBoh8sTpdxrOGyAzZ8uAcNsLwI6vbYcQIrztkqTgP8j1USMRVRRclBzcDTxZc--3qwK1YdIu1wDJAK5EQAZDCPPu9i0oE";
+function onLoginRequest(context) {
+    executeStep(1, {
+        onSuccess: function (context) {
+            var username = context.steps[1].subject.username;
+            var loggingIp = '192.178.10.8';
+            callChoreo(connectionMetaData, {'username':username, 'loggingIp':loggingIp}, {
+                onSuccess: function (context, data) {
+                    if (data.riskScore > 0) {
+                        Log.info('data.riskScore > 0');
+                        context.selectedAcr = ''+ data.riskScore;
+                    }
+                }, onFail: function (context, data) {
+                    Log.info('fail Called');
+                }
+            });
+        }
+    });
+}
+
+]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
+    </LocalAndOutBoundAuthenticationConfig>
+    <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
+    <InboundProvisioningConfig></InboundProvisioningConfig>
+    <OutboundProvisioningConfig></OutboundProvisioningConfig>
+    <ClaimConfig>
+        <AlwaysSendMappedLocalSubjectId>true</AlwaysSendMappedLocalSubjectId>
+    </ClaimConfig>
+    <PermissionAndRoleConfig></PermissionAndRoleConfig>
+</ServiceProvider>
