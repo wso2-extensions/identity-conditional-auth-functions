@@ -95,7 +95,6 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         ClientManager clientManager = new ClientManager();
         ChoreoFunctionServiceHolder.getInstance().setClientManager(clientManager);
 
-
         LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
         CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);
         int connectionTimeout = 5000;
@@ -111,12 +110,11 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 .getAuthenticationScriptConfig();
         String content = authenticationScriptConfig.getContent();
         String newContent = String.format(content, microServicePort);
-
         authenticationScriptConfig.setContent(newContent);
         localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
         sp1.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
-        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
 
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
         SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, sp1);
         context.setSequenceConfig(sequenceConfig);
