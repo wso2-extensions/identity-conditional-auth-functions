@@ -47,6 +47,7 @@
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.notification</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.http</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.analytics</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.choreo</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.session</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</module>
         <module>features/org.wso2.carbon.identity.conditional.auth.functions.server.feature</module>
@@ -63,6 +64,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
                 <artifactId>org.wso2.carbon.identity.conditional.auth.functions.analytics</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+                <artifactId>org.wso2.carbon.identity.conditional.auth.functions.choreo</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
