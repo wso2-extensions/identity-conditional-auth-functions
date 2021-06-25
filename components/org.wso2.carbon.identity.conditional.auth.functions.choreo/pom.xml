@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>1.1.10-SNAPSHOT</version>
+        <version>1.1.13-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -68,19 +68,10 @@
             <groupId>com.googlecode.json-simple.wso2</groupId>
             <artifactId>json-simple</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.utils</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <!--Test Dependencies-->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.testutil</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
