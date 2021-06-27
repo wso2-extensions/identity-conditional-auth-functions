@@ -161,7 +161,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     }
                 });
             } catch (IllegalArgumentException e) {
-                LOG.error("Invalid Url: ", e);
+                LOG.error("Invalid endpoint Url: ", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (IOException e) {
                 LOG.error("Error while calling endpoint. ", e);

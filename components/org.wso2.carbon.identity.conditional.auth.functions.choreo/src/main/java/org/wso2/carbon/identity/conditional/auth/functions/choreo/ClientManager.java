@@ -115,14 +115,14 @@ public class ClientManager {
         try {
             maxConnections = Integer.parseInt(maxConnectionsString);
         } catch (NumberFormatException e) {
-            // Ignore. Default value is used.
+            // Default value is used.
             LOG.error("Error while converting MaxConnection " + maxConnections + " to integer. So proceed with " +
                     "default value ", e);
         }
         try {
             maxConnectionsPerRoute = Integer.parseInt(maxConnectionsPerRouteString);
         } catch (NumberFormatException e) {
-            // Ignore. Default value is used.
+            // Default value is used.
             LOG.error("Error while converting MaxConnectionsPerRoute " + maxConnectionsPerRoute + " to integer. " +
                     "So proceed with default value ", e);
         }
@@ -135,9 +135,9 @@ public class ClientManager {
         }
         PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = new
                 PoolingNHttpClientConnectionManager(ioReactor);
-        // Increase max total connection to 50
+        // Increase max total connection to 20
         poolingHttpClientConnectionManager.setMaxTotal(maxConnections);
-        // Increase default max connection per route to 50
+        // Increase default max connection per route to 20
         poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
         return poolingHttpClientConnectionManager;
     }

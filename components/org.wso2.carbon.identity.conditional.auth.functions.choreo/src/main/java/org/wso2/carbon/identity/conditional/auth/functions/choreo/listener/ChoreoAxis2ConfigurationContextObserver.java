@@ -32,7 +32,7 @@ import java.io.IOException;
  */
 public class ChoreoAxis2ConfigurationContextObserver extends AbstractAxis2ConfigurationContextObserver {
 
-    private static final Log log = LogFactory.getLog(
+    private static final Log LOG = LogFactory.getLog(
             ChoreoAxis2ConfigurationContextObserver.class);
 
     public void terminatingConfigurationContext(ConfigurationContext configContext) {
@@ -41,7 +41,7 @@ public class ChoreoAxis2ConfigurationContextObserver extends AbstractAxis2Config
         try {
             ChoreoFunctionServiceHolder.getInstance().getClientManager().closeClient(tenantId);
         } catch (IOException e) {
-            log.error("Error while closing http client for tenant: " + tenantId, e);
+            LOG.error("Error while closing http client for tenant: " + tenantId, e);
         }
     }
 }
