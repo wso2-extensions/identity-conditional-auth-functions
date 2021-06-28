@@ -27,7 +27,9 @@ import java.util.Map;
 public interface CallChoreoFunction {
 
     /**
-     * send data to Choreo and get the riskScore.
+     * Sends data to Choreo and get the response from the Choreo service.
+     * The payload  and the return value from the Choreo are both JSON structure, which needs to the contract between
+     * the service and authentication script
      *
      * @param connectionMetaData Metadata to call the endpoint. This connectionMetaData map consists with connection url
      *                          (connectionMetaData.url) and api-key (connectionMetaData.apikey)
