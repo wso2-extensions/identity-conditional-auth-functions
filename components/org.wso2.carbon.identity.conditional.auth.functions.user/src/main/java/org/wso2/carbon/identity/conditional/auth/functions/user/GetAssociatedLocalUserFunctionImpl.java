@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,7 +50,8 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
         String externalSubject = null;
         try {
             String userIdClaimURI = Utils.getUserIdClaimURI(externalIdpName, tenantDomain);
-            if (StringUtils.isNotEmpty(userIdClaimURI)) {
+            if (StringUtils.isNotEmpty(userIdClaimURI) &&
+                    MapUtils.isNotEmpty(federatedUser.getWrapped().getUserAttributes())) {
                 externalSubject = federatedUser.getWrapped().getUserAttributes().entrySet().stream().filter(
                         userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
                                 .equals(userIdClaimURI))
