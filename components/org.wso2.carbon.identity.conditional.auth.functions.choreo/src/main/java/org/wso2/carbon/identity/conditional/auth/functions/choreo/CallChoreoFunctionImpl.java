@@ -58,7 +58,6 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String URL_VARIABLE_NAME = "url";
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
 
-
     @Override
     public void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
                            Map<String, Object> eventHandlers) {
