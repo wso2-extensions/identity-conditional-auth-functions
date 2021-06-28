@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,8 +27,10 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
-import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.util.Map;
 
 public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUserFunction {
 
@@ -42,9 +45,27 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
             }
             return null;
         }
-        String externalSubject = federatedUser.getWrapped().getAuthenticatedSubjectIdentifier();
         String tenantDomain = federatedUser.getWrapped().getTenantDomain();
         String externalIdpName = federatedUser.getWrapped().getFederatedIdPName();
+        String externalSubject = null;
+        try {
+            String userIdClaimURI = Utils.getUserIdClaimURI(externalIdpName, tenantDomain);
+            if (StringUtils.isNotEmpty(userIdClaimURI) &&
+                    MapUtils.isNotEmpty(federatedUser.getWrapped().getUserAttributes())) {
+                externalSubject = federatedUser.getWrapped().getUserAttributes().entrySet().stream().filter(
+                        userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
+                                .equals(userIdClaimURI))
+                        .map(Map.Entry::getValue)
+                        .findFirst()
+                        .orElse(null);
+            } else {
+                externalSubject = federatedUser.getWrapped().getAuthenticatedSubjectIdentifier();
+            }
+        } catch (IdentityProviderManagementException e) {
+            String msg =
+                    "Error while retrieving identity provider by name: " + externalIdpName;
+            LOG.error(msg, e);
+        }
         String associatedID = null;
 
         try {

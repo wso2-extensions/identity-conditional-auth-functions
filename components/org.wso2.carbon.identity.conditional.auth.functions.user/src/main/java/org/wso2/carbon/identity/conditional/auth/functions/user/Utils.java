@@ -22,16 +22,25 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Utility methods required for user functions.
  */
 public class Utils {
+
+    private static final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
 
     /**
      * Get userRealm for the given tenantDomain.
@@ -97,6 +106,42 @@ public class Utils {
 
         return (tenantDomain == null) ? org.wso2.carbon.utils.multitenancy.MultitenantConstants
                 .INVALID_TENANT_ID : IdentityTenantUtil.getTenantId(tenantDomain);
+    }
+
+    /**
+     * Retrieve the user id claim configured for the federated IDP.
+     *
+     * @param federatedIdpName  Federated IDP name.
+     * @param tenantDomain      Tenant domain.
+     * @return  User ID claim configured for the IDP.
+     * @throws IdentityProviderManagementException
+     */
+    public static String getUserIdClaimURI(String federatedIdpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String userIdClaimURI = null;
+        IdentityProvider idp =
+                UserFunctionsServiceHolder.getInstance().getIdentityProviderManagementService()
+                        .getIdPByName(federatedIdpName, tenantDomain);
+        if (idp == null) {
+            return null;
+        }
+        ClaimConfig claimConfigs = idp.getClaimConfig();
+        if (claimConfigs == null) {
+            return null;
+        }
+        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        if (claimMappings == null || claimMappings.length < 1) {
+            return null;
+        }
+        ClaimMapping userNameClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
+                StringUtils.equals(USERNAME_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
+                .findFirst()
+                .orElse(null);
+        if (userNameClaimMapping != null) {
+            userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
+        }
+        return userIdClaimURI;
     }
 
 }
