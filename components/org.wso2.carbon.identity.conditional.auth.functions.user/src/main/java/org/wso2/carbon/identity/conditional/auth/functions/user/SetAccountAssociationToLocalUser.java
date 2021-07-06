@@ -28,8 +28,12 @@ public interface SetAccountAssociationToLocalUser {
     /**
      * Set association to the local user with federated user.
      *
-     * @param federatedUser federated user
+     * @param federatedUser       Federated user.
+     * @param username            Local user's username.
+     * @param tenantDomain        Tenant domain of the local user.
+     * @param userStoreDomainName Userstore domain of the local user.
+     * @return Whether the association is successful or not.
      */
-    void doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
-                                    String userStoreDomainName);
+    boolean doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
+                                       String userStoreDomainName);
 }

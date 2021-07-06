@@ -34,10 +34,11 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
     private static final Log log = LogFactory.getLog(SetAccountAssociationToLocalUserImpl.class);
 
     @Override
-    public void doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
-                                           String userStoreDomainName) {
+    public boolean doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
+                                              String userStoreDomainName) {
 
         String federatedIdpName = null;
+        boolean successfulAssociation = false;
         try {
             if (federatedUser != null) {
                 if (federatedUser.getWrapped().isFederatedUser()) {
@@ -56,7 +57,8 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
                     }
                     String externalIdpName = federatedUser.getWrapped().getFederatedIdPName();
                     if (externalSubject != null && externalIdpName != null) {
-                        associateID(externalIdpName, externalSubject, username, tenantDomain, userStoreDomainName);
+                        successfulAssociation = associateID(externalIdpName, externalSubject, username, tenantDomain,
+                                userStoreDomainName);
                     } else {
                         log.warn(" Authenticated user or External IDP may be null " + " Authenticated User: " +
                                 externalSubject + " and the External IDP name: " + externalIdpName);
@@ -73,25 +75,32 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
                     "Error while retrieving identity provider by name: " + federatedIdpName;
             log.error(msg, e);
         }
+        return successfulAssociation;
     }
 
     /**
-     * @param idpID               external IDP name
-     * @param associatedID        external authenticated user
-     * @param username            local user name
-     * @param tenantDomain        tenant domain
-     * @param userStoreDomainName user store domain name
+     * Create association to the local user with a federated user.
+     *
+     * @param idpID               External IDP name.
+     * @param associatedID        External authenticated user.
+     * @param username            Local username.
+     * @param tenantDomain        Tenant domain.
+     * @param userStoreDomainName Userstore domain name.
+     * @return The status of the association creation.
      */
-    private void associateID(String idpID, String associatedID, String username, String tenantDomain,
-                             String userStoreDomainName) {
+    private boolean associateID(String idpID, String associatedID, String username, String tenantDomain,
+                                String userStoreDomainName) {
 
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        boolean associationCreated = false;
         try {
             UserProfileMgtDAO userProfileMgtDAO = UserProfileMgtDAO.getInstance();
             userProfileMgtDAO.createAssociation(tenantID, userStoreDomainName, username, idpID, associatedID);
+            associationCreated = true;
         } catch (UserProfileException e) {
-            String msg = "Error while creating association for user: " + username + " with federated IdP: " + "" + idpID;
+            String msg = "Error while creating association for user: " + username + " with federated IdP: " + idpID;
             log.error(msg, e);
         }
+        return associationCreated;
     }
 }
