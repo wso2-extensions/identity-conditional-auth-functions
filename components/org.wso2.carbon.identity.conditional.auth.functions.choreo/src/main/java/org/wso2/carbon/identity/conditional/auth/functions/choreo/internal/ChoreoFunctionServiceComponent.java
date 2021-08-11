@@ -36,6 +36,8 @@ import org.wso2.carbon.identity.conditional.auth.functions.choreo.CallChoreoFunc
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.ClientManager;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.listener.ChoreoAxis2ConfigurationContextObserver;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
 import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
 
 import java.io.FileInputStream;
@@ -77,6 +79,9 @@ public class ChoreoFunctionServiceComponent {
 
         ClientManager clientManager = new ClientManager();
         ChoreoFunctionServiceHolder.getInstance().setClientManager(clientManager);
+
+        SecretResolveManager secretManager = new SecretResolveManagerImpl();
+        ChoreoFunctionServiceHolder.getInstance().setSecretConfigManager(secretManager);
 
         String filePath = config.getFirstProperty("Security.TrustStore.Location");
         String keyStoreType = config.getFirstProperty("Security.TrustStore.Type");
