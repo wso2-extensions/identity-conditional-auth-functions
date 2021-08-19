@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -88,9 +89,13 @@ public class JsSequenceHandlerRunner {
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
     protected JsGraphBuilderFactory graphBuilderFactory;
+    protected  JSExecutionSupervisor jsExecutionSupervisor;
 
     private JsFunctionRegistryImpl jsFunctionRegistry;
     private URL applicationAuthenticatorConfigFileLocation;
+
+    public static final int THREAD_COUNT = 1;
+    public static final long SUPERVISOR_TIMEOUT = 500L;
 
     private static final String DEFAULT_APPLICATION_AUTHENTICATION_XML_FILE_NAME = "application-authentication-test.xml";
 
@@ -102,6 +107,9 @@ public class JsSequenceHandlerRunner {
 
         jsFunctionRegistry = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
+
+        jsExecutionSupervisor = new JSExecutionSupervisor(THREAD_COUNT, SUPERVISOR_TIMEOUT);
+        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
 
         graphBuilderFactory.init();
         FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
