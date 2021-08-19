@@ -38,13 +38,16 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constant
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 
+
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_TIMEOUT;
 
 /**
  * Implementation of the {@link CallChoreoFunction}
@@ -137,6 +140,10 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                         "data key: " + authenticationContext.getContextIdentifier());
                             }
                             String outcome = OUTCOME_FAIL;
+                            if ((ex instanceof SocketTimeoutException)
+                                    || (ex instanceof ConnectTimeoutException)) {
+                                outcome = OUTCOME_TIMEOUT;
+                            }
                             asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
                         } catch (FrameworkException e) {
                             LOG.error("Error while proceeding after failed response from Choreo " +
