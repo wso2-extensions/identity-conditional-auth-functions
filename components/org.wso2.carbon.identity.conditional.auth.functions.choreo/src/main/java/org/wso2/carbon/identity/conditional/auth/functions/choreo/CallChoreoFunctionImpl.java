@@ -58,7 +58,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String URL_VARIABLE_NAME = "url";
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
     private static final String API_KEY_ALIAS_VARIABLE_NAME = "apiKeyAlias";
-    private static final String SECRET_TYPE = "adaptive";
+    private static final String SECRET_TYPE = "CALL_CHOREO_ADAPTIVE_SCRIPT";
 
     @Override
     public void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
@@ -75,7 +75,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
                 String apiKey;
-                if (!StringUtils.isEmpty(connectionMetaData.get(API_KEY_VARIABLE_NAME))) {
+                if (StringUtils.isNotEmpty(connectionMetaData.get(API_KEY_VARIABLE_NAME))) {
                     apiKey = connectionMetaData.get(API_KEY_VARIABLE_NAME);
                 } else {
                     String apiKeyAlias = connectionMetaData.get(API_KEY_ALIAS_VARIABLE_NAME);
