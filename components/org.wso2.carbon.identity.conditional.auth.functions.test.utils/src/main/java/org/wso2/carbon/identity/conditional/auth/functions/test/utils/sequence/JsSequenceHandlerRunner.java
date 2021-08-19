@@ -108,7 +108,7 @@ public class JsSequenceHandlerRunner {
         jsFunctionRegistry = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
 
-        jsExecutionSupervisor = new JSExecutionSupervisor(THREAD_COUNT,SUPERVISOR_TIMEOUT);
+        jsExecutionSupervisor = new JSExecutionSupervisor(THREAD_COUNT, SUPERVISOR_TIMEOUT);
         FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
 
         graphBuilderFactory.init();
