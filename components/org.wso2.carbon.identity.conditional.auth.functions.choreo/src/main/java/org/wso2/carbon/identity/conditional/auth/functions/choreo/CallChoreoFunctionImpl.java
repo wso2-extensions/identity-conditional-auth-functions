@@ -62,7 +62,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String URL_VARIABLE_NAME = "url";
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
     private static final String API_KEY_ALIAS_VARIABLE_NAME = "apiKeyAlias";
-    private static final String SECRET_TYPE = "CALL_CHOREO_ADAPTIVE_SCRIPT";
+    private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
 
     @Override
     public void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
