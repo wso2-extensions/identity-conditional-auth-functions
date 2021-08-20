@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.choreo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -35,6 +36,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
+
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -57,6 +61,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
     private static final String URL_VARIABLE_NAME = "url";
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
+    private static final String API_KEY_ALIAS_VARIABLE_NAME = "apiKeyAlias";
+    private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
 
     @Override
     public void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
@@ -72,7 +78,13 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
-                String apiKey = connectionMetaData.get(API_KEY_VARIABLE_NAME);
+                String apiKey;
+                if (StringUtils.isNotEmpty(connectionMetaData.get(API_KEY_VARIABLE_NAME))) {
+                    apiKey = connectionMetaData.get(API_KEY_VARIABLE_NAME);
+                } else {
+                    String apiKeyAlias = connectionMetaData.get(API_KEY_ALIAS_VARIABLE_NAME);
+                    apiKey = getResolvedSecret(apiKeyAlias);
+                }
                 request.setHeader(API_KEY, apiKey);
 
                 JSONObject jsonObject = new JSONObject();
@@ -165,8 +177,18 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             } catch (IOException e) {
                 LOG.error("Error while calling endpoint. ", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            } catch (SecretManagementException e) {
+                LOG.error("Error while resolving API key. ", e);
+                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             }
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+    }
+
+    public String getResolvedSecret(String name) throws SecretManagementException {
+
+        ResolvedSecret responseDTO = ChoreoFunctionServiceHolder.getInstance().
+                getSecretConfigManager().getResolvedSecret(SECRET_TYPE, name);
+        return responseDTO.getResolvedSecretValue();
     }
 }

@@ -118,6 +118,11 @@
             <artifactId>msf4j-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.secret.mgt.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -141,7 +146,7 @@
                         <Import-Package>
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.commons.io,
-                            org.apache.commons.lang,
+                            org.apache.commons.lang3,
                             org.apache.commons.logging,
                             org.apache.http.entity,
                             org.apache.http.impl,
@@ -186,6 +191,9 @@
                             org.apache.axis2.context,
                             org.wso2.carbon.utils,
                             org.wso2.carbon.context,
+                            org.wso2.carbon.identity.secret.mgt.core,
+                            org.wso2.carbon.identity.secret.mgt.core.exception,
+                            org.wso2.carbon.identity.secret.mgt.core.model,
                         </Import-Package>
                     </instructions>
                 </configuration>
