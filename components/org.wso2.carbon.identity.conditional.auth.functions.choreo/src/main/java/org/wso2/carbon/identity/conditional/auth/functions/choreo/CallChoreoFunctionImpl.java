@@ -35,14 +35,17 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncProces
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 
-
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
@@ -63,6 +66,13 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
     private static final String API_KEY_ALIAS_VARIABLE_NAME = "apiKeyAlias";
     private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
+    private static final char DOMAIN_SEPARATOR = '.';
+    private final List<String> choreoDomains;
+
+    public CallChoreoFunctionImpl() {
+
+        this.choreoDomains = ConfigProvider.getInstance().getChoreoDomains();
+    }
 
     @Override
     public void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
@@ -72,6 +82,12 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
             try {
                 String epUrl = connectionMetaData.get(URL_VARIABLE_NAME);
+                if (!isValidChoreoDomain(epUrl)) {
+                    LOG.error("Provided Url does not contain a configured choreo domain. Invalid Url: " + epUrl);
+                    asyncReturn.accept(authenticationContext, Collections.emptyMap(), Constants.OUTCOME_FAIL);
+                    return;
+                }
+
                 String tenantDomain = authenticationContext.getTenantDomain();
 
                 HttpPost request = new HttpPost(epUrl);
@@ -190,5 +206,67 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         ResolvedSecret responseDTO = ChoreoFunctionServiceHolder.getInstance().
                 getSecretConfigManager().getResolvedSecret(SECRET_TYPE, name);
         return responseDTO.getResolvedSecretValue();
+    }
+
+    private boolean isValidChoreoDomain(String url) {
+
+        if (StringUtils.isBlank(url)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Provided url for domain restriction checking is null or empty.");
+            }
+            return false;
+        }
+
+        if (choreoDomains.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No domains configured for domain restriction. Allowing url by default. Url: " + url);
+            }
+            return true;
+        }
+
+        String domain;
+        try {
+            domain = getParentDomainFromUrl(url);
+        } catch (URISyntaxException e) {
+            LOG.error("Error while resolving the domain of the url: " + url, e);
+            return false;
+        }
+
+        if (StringUtils.isEmpty(domain)) {
+            LOG.error("Unable to determine the domain of the url: " + url);
+            return false;
+        }
+
+        if (choreoDomains.contains(domain)) {
+            return true;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Domain: " + domain + " extracted from url: " + url + " is not available in the " +
+                    "configured choreo domain list: " + StringUtils.join(choreoDomains, ','));
+        }
+
+        return false;
+    }
+
+    private String getParentDomainFromUrl(String url) throws URISyntaxException {
+
+        URI uri = new URI(url);
+        String parentDomain = null;
+        String domain = uri.getHost();
+        String[] domainArr = null;
+        if (domain != null) {
+            domainArr = StringUtils.split(domain, DOMAIN_SEPARATOR);
+        }
+
+        if (domainArr != null && domainArr.length != 0) {
+            parentDomain = domainArr.length == 1 ? domainArr[0] : domainArr[domainArr.length - 2];
+            parentDomain = parentDomain.toLowerCase();
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Parent domain: " + parentDomain + " extracted from url: " + url);
+        }
+        return parentDomain;
     }
 }
