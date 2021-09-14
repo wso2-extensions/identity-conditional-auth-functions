@@ -17,6 +17,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.config.RequestConfig;
@@ -36,7 +37,9 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constant
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,6 +49,8 @@ public abstract class AbstractHTTPFunction {
 
     private static final Log LOG = LogFactory.getLog(AbstractHTTPFunction.class);
     protected static final String TYPE_APPLICATION_JSON = "application/json";
+    private static final char DOMAIN_SEPARATOR = '.';
+    private final List<String> allowedDomains;
 
     private CloseableHttpClient client;
 
@@ -57,6 +62,7 @@ public abstract class AbstractHTTPFunction {
                 .setSocketTimeout(ConfigProvider.getInstance().getReadTimeout())
                 .build();
         client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+        allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
 
     protected void executeHttpMethod(HttpUriRequest request, Map<String, Object> eventHandlers) {
@@ -65,9 +71,20 @@ public abstract class AbstractHTTPFunction {
             JSONObject json = null;
             int responseCode;
             String outcome;
-            String epUrl = request.getURI().toString();
+            String epUrl = null;
 
-            try (CloseableHttpResponse response = client.execute(request)){
+            if (request.getURI() != null) {
+                epUrl = request.getURI().toString();
+            }
+
+            if (!isValidRequestDomain(request.getURI())) {
+                outcome = Constants.OUTCOME_FAIL;
+                LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + epUrl);
+                asyncReturn.accept(context, Collections.emptyMap(), outcome);
+                return;
+            }
+
+            try (CloseableHttpResponse response = client.execute(request)) {
                 responseCode = response.getStatusLine().getStatusCode();
                 if (responseCode == 200) {
                     outcome = Constants.OUTCOME_SUCCESS;
@@ -98,5 +115,60 @@ public abstract class AbstractHTTPFunction {
             asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+    }
+
+    private boolean isValidRequestDomain(URI url) {
+
+        if (url == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Provided url for domain restriction checking is null");
+            }
+            return false;
+        }
+
+        if (allowedDomains.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No domains configured for domain restriction. Allowing url by default. Url: "
+                        + url.toString());
+            }
+            return true;
+        }
+
+        String domain = getParentDomainFromUrl(url);
+        if (StringUtils.isEmpty(domain)) {
+            LOG.error("Unable to determine the domain of the url: " + url.toString());
+            return false;
+        }
+
+        if (allowedDomains.contains(domain)) {
+            return true;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Domain: " + domain + " extracted from url: " + url.toString() + " is not available in the " +
+                    "allowed domain list: " + StringUtils.join(allowedDomains, ','));
+        }
+
+        return false;
+    }
+
+    private String getParentDomainFromUrl(URI url) {
+
+        String parentDomain = null;
+        String domain = url.getHost();
+        String[] domainArr = null;
+        if (domain != null) {
+            domainArr = StringUtils.split(domain, DOMAIN_SEPARATOR);
+        }
+
+        if (domainArr != null && domainArr.length != 0) {
+            parentDomain = domainArr.length == 1 ? domainArr[0] : domainArr[domainArr.length - 2];
+            parentDomain = parentDomain.toLowerCase();
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Parent domain: " + parentDomain + " extracted from url: " + url.toString());
+        }
+        return parentDomain;
     }
 }

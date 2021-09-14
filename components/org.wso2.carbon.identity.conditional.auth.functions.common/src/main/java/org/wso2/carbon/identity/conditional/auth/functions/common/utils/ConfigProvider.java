@@ -22,9 +22,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.CHOREO_DOMAINS;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_REQUEST_TIMEOUT;
-import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_READ_TIMEOUT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_TIMEOUT;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_FUNCTION_ALLOWED_DOMAINS;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_READ_TIMEOUT;
 
 public class ConfigProvider {
 
@@ -33,6 +38,8 @@ public class ConfigProvider {
     private int connectionTimeout;
     private int readTimeout;
     private int connectionRequestTimeout;
+    private List<String> httpFunctionAllowedDomainList = new ArrayList<>();
+    private List<String> choreoDomainList = new ArrayList<>();
 
     private static ConfigProvider instance = new ConfigProvider();
 
@@ -42,6 +49,8 @@ public class ConfigProvider {
         String connectionTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_TIMEOUT);
         String readTimeoutString = IdentityUtil.getProperty(HTTP_READ_TIMEOUT);
         String connectionRequestTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_REQUEST_TIMEOUT);
+        List<String> httpFunctionAllowedDomainList = IdentityUtil.getPropertyAsList(HTTP_FUNCTION_ALLOWED_DOMAINS);
+        List<String> choreoDomainList = IdentityUtil.getPropertyAsList(CHOREO_DOMAINS);
 
         connectionTimeout = defaultTimeout;
         readTimeout = defaultTimeout;
@@ -68,6 +77,23 @@ public class ConfigProvider {
                 LOG.error("Error while parsing connection request timeout : " + connectionTimeoutString, e);
             }
         }
+
+        if (httpFunctionAllowedDomainList != null) {
+            this.httpFunctionAllowedDomainList = httpFunctionAllowedDomainList;
+        }
+        if (this.httpFunctionAllowedDomainList.isEmpty() && LOG.isDebugEnabled()) {
+            LOG.debug("Allowed domains for http functions are not configured therefore domain restriction is " +
+                    "turned off for adaptive auth http functions.");
+
+        }
+
+        if (choreoDomainList != null) {
+            this.choreoDomainList = choreoDomainList;
+        }
+        if (this.choreoDomainList.isEmpty()) {
+            LOG.warn("Choreo domain list used by the callChore function is not configured therefore domain" +
+                    " restriction is turned off for callChoreo function.");
+        }
     }
 
     public static ConfigProvider getInstance() {
@@ -88,5 +114,15 @@ public class ConfigProvider {
     public int getConnectionRequestTimeout() {
 
         return connectionRequestTimeout;
+    }
+
+    public List<String> getAllowedDomainsForHttpFunctions() {
+
+        return httpFunctionAllowedDomainList;
+    }
+
+    public List<String> getChoreoDomains() {
+
+        return choreoDomainList;
     }
 }
