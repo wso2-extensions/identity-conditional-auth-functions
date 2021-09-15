@@ -149,6 +149,8 @@ public class ClientManager {
                 .setConnectTimeout(connectionTimeout)
                 .setConnectionRequestTimeout(connectionRequestTimeout)
                 .setSocketTimeout(readTimeout)
+                .setRedirectsEnabled(false)
+                .setRelativeRedirectsAllowed(false)
                 .build();
     }
 

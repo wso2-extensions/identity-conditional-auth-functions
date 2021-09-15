@@ -85,8 +85,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         userRealm.getUserStoreManager().addRole("admin", new String[]{"admin", "test_user"}, null);
     }
 
-    @DataProvider(name = "choreoEps")
-    public Object[][] getChoreoEps() {
+    @DataProvider(name = "choreoEpValidity")
+    public Object[][] getChoreoEpValidity() {
 
         return new Object[][]{
                 {true},
@@ -94,8 +94,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         };
     }
 
-    @Test(dataProvider = "choreoEps")
-    public void testCallChoreo(boolean isValidChoreDomain) throws JsTestException,
+    @Test(dataProvider = "choreoEpValidity")
+    public void testCallChoreo(boolean isValidChoreoDomain) throws JsTestException,
             NoSuchFieldException, IllegalAccessException, FrameworkException {
 
         FunctionsDataHolder functionsDataHolder = Mockito.mock(FunctionsDataHolder.class);
@@ -124,7 +124,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
                 .getAuthenticationScriptConfig();
         String content = authenticationScriptConfig.getContent();
-        if (isValidChoreDomain) {
+        if (isValidChoreoDomain) {
             // Setting localhost as the valid domain as
             // the unit test is calling a mock local endpoint.
             setChoreoDomain("localhost");
@@ -147,7 +147,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
 
-        if (isValidChoreDomain) {
+        if (isValidChoreoDomain) {
             assertNotNull(context.getSelectedAcr());
             assertEquals(context.getSelectedAcr(), "1", "Expected acr value not found");
         } else {

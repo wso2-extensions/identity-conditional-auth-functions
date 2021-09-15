@@ -254,14 +254,13 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         URI uri = new URI(url);
         String parentDomain = null;
         String domain = uri.getHost();
-        String[] domainArr = null;
+        String[] domainArr;
         if (domain != null) {
             domainArr = StringUtils.split(domain, DOMAIN_SEPARATOR);
-        }
-
-        if (domainArr != null && domainArr.length != 0) {
-            parentDomain = domainArr.length == 1 ? domainArr[0] : domainArr[domainArr.length - 2];
-            parentDomain = parentDomain.toLowerCase();
+            if (domainArr.length != 0) {
+                parentDomain = domainArr.length == 1 ? domainArr[0] : domainArr[domainArr.length - 2];
+                parentDomain = parentDomain.toLowerCase();
+            }
         }
 
         if (LOG.isDebugEnabled()) {

@@ -60,6 +60,8 @@ public abstract class AbstractHTTPFunction {
                 .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
                 .setConnectionRequestTimeout(ConfigProvider.getInstance().getConnectionRequestTimeout())
                 .setSocketTimeout(ConfigProvider.getInstance().getReadTimeout())
+                .setRedirectsEnabled(false)
+                .setRelativeRedirectsAllowed(false)
                 .build();
         client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
@@ -86,7 +88,7 @@ public abstract class AbstractHTTPFunction {
 
             try (CloseableHttpResponse response = client.execute(request)) {
                 responseCode = response.getStatusLine().getStatusCode();
-                if (responseCode == 200) {
+                if (responseCode >= 200 && responseCode < 300) {
                     outcome = Constants.OUTCOME_SUCCESS;
                     String jsonString = EntityUtils.toString(response.getEntity());
                     JSONParser parser = new JSONParser();
@@ -156,14 +158,13 @@ public abstract class AbstractHTTPFunction {
 
         String parentDomain = null;
         String domain = url.getHost();
-        String[] domainArr = null;
+        String[] domainArr;
         if (domain != null) {
             domainArr = StringUtils.split(domain, DOMAIN_SEPARATOR);
-        }
-
-        if (domainArr != null && domainArr.length != 0) {
-            parentDomain = domainArr.length == 1 ? domainArr[0] : domainArr[domainArr.length - 2];
-            parentDomain = parentDomain.toLowerCase();
+            if (domainArr.length != 0) {
+                parentDomain = domainArr.length == 1 ? domainArr[0] : domainArr[domainArr.length - 2];
+                parentDomain = parentDomain.toLowerCase();
+            }
         }
 
         if (LOG.isDebugEnabled()) {
