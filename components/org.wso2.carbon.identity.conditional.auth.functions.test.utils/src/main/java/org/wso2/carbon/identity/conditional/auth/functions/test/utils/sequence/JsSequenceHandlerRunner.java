@@ -40,8 +40,10 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.MockAuthenticator;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.SubjectCallback;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -61,6 +63,7 @@ import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
@@ -249,7 +252,7 @@ public class JsSequenceHandlerRunner {
                 applicationAuthenticator -> applicationAuthenticator.getName().equals(authenticatorName));
         MockAuthenticator authenticator = new MockAuthenticator(authenticatorName,
                 (SubjectCallback) context1 -> {
-                    AuthenticatedUser user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(subject);
+                    AuthenticatedUser user = createLocalAuthenticatedUserFromSubjectIdentifier(subject);
                     if (claims != null) {
                         for (Map.Entry<String, String> entry : claims.entrySet()) {
                             user.getUserAttributes().put(ClaimMapping.build(entry.getKey(), entry.getKey(),
@@ -262,6 +265,19 @@ public class JsSequenceHandlerRunner {
 
     }
 
+    private static AuthenticatedUser createLocalAuthenticatedUserFromSubjectIdentifier
+            (String authenticatedSubjectIdentifier) {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserStoreDomain(IdentityUtil.getPrimaryDomainName());
+        authenticatedUser.setUserName(MultitenantUtils.getTenantAwareUsername(authenticatedSubjectIdentifier));
+        authenticatedUser.setTenantDomain(MultitenantUtils.getTenantDomain(authenticatedSubjectIdentifier));
+        authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
+        authenticatedUser.setUserId(UUID.randomUUID().toString());
+
+        return authenticatedUser;
+    }
+
     protected static class MockSubjectCallback implements SubjectCallback, Serializable {
 
         private static final long serialVersionUID = 597048141496121100L;
@@ -269,7 +285,7 @@ public class JsSequenceHandlerRunner {
         @Override
         public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
 
-            AuthenticatedUser result = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
+            AuthenticatedUser result = createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
             result.getUserAttributes().put(ClaimMapping
                                                    .build("http://wso2.org/claims/givenname",
                                                           "http://wso2.org/claims/givenname", "Test", false),

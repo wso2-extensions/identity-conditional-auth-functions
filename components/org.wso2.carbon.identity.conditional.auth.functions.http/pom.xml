@@ -98,6 +98,11 @@
             <artifactId>org.wso2.carbon.identity.conditional.auth.functions.test.utils</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

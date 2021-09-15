@@ -47,8 +47,8 @@ public class PromptIdentifierFunctionImpl implements PromptIdentifierFunction {
             callbacks = (Map<String, Object>) parameters[parameters.length - 1];
         }
 
-        if (validators.get(ShowPromptNode.preHandler) == null) {
-            validators.put(ShowPromptNode.preHandler, new SerializableJsFunction(DEFAULT_PRE_HANDLER_FUNC, true));
+        if (validators.get(ShowPromptNode.PRE_HANDLER) == null) {
+            validators.put(ShowPromptNode.PRE_HANDLER, new SerializableJsFunction(DEFAULT_PRE_HANDLER_FUNC, true));
         }
         Map<String, Object> promptParameters = new HashMap<>();
         promptParameters.put(STEP_PARAM, step);

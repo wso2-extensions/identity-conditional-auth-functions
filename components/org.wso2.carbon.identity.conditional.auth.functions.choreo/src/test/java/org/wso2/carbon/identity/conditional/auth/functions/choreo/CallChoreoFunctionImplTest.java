@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.choreo;
 
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -38,6 +39,7 @@ import org.wso2.carbon.identity.common.testng.WithMicroService;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.internal.FunctionsDataHolder;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -47,6 +49,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
@@ -64,6 +67,8 @@ import static org.testng.Assert.assertNotNull;
 @Path("/")
 public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
+    private static final String FAILED = "FAILED";
+
     @WithRealmService
     private RealmService realmService;
 
@@ -80,8 +85,18 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         userRealm.getUserStoreManager().addRole("admin", new String[]{"admin", "test_user"}, null);
     }
 
-    @Test
-    public void testRiskScore() throws JsTestException, NoSuchFieldException, IllegalAccessException, FrameworkException {
+    @DataProvider(name = "choreoEps")
+    public Object[][] getChoreoEps() {
+
+        return new Object[][]{
+                {true},
+                {false}
+        };
+    }
+
+    @Test(dataProvider = "choreoEps")
+    public void testCallChoreo(boolean isValidChoreDomain) throws JsTestException,
+            NoSuchFieldException, IllegalAccessException, FrameworkException {
 
         FunctionsDataHolder functionsDataHolder = Mockito.mock(FunctionsDataHolder.class);
         Field functionsDataHolderInstance = FunctionsDataHolder.class.getDeclaredField("instance");
@@ -109,6 +124,13 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
                 .getAuthenticationScriptConfig();
         String content = authenticationScriptConfig.getContent();
+        if (isValidChoreDomain) {
+            // Setting localhost as the valid domain as
+            // the unit test is calling a mock local endpoint.
+            setChoreoDomain("localhost");
+        } else {
+            setChoreoDomain("abc");
+        }
         String newContent = String.format(content, microServicePort);
         authenticationScriptConfig.setContent(newContent);
         localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
@@ -125,8 +147,18 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
 
-        assertNotNull(context.getSelectedAcr());
-        assertEquals(context.getSelectedAcr(), "1", "Expected acr value not found");
+        if (isValidChoreDomain) {
+            assertNotNull(context.getSelectedAcr());
+            assertEquals(context.getSelectedAcr(), "1", "Expected acr value not found");
+        } else {
+            assertEquals(context.getSelectedAcr(), FAILED, "Expected the request to fail");
+        }
+    }
+
+    private void setChoreoDomain(String domain) {
+
+        ConfigProvider.getInstance().getChoreoDomains().clear();
+        ConfigProvider.getInstance().getChoreoDomains().add(domain);
     }
 
     @POST
