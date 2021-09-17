@@ -35,4 +35,7 @@ public class Constants {
 
     public static final String CONNECTION_POOL_MAX_CONNECTIONS = "AdaptiveAuth.MaxTotalConnections";
     public static final String CONNECTION_POOL_MAX_CONNECTIONS_PER_ROUTE = "AdaptiveAuth.MaxTotalConnectionsPerRoute";
+
+    public static final String HTTP_FUNCTION_ALLOWED_DOMAINS = "AdaptiveAuth.HTTPFunctionAllowedDomains.Domain";
+    public static final String CHOREO_DOMAINS = "AdaptiveAuth.ChoreoDomains.Domain";
 }

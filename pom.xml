@@ -399,7 +399,7 @@
     <properties>
         <carbon.kernel.version>4.6.3-m5</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
-        <carbon.identity.framework.version>5.20.154</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.20.189</carbon.identity.framework.version>
         <identity.governance.version>1.1.17</identity.governance.version>
         <identity.event.handler.notification.version>[1.0.23,2.0.0)</identity.event.handler.notification.version>
 

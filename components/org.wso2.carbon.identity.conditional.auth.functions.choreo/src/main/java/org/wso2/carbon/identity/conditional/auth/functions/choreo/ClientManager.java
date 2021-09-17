@@ -102,6 +102,8 @@ public class ClientManager {
                 .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
                 .setConnectionRequestTimeout(HTTP_CONNECTION_REQUEST_TIMEOUT)
                 .setSocketTimeout(HTTP_READ_TIMEOUT)
+                .setRedirectsEnabled(false)
+                .setRelativeRedirectsAllowed(false)
                 .build();
     }
 

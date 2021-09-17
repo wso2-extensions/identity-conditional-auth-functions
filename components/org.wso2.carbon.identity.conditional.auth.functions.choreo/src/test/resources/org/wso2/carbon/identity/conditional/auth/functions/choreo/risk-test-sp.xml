@@ -109,6 +109,7 @@ function onLoginRequest(context) {
                     }
                 }, onFail: function (context, data) {
                     Log.info('fail Called');
+                    context.selectedAcr = 'FAILED'
                 }
             });
         }

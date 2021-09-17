@@ -20,24 +20,8 @@ package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
-import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
-import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
@@ -45,67 +29,20 @@ import static org.apache.http.HttpHeaders.ACCEPT;
 /**
  * Implementation of the {@link HTTPGetFunction}
  */
-public class HTTPGetFunctionImpl implements HTTPGetFunction {
+public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGetFunction {
 
     private static final Log LOG = LogFactory.getLog(HTTPGetFunctionImpl.class);
-    private static final String TYPE_APPLICATION_JSON = "application/json";
-
-    private CloseableHttpClient client;
 
     public HTTPGetFunctionImpl() {
 
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
-                .setConnectionRequestTimeout(ConfigProvider.getInstance().getConnectionRequestTimeout())
-                .setSocketTimeout(ConfigProvider.getInstance().getReadTimeout())
-                .build();
-        client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+        super();
     }
 
     @Override
     public void httpGet(String epUrl, Map<String, Object> eventHandlers) {
 
-        AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
-            JSONObject json = null;
-            int responseCode;
-            String outcome;
-
-            try {
-                HttpGet request = new HttpGet(epUrl);
-                request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-
-                try (CloseableHttpResponse response = client.execute(request)) {
-                    responseCode = response.getStatusLine().getStatusCode();
-
-                    if (responseCode == 200) {
-                        outcome = Constants.OUTCOME_SUCCESS;
-                        String jsonString = EntityUtils.toString(response.getEntity());
-                        JSONParser parser = new JSONParser();
-                        json = (JSONObject) parser.parse(jsonString);
-                    } else {
-                        outcome = Constants.OUTCOME_FAIL;
-                    }
-                }
-
-            } catch (IllegalArgumentException e) {
-                LOG.error("Invalid Url: " + epUrl, e);
-                outcome = Constants.OUTCOME_FAIL;
-            } catch (ConnectTimeoutException e) {
-                LOG.error("Error while waiting to connect to " + epUrl, e);
-                outcome = Constants.OUTCOME_TIMEOUT;
-            } catch (SocketTimeoutException e) {
-                LOG.error("Error while waiting for data from " + epUrl, e);
-                outcome = Constants.OUTCOME_TIMEOUT;
-            } catch (IOException e) {
-                LOG.error("Error while calling endpoint. ", e);
-                outcome = Constants.OUTCOME_FAIL;
-            } catch (ParseException e) {
-                LOG.error("Error while parsing response. ", e);
-                outcome = Constants.OUTCOME_FAIL;
-            }
-
-            asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
-        });
-        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+        HttpGet request = new HttpGet(epUrl);
+        request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+        executeHttpMethod(request, eventHandlers);
     }
 }
