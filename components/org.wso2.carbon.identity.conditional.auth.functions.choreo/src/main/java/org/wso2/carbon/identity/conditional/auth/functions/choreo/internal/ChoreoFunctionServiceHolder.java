@@ -35,7 +35,6 @@ public class ChoreoFunctionServiceHolder {
     private ClientManager clientManager;
     private static SecretResolveManager secretConfigManager;
 
-
     public KeyStore getTrustStore() {
 
         return trustStore;

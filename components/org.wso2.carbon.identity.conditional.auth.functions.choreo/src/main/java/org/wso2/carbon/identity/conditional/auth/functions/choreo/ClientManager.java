@@ -78,16 +78,11 @@ public class ClientManager {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         CloseableHttpAsyncClient client = clientMap.get(tenantId);
-
         if (client == null) {
-
             RequestConfig config = createRequestConfig();
-
             HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClients.custom().setDefaultRequestConfig(config);
-
             addSslContext(httpClientBuilder, tenantDomain);
             httpClientBuilder.setConnectionManager(poolingHttpClientConnectionManager);
-
             client = httpClientBuilder.build();
             client.start();
             clientMap.put(tenantId, client);
@@ -137,9 +132,9 @@ public class ClientManager {
         }
         PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = new
                 PoolingNHttpClientConnectionManager(ioReactor);
-        // Increase max total connection to 20
+        // Increase max total connection to 20.
         poolingHttpClientConnectionManager.setMaxTotal(maxConnections);
-        // Increase default max connection per route to 20
+        // Increase default max connection per route to 20.
         poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
         return poolingHttpClientConnectionManager;
     }
@@ -147,7 +142,6 @@ public class ClientManager {
     public void closeClient(int tenantId) throws IOException {
 
         CloseableHttpAsyncClient client = clientMap.get(tenantId);
-
         if (client != null) {
             clientMap.remove(tenantId);
             client.close();
@@ -157,13 +151,10 @@ public class ClientManager {
     private void addSslContext(HttpAsyncClientBuilder builder, String tenantDomain) throws IOException {
 
         try {
-
             SSLContext sslContext = SSLContexts.custom()
                     .loadTrustMaterial(ChoreoFunctionServiceHolder.getInstance().getTrustStore())
                     .build();
-
             X509HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
-
             builder.setSSLContext(sslContext);
             builder.setHostnameVerifier(hostnameVerifier);
 

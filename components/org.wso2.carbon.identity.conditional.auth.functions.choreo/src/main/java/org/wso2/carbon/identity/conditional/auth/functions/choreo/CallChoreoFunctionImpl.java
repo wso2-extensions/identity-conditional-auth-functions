@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigPr
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
-
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
@@ -61,7 +60,6 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final Log LOG = LogFactory.getLog(CallChoreoFunction.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
     private static final String API_KEY = "API-Key";
-
     private static final String URL_VARIABLE_NAME = "url";
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
     private static final String API_KEY_ALIAS_VARIABLE_NAME = "apiKeyAlias";
