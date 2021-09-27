@@ -25,6 +25,9 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
 import java.security.KeyStore;
 
+/**
+ * Class to hold services discovered via OSGI on this component.
+ */
 public class ChoreoFunctionServiceHolder {
 
     private static ChoreoFunctionServiceHolder instance = new ChoreoFunctionServiceHolder();

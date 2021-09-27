@@ -57,7 +57,7 @@ import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.C
  */
 public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
-    private static final Log LOG = LogFactory.getLog(CallChoreoFunction.class);
+    private static final Log LOG = LogFactory.getLog(CallChoreoFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
     private static final String API_KEY = "API-Key";
     private static final String URL_VARIABLE_NAME = "url";
@@ -77,9 +77,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                            Map<String, Object> eventHandlers) {
 
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
-
+            String epUrl = connectionMetaData.get(URL_VARIABLE_NAME);
             try {
-                String epUrl = connectionMetaData.get(URL_VARIABLE_NAME);
                 if (!isValidChoreoDomain(epUrl)) {
                     LOG.error("Provided Url does not contain a configured choreo domain. Invalid Url: " + epUrl);
                     asyncReturn.accept(authenticationContext, Collections.emptyMap(), Constants.OUTCOME_FAIL);
@@ -151,7 +150,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                 authenticationContext.getContextIdentifier(), ex);
                         try {
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug(" Calls to Choreo failed for session " +
+                                LOG.debug("Calls to Choreo failed for session " +
                                         "data key: " + authenticationContext.getContextIdentifier());
                             }
                             String outcome = OUTCOME_FAIL;
@@ -186,10 +185,10 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     }
                 });
             } catch (IllegalArgumentException e) {
-                LOG.error("Invalid endpoint Url: ", e);
+                LOG.error("Invalid endpoint Url: " + epUrl, e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (IOException e) {
-                LOG.error("Error while calling endpoint. ", e);
+                LOG.error("Error while calling endpoint.", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (SecretManagementException e) {
                 LOG.error("Error while resolving API key. ", e);
