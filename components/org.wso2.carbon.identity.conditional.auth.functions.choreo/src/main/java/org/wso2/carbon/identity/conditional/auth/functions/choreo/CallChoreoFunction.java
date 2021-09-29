@@ -28,7 +28,7 @@ public interface CallChoreoFunction {
 
     /**
      * Sends data to Choreo and get the response from the Choreo service.
-     * The payload  and the return value from the Choreo are both JSON structure, which needs to the contract between
+     * The payload and the return value from the Choreo are both JSON structure, which needs to be the contract between
      * the service and authentication script
      *
      * @param connectionMetaData Metadata to call the endpoint. This connectionMetaData map consists with connection url
