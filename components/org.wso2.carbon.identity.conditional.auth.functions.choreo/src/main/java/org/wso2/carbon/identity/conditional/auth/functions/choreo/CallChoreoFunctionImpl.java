@@ -63,7 +63,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String URL_VARIABLE_NAME = "url";
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
     private static final String API_KEY_ALIAS_VARIABLE_NAME = "apiKeyAlias";
-    private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
+    private static final String SECRET_TYPE = "ADAPTIVE_AUTH";
     private static final char DOMAIN_SEPARATOR = '.';
     private final List<String> choreoDomains;
 
