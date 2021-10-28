@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.choreo.ClientManager;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.listener.ChoreoAxis2ConfigurationContextObserver;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
-import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
 import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
 
 import java.io.FileInputStream;
@@ -79,9 +78,6 @@ public class ChoreoFunctionServiceComponent {
 
         ClientManager clientManager = new ClientManager();
         ChoreoFunctionServiceHolder.getInstance().setClientManager(clientManager);
-
-        SecretResolveManager secretManager = new SecretResolveManagerImpl();
-        ChoreoFunctionServiceHolder.getInstance().setSecretConfigManager(secretManager);
 
         String filePath = config.getFirstProperty("Security.TrustStore.Location");
         String keyStoreType = config.getFirstProperty("Security.TrustStore.Type");
@@ -160,5 +156,20 @@ public class ChoreoFunctionServiceComponent {
             LOG.debug("Unsetting the ServerConfigurationService");
         }
         ChoreoFunctionServiceHolder.getInstance().setServerConfigurationService(null);
+    }
+
+    @Reference(
+            service = SecretResolveManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretManagerRegistry"
+    )
+    public void setSecretManagerRegistry(SecretResolveManager secretManager) {
+        ChoreoFunctionServiceHolder.getInstance().setSecretConfigManager(secretManager);
+    }
+
+    public void unsetSecretManagerRegistry(SecretResolveManager secretManager) {
+
+        ChoreoFunctionServiceHolder.getInstance().setSecretConfigManager(null);
     }
 }
