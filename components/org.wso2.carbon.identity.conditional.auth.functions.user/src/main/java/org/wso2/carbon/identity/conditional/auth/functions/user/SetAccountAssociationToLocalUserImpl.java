@@ -42,6 +42,12 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
         try {
             if (federatedUser != null) {
                 if (federatedUser.getWrapped().isFederatedUser()) {
+                    if (!StringUtils.equalsIgnoreCase(tenantDomain, federatedUser.getWrapped().getTenantDomain())) {
+                        log.error("Association failed due to mismatch in tenant. The tenant sent for association: "
+                                + tenantDomain + " does not match the tenant of the federated user: " + federatedUser
+                                .getWrapped().getTenantDomain());
+                        return false;
+                    }
                     federatedIdpName = federatedUser.getWrapped().getFederatedIdPName();
                     String userIdClaimURI = Utils.getUserIdClaimURI(federatedIdpName, tenantDomain);
                     String externalSubject;
@@ -60,7 +66,7 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
                         successfulAssociation = associateID(externalIdpName, externalSubject, username, tenantDomain,
                                 userStoreDomainName);
                     } else {
-                        log.warn(" Authenticated user or External IDP may be null " + " Authenticated User: " +
+                        log.warn(" Authenticated user or External IDP may be null Authenticated User: " +
                                 externalSubject + " and the External IDP name: " + externalIdpName);
                     }
                 } else {
