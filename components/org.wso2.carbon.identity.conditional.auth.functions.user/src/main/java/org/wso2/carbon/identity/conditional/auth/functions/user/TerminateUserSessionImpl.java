@@ -62,8 +62,7 @@ public class TerminateUserSessionImpl implements TerminateUserSession {
             if (userRealm != null) {
                 String userId;
                 if (authenticatedUser.isFederatedUser()) {
-                    int idpId = UserSessionStore.getInstance()
-                            .getIdPId(authenticatedUser.getFederatedIdPName());
+                    int idpId = UserSessionStore.getInstance().getIdPId(authenticatedUser.getFederatedIdPName());
                     userId = UserSessionStore.getInstance()
                             .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain, idpId);
                 } else {
