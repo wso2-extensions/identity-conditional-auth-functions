@@ -69,8 +69,10 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
             if (userRealm != null) {
                 String userId;
                 if (authenticatedUser.isFederatedUser()) {
+                    int idpId = UserSessionStore.getInstance()
+                            .getIdPId(authenticatedUser.getFederatedIdPName());
                     userId = UserSessionStore.getInstance()
-                            .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
+                            .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain, idpId);
                 } else {
                     userId = FrameworkUtils.resolveUserIdFromUsername(Utils.getTenantId(tenantDomain),
                             userStoreDomain, username);
