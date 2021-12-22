@@ -22,16 +22,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
-import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.user.exception.UserSessionRetrievalException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSession;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserRealm;
 
 import java.util.List;
@@ -62,14 +59,11 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
 
         List<UserSession> userSessions = null;
         String tenantDomain = authenticatedUser.getTenantDomain();
-        String userStoreDomain = authenticatedUser.getUserStoreDomain();
-        String username = authenticatedUser.getUserName();
 
         try {
             UserRealm userRealm = Utils.getUserRealm(tenantDomain);
             if (userRealm != null) {
-                String userId = FrameworkUtils.resolveUserIdFromUsername(IdentityTenantUtil.getTenantIdOfUser(username),
-                        userStoreDomain, username);
+                String userId = authenticatedUser.getUserId();
                 userSessions = UserFunctionsServiceHolder.getInstance()
                         .getUserSessionManagementService().getSessionsByUserId(userId);
             }
@@ -77,7 +71,7 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
             throw new UserSessionRetrievalException("Error occurred while retrieving sessions: ", e);
         } catch (FrameworkException e) {
             throw new UserSessionRetrievalException("Error in evaluating the function ", e);
-        } catch (UserSessionException e) {
+        } catch (UserIdNotFoundException e) {
             throw new UserSessionRetrievalException("Error occurred while retrieving the UserID: ", e);
         }
         return userSessions;
