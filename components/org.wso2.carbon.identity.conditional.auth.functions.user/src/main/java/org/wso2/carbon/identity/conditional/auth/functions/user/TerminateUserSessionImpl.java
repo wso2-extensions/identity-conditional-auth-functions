@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.user.exception.UserSessionTerminationException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.user.core.UserRealm;
@@ -59,8 +60,15 @@ public class TerminateUserSessionImpl implements TerminateUserSession {
         try {
             UserRealm userRealm = Utils.getUserRealm(tenantDomain);
             if (userRealm != null) {
-                String userId = UserSessionStore.getInstance()
-                        .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain);
+                String userId;
+                if (authenticatedUser.isFederatedUser()) {
+                    int idpId = UserSessionStore.getInstance().getIdPId(authenticatedUser.getFederatedIdPName());
+                    userId = UserSessionStore.getInstance()
+                            .getUserId(username, Utils.getTenantId(tenantDomain), userStoreDomain, idpId);
+                } else {
+                    userId = FrameworkUtils.resolveUserIdFromUsername(Utils.getTenantId(tenantDomain),
+                            userStoreDomain, username);
+                }
                 result = UserFunctionsServiceHolder.getInstance()
                         .getUserSessionManagementService().terminateSessionBySessionId(userId, sessionId);
             }
