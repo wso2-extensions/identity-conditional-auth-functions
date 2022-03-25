@@ -44,11 +44,23 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
     }
 
     @Override
-    public void httpPost(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
-
+    public void httpPost(String epUrl, Map<String, Object> payloadData,
+                         Map<String, Object> eventHandlers,
+                         Map<String, String> headers) {
+            LOG.error("HTTP Post function called ");
             HttpPost request = new HttpPost(epUrl);
+
+            // Check if Content-Type is in map else set APPLICATION_JSON as default
+            if(!headers.containsKey(CONTENT_TYPE)){
+                request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+            }
+
+            // Add headers to the request
+            for (Map.Entry<String, String> dataElements : headers.entrySet()) {
+                request.setHeader(dataElements.getKey(), dataElements.getValue());
+            }
+
             request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-            request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
             JSONObject jsonObject = new JSONObject();
             for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {

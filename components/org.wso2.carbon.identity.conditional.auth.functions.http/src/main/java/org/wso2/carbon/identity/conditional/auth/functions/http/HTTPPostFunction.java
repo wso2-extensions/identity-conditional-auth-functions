@@ -33,6 +33,7 @@ public interface HTTPPostFunction {
      * @param epUrl Endpoint url.
      * @param payloadData payload data.
      * @param eventHandlers event handlers.
+     * @param headers headers
      */
-    void httpPost(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers);
+    void httpPost(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers, Map<String, String> headers);
 }

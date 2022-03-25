@@ -25,6 +25,7 @@ import org.apache.http.client.methods.HttpGet;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
 /**
  * Implementation of the {@link HTTPGetFunction}
@@ -39,9 +40,14 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
     }
 
     @Override
-    public void httpGet(String epUrl, Map<String, Object> eventHandlers) {
+    public void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, String> headers) {
 
         HttpGet request = new HttpGet(epUrl);
+
+        // Add headers to the request
+        for (Map.Entry<String, String> dataElements : headers.entrySet()) {
+            request.setHeader(dataElements.getKey(), dataElements.getValue());
+        }
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
         executeHttpMethod(request, eventHandlers);
     }
