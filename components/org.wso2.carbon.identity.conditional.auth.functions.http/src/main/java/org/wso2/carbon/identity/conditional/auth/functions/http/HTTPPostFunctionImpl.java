@@ -20,12 +20,17 @@ package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.simple.JSONObject;
+import org.apache.http.NameValuePair;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -50,7 +55,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
             LOG.error("HTTP Post function called ");
             HttpPost request = new HttpPost(epUrl);
 
-            // Check if Content-Type is in map else set APPLICATION_JSON as default
+            // Check if Content-Type is in headers map else set APPLICATION_JSON as default
             if(!headers.containsKey(CONTENT_TYPE)){
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
             }
@@ -62,11 +67,24 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
 
             request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
 
-            JSONObject jsonObject = new JSONObject();
-            for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                jsonObject.put(dataElements.getKey(), dataElements.getValue());
+            /**
+             * For the header Content-Type : application/x-www-form-urlencoded
+             * TODO : Explain
+             */
+            if(headers.get(CONTENT_TYPE) == "application/x-www-form-urlencoded"){
+                List <NameValuePair> headersList = new ArrayList <NameValuePair>();
+                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                    headersList.add(new BasicNameValuePair(dataElements.getKey(), (String) dataElements.getValue()));
+                }
+                request.setEntity(new UrlEncodedFormEntity(headersList, StandardCharsets.UTF_8));
+            }else{
+                JSONObject jsonObject = new JSONObject();
+                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                    jsonObject.put(dataElements.getKey(), dataElements.getValue());
+                }
+                request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
             }
-            request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
+
             executeHttpMethod(request, eventHandlers);
     }
 }
