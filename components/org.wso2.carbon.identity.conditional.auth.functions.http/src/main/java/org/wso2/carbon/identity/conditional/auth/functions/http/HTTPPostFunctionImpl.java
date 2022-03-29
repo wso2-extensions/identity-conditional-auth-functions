@@ -48,15 +48,20 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
        super();
     }
 
+    // httpPost function with headers
     @Override
     public void httpPost(String epUrl, Map<String, Object> payloadData,
                          Map<String, Object> eventHandlers,
-                         Map<String, String> headers) {
-            LOG.error("HTTP Post function called ");
-            HttpPost request = new HttpPost(epUrl);
+                         Map<String, String>... optional) {
 
-            // Check if Content-Type is in headers map else set APPLICATION_JSON as default
-            if(!headers.containsKey(CONTENT_TYPE)){
+        // Take first optional parameter as headers else set header to null
+        Map<String, String> headers = optional.length >= 1 ? optional[0] : null;
+
+        HttpPost request = new HttpPost(epUrl);
+
+        if (headers != null) {
+            // Check if "Content-Type" is in headers map else set APPLICATION_JSON as default "Content-Type"
+            if (!headers.containsKey(CONTENT_TYPE)){
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
             }
 
@@ -64,27 +69,30 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
             for (Map.Entry<String, String> dataElements : headers.entrySet()) {
                 request.setHeader(dataElements.getKey(), dataElements.getValue());
             }
+        } else {
+            // If no headers were given, set Content-Type to "application/json"
+            request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+        }
+        request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
 
-            request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-
-            /**
-             * For the header Content-Type : application/x-www-form-urlencoded
-             * TODO : Explain
-             */
-            if(headers.get(CONTENT_TYPE) == "application/x-www-form-urlencoded"){
-                List <NameValuePair> headersList = new ArrayList <NameValuePair>();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                    headersList.add(new BasicNameValuePair(dataElements.getKey(), (String) dataElements.getValue()));
-                }
-                request.setEntity(new UrlEncodedFormEntity(headersList, StandardCharsets.UTF_8));
-            }else{
-                JSONObject jsonObject = new JSONObject();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                    jsonObject.put(dataElements.getKey(), dataElements.getValue());
-                }
-                request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
+        /*
+          For the header Content-Type : application/x-www-form-urlencoded
+          Request body data should be UrlEncodedFormEntity
+         */
+        if (headers != null && TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
+            List <NameValuePair> headersList = new ArrayList <NameValuePair>();
+            for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                headersList.add(new BasicNameValuePair(dataElements.getKey(), (String) dataElements.getValue()));
             }
+            request.setEntity(new UrlEncodedFormEntity(headersList, StandardCharsets.UTF_8));
+        } else {
+            JSONObject jsonObject = new JSONObject();
+            for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                jsonObject.put(dataElements.getKey(), dataElements.getValue());
+            }
+            request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
+        }
 
-            executeHttpMethod(request, eventHandlers);
+        executeHttpMethod(request, eventHandlers);
     }
 }

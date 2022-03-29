@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -40,15 +41,20 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
     }
 
     @Override
-    public void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, String> headers) {
+    public void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, String>... optional) {
+
+        Map<String, String> headers = optional.length >= 1 ? optional[0] : null;
 
         HttpGet request = new HttpGet(epUrl);
 
-        // Add headers to the request
-        for (Map.Entry<String, String> dataElements : headers.entrySet()) {
-            request.setHeader(dataElements.getKey(), dataElements.getValue());
+        if (headers != null) {
+            // Add headers to the request
+            for (Map.Entry<String, String> dataElements : headers.entrySet()) {
+                request.setHeader(dataElements.getKey(), dataElements.getValue());
+            }
         }
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+
         executeHttpMethod(request, eventHandlers);
     }
 }

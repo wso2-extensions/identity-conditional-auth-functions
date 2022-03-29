@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Function to call http endpoints. Function will send get to the given endpoint reference.
@@ -31,7 +32,7 @@ public interface HTTPGetFunction {
      *
      * @param epUrl Endpoint url.
      * @param eventHandlers event handlers.
-     * @param headers headers.
+     * @param optional optional parameters -> headers
      */
-    void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, String> headers);
+    void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, String>... optional);
 }
