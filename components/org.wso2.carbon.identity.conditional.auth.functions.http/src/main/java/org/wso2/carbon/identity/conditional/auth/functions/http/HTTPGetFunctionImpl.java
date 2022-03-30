@@ -23,10 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
 /**
  * Implementation of the {@link HTTPGetFunction}
