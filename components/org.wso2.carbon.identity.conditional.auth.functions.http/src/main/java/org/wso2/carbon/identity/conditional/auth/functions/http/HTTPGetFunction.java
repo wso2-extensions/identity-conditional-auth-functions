@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Function to call http endpoints. Function will send get to the given endpoint reference.

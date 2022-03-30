@@ -23,10 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
 /**
  * Implementation of the {@link HTTPGetFunction}
@@ -42,7 +40,7 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
 
     @Override
     public void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, String>... optional) {
-
+        // Take first optional parameter as headers else set header to null
         Map<String, String> headers = optional.length >= 1 ? optional[0] : null;
 
         HttpGet request = new HttpGet(epUrl);
