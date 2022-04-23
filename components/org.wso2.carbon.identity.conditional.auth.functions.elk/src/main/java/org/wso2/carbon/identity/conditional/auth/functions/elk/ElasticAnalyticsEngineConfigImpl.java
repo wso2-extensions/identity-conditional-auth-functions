@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.analytics;
+package org.wso2.carbon.identity.conditional.auth.functions.elk;
 
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
@@ -33,19 +33,19 @@ import java.util.Properties;
 /**
  * Governance connector used to configure the parameters need invoke the analytics engine.
  */
-public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
+public class ElasticAnalyticsEngineConfigImpl implements IdentityConnectorConfig {
 
-    public static final String RECEIVER = "adaptive_authentication.analytics.receiver";
-    public static final String BASIC_AUTH_ENABLED = "adaptive_authentication.analytics.basicAuth.enabled";
-    public static final String USERNAME = "adaptive_authentication.analytics.basicAuth.username";
-    public static final String CREDENTIAL = "__secret__adaptive_authentication.analytics.basicAuth.password";
-    public static final String HTTP_CONNECTION_TIMEOUT = "adaptive_authentication.analytics.HTTPConnectionTimeout";
-    public static final String HTTP_READ_TIMEOUT = "adaptive_authentication.analytics.HTTPReadTimeout";
-    public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "adaptive_authentication.analytics" +
+    public static final String RECEIVER = "adaptive_authentication.elastic.receiver";
+    public static final String BASIC_AUTH_ENABLED = "adaptive_authentication.elastic.basicAuth.enabled";
+    public static final String USERNAME = "adaptive_authentication.elastic.basicAuth.username";
+    public static final String CREDENTIAL = "__secret__adaptive_authentication.elastic.basicAuth.password";
+    public static final String HTTP_CONNECTION_TIMEOUT = "adaptive_authentication.elastic.HTTPConnectionTimeout";
+    public static final String HTTP_READ_TIMEOUT = "adaptive_authentication.elastic.HTTPReadTimeout";
+    public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "adaptive_authentication.elastic" +
             ".HTTPConnectionRequestTimeout";
-    public static final String HOSTNAME_VERIFIER = "adaptive_authentication.analytics.hostnameVerfier";
+    public static final String HOSTNAME_VERIFIER = "adaptive_authentication.elastic.hostnameVerfier";
 
-    public static final String DEFAULT_TARGET_HOST = "https://localhost:8280/";
+    public static final String DEFAULT_TARGET_HOST = "https://localhost:9200/";
     public static final String DEFAULT_AUTHENTICATION_ENABLED = "true";
     public static final String DEFAULT_USERNAME = "change-me";
     public static final String DEFAULT_CREDENTIAL = "change-me";
@@ -56,13 +56,13 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     @Override
     public String getName() {
 
-        return "analytics-engine";
+        return "elastic-analytics-engine";
     }
 
     @Override
     public String getFriendlyName() {
 
-        return "[Deprecated] Identity Server Analytics ";
+        return "ELK Analytics";
     }
 
     @Override
@@ -80,7 +80,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     @Override
     public int getOrder() {
 
-        return 9;
+        return 10;
     }
 
     @Override
@@ -88,10 +88,10 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
 
         Map<String, String> mapping = new HashMap<>();
 
-        mapping.put(RECEIVER, "Target Host");
+        mapping.put(RECEIVER, "Elasticsearch Host");
         mapping.put(BASIC_AUTH_ENABLED, "Enable Basic Authentication");
-        mapping.put(USERNAME, "User ID");
-        mapping.put(CREDENTIAL, "Secret");
+        mapping.put(USERNAME, "Elasticsearch Username");
+        mapping.put(CREDENTIAL, "Elasticsearch Password");
         mapping.put(HTTP_CONNECTION_TIMEOUT, "HTTP Connection Timeout");
         mapping.put(HTTP_READ_TIMEOUT, "HTTP Read Timeout");
         mapping.put(HTTP_CONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout");
@@ -105,10 +105,10 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
 
         Map<String, String> mapping = new HashMap<>();
 
-        mapping.put(RECEIVER, "Target Host");
+        mapping.put(RECEIVER, "Elasticsearch Host");
         mapping.put(BASIC_AUTH_ENABLED, "Enable Basic Authentication");
-        mapping.put(USERNAME, "Target Host Secured User ID");
-        mapping.put(CREDENTIAL, "Target Host Secured Secret");
+        mapping.put(USERNAME, "Elasticsearch Username");
+        mapping.put(CREDENTIAL, "Elasticsearch User's Password");
         mapping.put(HTTP_CONNECTION_TIMEOUT, "HTTP Connection Timeout in milliseconds");
         mapping.put(HTTP_READ_TIMEOUT, "HTTP Read Timeout in milliseconds");
         mapping.put(HTTP_CONNECTION_REQUEST_TIMEOUT, "HTTP Connection Request Timeout in milliseconds");
