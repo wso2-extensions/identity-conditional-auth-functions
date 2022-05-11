@@ -50,7 +50,8 @@ public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
         String username = user.getWrapped().getUserName();
         try {
             UserRealm userRealm = Utils.getUserRealm(user.getWrapped().getTenantDomain());
-            if (userRealm != null) {
+            boolean isFederated = user.getContext().getSubject().isFederatedUser();
+            if (userRealm != null && !isFederated) {
                 UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                 if (userStore != null) {
                     String[] roleListOfUser = userStore.getRoleListOfUser(username);
