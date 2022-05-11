@@ -131,6 +131,10 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                     LOG.error("Error while reading response from Choreo call for " +
                                             "session data key: " + authenticationContext.getContextIdentifier(), e);
                                     outcome = Constants.OUTCOME_FAIL;
+                                } catch (Exception e) {
+                                    LOG.error("Error while processing response from Choreo call for " +
+                                            "session data key: " + authenticationContext.getContextIdentifier(), e);
+                                    outcome = OUTCOME_FAIL;
                                 }
                             } else {
                                 outcome = Constants.OUTCOME_FAIL;
