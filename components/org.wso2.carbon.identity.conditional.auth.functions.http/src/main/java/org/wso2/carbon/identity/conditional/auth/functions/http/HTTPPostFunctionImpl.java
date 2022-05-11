@@ -80,11 +80,11 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
           Request body data should be UrlEncodedFormEntity
          */
         if (headers != null && TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
-            List <NameValuePair> headersList = new ArrayList <NameValuePair>();
+            List <NameValuePair> payload = new ArrayList <NameValuePair>();
             for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                headersList.add(new BasicNameValuePair(dataElements.getKey(), (String) dataElements.getValue()));
+                payload.add(new BasicNameValuePair(dataElements.getKey(), (String) dataElements.getValue()));
             }
-            request.setEntity(new UrlEncodedFormEntity(headersList, StandardCharsets.UTF_8));
+            request.setEntity(new UrlEncodedFormEntity(payload, StandardCharsets.UTF_8));
         } else {
             JSONObject jsonObject = new JSONObject();
             for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
