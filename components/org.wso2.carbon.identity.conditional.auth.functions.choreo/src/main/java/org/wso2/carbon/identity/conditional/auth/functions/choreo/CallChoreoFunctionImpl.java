@@ -115,29 +115,29 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
                         String outcome;
                         JSONObject json = null;
-                        int responseCode = response.getStatusLine().getStatusCode();
                         try {
-                            if (responseCode == 200) {
-                                try {
+                            try {
+                                int responseCode = response.getStatusLine().getStatusCode();
+                                if (responseCode == 200) {
                                     String jsonString = EntityUtils.toString(response.getEntity());
                                     JSONParser parser = new JSONParser();
                                     json = (JSONObject) parser.parse(jsonString);
                                     outcome = Constants.OUTCOME_SUCCESS;
-                                } catch (ParseException e) {
-                                    LOG.error("Error while building response from Choreo call for " +
-                                            "session data key: " + authenticationContext.getContextIdentifier(), e);
+                                } else {
                                     outcome = Constants.OUTCOME_FAIL;
-                                } catch (IOException e) {
-                                    LOG.error("Error while reading response from Choreo call for " +
-                                            "session data key: " + authenticationContext.getContextIdentifier(), e);
-                                    outcome = Constants.OUTCOME_FAIL;
-                                } catch (Exception e) {
-                                    LOG.error("Error while processing response from Choreo call for " +
-                                            "session data key: " + authenticationContext.getContextIdentifier(), e);
-                                    outcome = OUTCOME_FAIL;
                                 }
-                            } else {
+                            } catch (ParseException e) {
+                                LOG.error("Error while building response from Choreo call for " +
+                                        "session data key: " + authenticationContext.getContextIdentifier(), e);
                                 outcome = Constants.OUTCOME_FAIL;
+                            } catch (IOException e) {
+                                LOG.error("Error while reading response from Choreo call for " +
+                                        "session data key: " + authenticationContext.getContextIdentifier(), e);
+                                outcome = Constants.OUTCOME_FAIL;
+                            } catch (Exception e) {
+                                LOG.error("Error while processing response from Choreo call for " +
+                                        "session data key: " + authenticationContext.getContextIdentifier(), e);
+                                outcome = OUTCOME_FAIL;
                             }
                             asyncReturn.accept(authenticationContext, json != null ? json : Collections.emptyMap(),
                                     outcome);
