@@ -197,6 +197,9 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             } catch (SecretManagementException e) {
                 LOG.error("Error while resolving API key. ", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            } catch (Exception e) {
+                LOG.error("Error while invoking callChoreo. ", e);
+                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             }
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
