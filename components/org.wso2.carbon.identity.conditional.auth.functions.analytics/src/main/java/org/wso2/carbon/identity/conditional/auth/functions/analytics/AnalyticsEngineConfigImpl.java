@@ -62,7 +62,7 @@ public class AnalyticsEngineConfigImpl implements IdentityConnectorConfig {
     @Override
     public String getFriendlyName() {
 
-        return "[Deprecated] Identity Server Analytics ";
+        return "[Deprecated] Identity Server Analytics";
     }
 
     @Override
