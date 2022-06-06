@@ -1,0 +1,33 @@
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "match": {
+                        "username.keyword": "[ES_QUERY_PARAM_USERNAME]"
+                    }
+                }
+            ],
+            "filter": [
+                {
+                    "range": {
+                        "@timestamp": {
+                            "gte": "now-[ES_QUERY_PARAM_DURATION]"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "aggs": {
+        "risk_score": {
+            "scripted_metric": {
+                "init_script": "state.sum = [];",
+                "map_script": "[ES_QUERY_PARAM_LOGIC]",
+                "combine_script": "int sum = 0; for (t in state.sum) { sum += t } return sum",
+                "reduce_script": "int sum = 0; for (a in states) { sum += a } return sum > [ES_QUERY_PARAM_THRESHOLD] ? 1 : 0"
+            }
+        }
+    }
+}
+

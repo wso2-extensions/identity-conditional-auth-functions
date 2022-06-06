@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  ~
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+        <artifactId>identity-conditional-auth-functions</artifactId>
+        <version>1.2.5-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>org.wso2.carbon.identity.conditional.auth.functions.elk</artifactId>
+    <name>Conditional Authentication - ELK Related Functions</name>
+    <packaging>bundle</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.json.wso2</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database.wso2</groupId>
+            <artifactId>h2-database-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.utils</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+            <artifactId>httpasyncclient</artifactId>
+        </dependency>
+        <!--Test Dependencies-->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.test.utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Private-Package>
+                            org.wso2.carbon.identity.conditional.auth.functions.elk.internal
+                        </Private-Package>
+                        <Export-Package>
+                            !org.wso2.carbon.identity.conditional.auth.functions.elk.internal,
+                            org.wso2.carbon.identity.conditional.auth.functions.elk.*
+                        </Export-Package>
+                        <Import-Package>
+                            javax.net.ssl,
+                            org.wso2.carbon.base.api,
+                            org.apache.commons.lang; version="${import.package.version.commons.lang}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
+                            org.apache.http; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.client.config; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.client.methods; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.concurrent; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.conn; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.conn.ssl; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.entity; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.impl.client; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.util; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.impl.nio.client; version="${httpasyncclient.version.osgi.import.range}",
+                            org.apache.http.impl.nio.conn; version="${httpasyncclient.version.osgi.import.range}",
+                            org.apache.http.impl.nio.reactor; version="${httpasyncclient.version.osgi.import.range}",
+                            org.apache.http.nio.conn; version="${httpasyncclient.version.osgi.import.range}",
+                            org.apache.http.nio.reactor; version="${httpasyncclient.version.osgi.import.range}",
+                            org.json; version="${json.wso2.version.range}",
+                            org.osgi.service.component; version="${org.osgi.service.imp.pkg.version.range}",
+                            org.osgi.framework; version="${org.osgi.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.context; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.exception; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.conditional.auth.functions.common.auth; version="${org.wso2.carbon.identity.conditional.auth.functions.version.range}",
+                            org.wso2.carbon.identity.conditional.auth.functions.common.utils; version="${org.wso2.carbon.identity.conditional.auth.functions.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.governance; version="${identity.governance.import.version.range}",
+                            org.wso2.carbon.identity.governance.common; version="${identity.governance.import.version.range}",
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

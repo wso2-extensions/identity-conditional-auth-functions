@@ -42,6 +42,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.elk</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
             <artifactId>org.wso2.carbon.identity.conditional.auth.functions.http</artifactId>
         </dependency>
         <dependency>
@@ -96,6 +100,7 @@
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.analytics</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.common</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.http</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.elk</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.notification</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user.store</bundleDef>
