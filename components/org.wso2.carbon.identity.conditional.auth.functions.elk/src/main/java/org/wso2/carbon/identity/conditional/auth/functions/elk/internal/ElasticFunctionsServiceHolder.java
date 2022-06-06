@@ -29,7 +29,6 @@ public class ElasticFunctionsServiceHolder {
     private static final ElasticFunctionsServiceHolder instance = new ElasticFunctionsServiceHolder();
 
     private JsFunctionRegistry jsFunctionRegistry;
-
     private ServerConfigurationService serverConfigurationService;
     private KeyStore trustStore;
 

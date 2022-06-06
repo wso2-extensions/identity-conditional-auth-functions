@@ -41,13 +41,15 @@ import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 /**
- * OSGi declarative services component which handle cookie related conditional auth functions.
+ * OSGi declarative services component which handle ELK related conditional auth functions.
  */
 
 @Component(
@@ -57,6 +59,9 @@ import java.security.cert.CertificateException;
 public class ElasticFunctionsServiceComponent {
 
     public static final String FUNC_CALL_ELASTIC = "callElastic";
+    public static final String SECURITY_TRUSTSTORE_LOCATION = "Security.TrustStore.Location";
+    public static final String SECURITY_TRUSTSTORE_TYPE = "Security.TrustStore.Type";
+    public static final String SECURITY_TRUSTSTORE_PASSWORD = "Security.TrustStore.Password";
 
     private static final Log LOG = LogFactory.getLog(ElasticFunctionsServiceComponent.class);
 
@@ -75,10 +80,10 @@ public class ElasticFunctionsServiceComponent {
             ServerConfigurationService config = ElasticFunctionsServiceHolder.getInstance()
                     .getServerConfigurationService();
 
-            String filePath = config.getFirstProperty("Security.TrustStore.Location");
-            String keyStoreType = config.getFirstProperty("Security.TrustStore.Type");
-            String password = config.getFirstProperty("Security.TrustStore.Password");
-            try (InputStream keyStoreStream = new FileInputStream(filePath)) {
+            String filePath = config.getFirstProperty(SECURITY_TRUSTSTORE_LOCATION);
+            String keyStoreType = config.getFirstProperty(SECURITY_TRUSTSTORE_TYPE);
+            String password = config.getFirstProperty(SECURITY_TRUSTSTORE_PASSWORD);
+            try (InputStream keyStoreStream = Files.newInputStream(Paths.get(filePath))) {
                 KeyStore keyStore = KeyStore.getInstance(keyStoreType); // or "PKCS12"
                 keyStore.load(keyStoreStream, password.toCharArray());
                 ElasticFunctionsServiceHolder.getInstance().setTrustStore(keyStore);
@@ -91,7 +96,7 @@ public class ElasticFunctionsServiceComponent {
     }
 
     @Deactivate
-    protected void deactivate(ComponentContext ctxt) {
+    protected void deactivate(ComponentContext context) {
 
         JsFunctionRegistry jsFunctionRegistry = ElasticFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {

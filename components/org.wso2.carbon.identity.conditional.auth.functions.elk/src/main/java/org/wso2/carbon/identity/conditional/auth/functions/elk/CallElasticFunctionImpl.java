@@ -47,8 +47,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.http.HttpHeaders.*;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.*;
-import static org.wso2.carbon.identity.conditional.auth.functions.elk.util.ElasticConstants.TYPE_APPLICATION_JSON;
 
 /**
  * Implementation of the {@link CallElasticFunction}
