@@ -90,8 +90,8 @@ public class ConfigProvider {
         if (choreoDomainList != null) {
             this.choreoDomainList = choreoDomainList;
         }
-        if (this.choreoDomainList.isEmpty()) {
-            LOG.warn("Choreo domain list used by the callChore function is not configured therefore domain" +
+        if (this.choreoDomainList.isEmpty() && LOG.isDebugEnabled()) {
+            LOG.debug("Choreo domain list used by the callChore function is not configured therefore domain" +
                     " restriction is turned off for callChoreo function.");
         }
     }
