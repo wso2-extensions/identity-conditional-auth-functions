@@ -160,4 +160,27 @@ public class ElasticFunctionsServiceComponent {
         }
         // Do nothing.
     }
+
+    @Reference(
+            name = "server.configuration.service",
+            service = ServerConfigurationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetServerConfigurationService"
+    )
+    protected void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting the serverConfigurationService");
+        }
+        ElasticFunctionsServiceHolder.getInstance().setServerConfigurationService(serverConfigurationService);
+    }
+
+    protected void unsetServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting the ServerConfigurationService");
+        }
+        ElasticFunctionsServiceHolder.getInstance().setServerConfigurationService(null);
+    }
 }
