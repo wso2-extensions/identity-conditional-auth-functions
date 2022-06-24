@@ -20,12 +20,17 @@ package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.simple.JSONObject;
+import org.apache.http.NameValuePair;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -43,18 +48,51 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
        super();
     }
 
+    // httpPost function with headers
     @Override
-    public void httpPost(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
+    public void httpPost(String epUrl, Map<String, Object> payloadData,
+                         Map<String, Object> eventHandlers,
+                         Map<String, String>... optional) {
 
-            HttpPost request = new HttpPost(epUrl);
-            request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+        // Take first optional parameter as headers else set header to null
+        Map<String, String> headers = optional.length >= 1 ? optional[0] : null;
+
+        HttpPost request = new HttpPost(epUrl);
+
+        if (headers != null) {
+            // Check if "Content-Type" is in headers map else set APPLICATION_JSON as default "Content-Type"
+            if (!headers.containsKey(CONTENT_TYPE)){
+                request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+            }
+
+            // Add headers to the request
+            for (Map.Entry<String, String> dataElements : headers.entrySet()) {
+                request.setHeader(dataElements.getKey(), dataElements.getValue());
+            }
+        } else {
+            // If no headers were given, set Content-Type to "application/json"
             request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+        }
+        request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
 
+        /*
+          For the header Content-Type : application/x-www-form-urlencoded
+          Request body data should be UrlEncodedFormEntity
+         */
+        if (headers != null && TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
+            List <NameValuePair> payload = new ArrayList <NameValuePair>();
+            for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                payload.add(new BasicNameValuePair(dataElements.getKey(), (String) dataElements.getValue()));
+            }
+            request.setEntity(new UrlEncodedFormEntity(payload, StandardCharsets.UTF_8));
+        } else {
             JSONObject jsonObject = new JSONObject();
             for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
                 jsonObject.put(dataElements.getKey(), dataElements.getValue());
             }
             request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
-            executeHttpMethod(request, eventHandlers);
+        }
+
+        executeHttpMethod(request, eventHandlers);
     }
 }

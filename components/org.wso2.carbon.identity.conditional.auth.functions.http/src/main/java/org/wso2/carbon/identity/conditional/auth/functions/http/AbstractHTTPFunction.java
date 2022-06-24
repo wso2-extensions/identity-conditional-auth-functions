@@ -49,6 +49,7 @@ public abstract class AbstractHTTPFunction {
 
     private static final Log LOG = LogFactory.getLog(AbstractHTTPFunction.class);
     protected static final String TYPE_APPLICATION_JSON = "application/json";
+    protected static final String TYPE_APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";
     private static final char DOMAIN_SEPARATOR = '.';
     private final List<String> allowedDomains;
 

@@ -39,10 +39,21 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
     }
 
     @Override
-    public void httpGet(String epUrl, Map<String, Object> eventHandlers) {
+    public void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, String>... optional) {
+    
+        // Take first optional parameter as headers else set header to null
+        Map<String, String> headers = optional.length >= 1 ? optional[0] : null;
 
         HttpGet request = new HttpGet(epUrl);
+
+        if (headers != null) {
+            // Add headers to the request
+            for (Map.Entry<String, String> dataElements : headers.entrySet()) {
+                request.setHeader(dataElements.getKey(), dataElements.getValue());
+            }
+        }
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+
         executeHttpMethod(request, eventHandlers);
     }
 }

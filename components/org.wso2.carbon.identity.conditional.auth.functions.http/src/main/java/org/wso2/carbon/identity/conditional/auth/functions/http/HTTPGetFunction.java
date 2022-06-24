@@ -31,6 +31,7 @@ public interface HTTPGetFunction {
      *
      * @param epUrl Endpoint url.
      * @param eventHandlers event handlers.
+     * @param optional optional parameters -> headers
      */
-    void httpGet(String epUrl, Map<String, Object> eventHandlers);
+    void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, String>... optional);
 }
