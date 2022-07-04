@@ -33,5 +33,5 @@ public interface HTTPGetWithHeadersFunction {
      * @param eventHandlers event handlers.
      * @param headers HTTP headers
      */
-    void httpGet(String epUrl, Map<String, Object> eventHandlers, Map<String, Object> headers);
+    void httpGetWithHeaders(String epUrl, Map<String, Object> eventHandlers, Map<String, String> headers);
 }
