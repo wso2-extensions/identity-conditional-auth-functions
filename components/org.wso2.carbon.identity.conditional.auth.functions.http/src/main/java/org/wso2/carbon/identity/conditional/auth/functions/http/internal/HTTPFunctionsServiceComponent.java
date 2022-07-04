@@ -29,13 +29,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.http.*;
 import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.http.GetCookieFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.http.SetCookieFunction;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 
 /**
@@ -51,7 +46,9 @@ public class HTTPFunctionsServiceComponent {
     private static final Log LOG = LogFactory.getLog(HTTPFunctionsServiceComponent.class);
 
     public static final String FUNC_HTTP_POST = "httpPost";
+    public static final String FUNC_HTTP_POST_WITH_HEADERS = "httpPostWithHeaders";
     public static final String FUNC_HTTP_GET = "httpGet";
+    public static final String FUNC_HTTP_GET_WITH_HEADERS = "httpGetWithHeaders";
     public static final String FUNC_SET_COOKIE = "setCookie";
     public static final String FUNC_GET_COOKIE_VALUE = "getCookieValue";
 
@@ -70,6 +67,12 @@ public class HTTPFunctionsServiceComponent {
 
         HTTPGetFunction httpGet = new HTTPGetFunctionImpl();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_GET, httpGet);
+
+        HTTPGetWithHeadersFunction httpGetWithHeaders = new HTTPGetWithHeadersFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_GET_WITH_HEADERS, httpGetWithHeaders);
+
+        HTTPPostWithHeadersFunction httpPostWithHeaders = new HTTPPostWithHeadersFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST_WITH_HEADERS, httpPostWithHeaders);
     }
 
     @Deactivate
@@ -80,6 +83,9 @@ public class HTTPFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_SET_COOKIE);
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_GET_COOKIE_VALUE);
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_GET);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST_WITH_HEADERS);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_GET_WITH_HEADERS);
         }
     }
 
