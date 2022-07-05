@@ -39,7 +39,7 @@ public class HTTPGetWithHeadersFunctionImpl extends AbstractHTTPFunction impleme
     }
 
     @Override
-    public void httpGetWithHeaders(String epUrl, Map<String, Object> eventHandlers, Map<String, String> headers) {
+    public void httpGetWithHeaders(String epUrl, Map<String, String> headers, Map<String, Object> eventHandlers) {
 
         HttpGet request = new HttpGet(epUrl);
 

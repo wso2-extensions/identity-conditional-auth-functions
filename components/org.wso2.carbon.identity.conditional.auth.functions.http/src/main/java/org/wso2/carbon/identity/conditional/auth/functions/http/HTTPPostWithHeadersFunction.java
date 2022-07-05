@@ -31,8 +31,8 @@ public interface HTTPPostWithHeadersFunction {
      *
      * @param epUrl Endpoint url.
      * @param payloadData payload data.
-     * @param eventHandlers event handlers.
      * @param headers HTTP headers
+     * @param eventHandlers event handlers.
      */
-    void httpPostWithHeaders(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers, Map<String, String> headers);
+    void httpPostWithHeaders(String epUrl, Map<String, Object> payloadData, Map<String, String> headers, Map<String, Object> eventHandlers);
 }

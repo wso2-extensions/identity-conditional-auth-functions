@@ -49,7 +49,7 @@ public class HTTPPostWithHeadersFunctionImpl extends AbstractHTTPFunction implem
     }
 
     @Override
-    public void httpPostWithHeaders(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers, Map<String, String>headers) {
+    public void httpPostWithHeaders(String epUrl, Map<String, Object> payloadData, Map<String, String>headers, Map<String, Object> eventHandlers) {
 
         HttpPost request = new HttpPost(epUrl);
 

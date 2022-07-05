@@ -30,8 +30,8 @@ public interface HTTPGetWithHeadersFunction {
      *  POST data to the given endpoint.
      *
      * @param epUrl Endpoint url.
-     * @param eventHandlers event handlers.
      * @param headers HTTP headers
+     * @param eventHandlers event handlers.
      */
-    void httpGetWithHeaders(String epUrl, Map<String, Object> eventHandlers, Map<String, String> headers);
+    void httpGetWithHeaders(String epUrl, Map<String, String> headers, Map<String, Object> eventHandlers);
 }
