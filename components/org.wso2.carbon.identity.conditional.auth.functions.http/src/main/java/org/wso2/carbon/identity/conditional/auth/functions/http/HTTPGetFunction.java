@@ -27,7 +27,7 @@ import java.util.Map;
 public interface HTTPGetFunction {
 
     /**
-     *  POST data to the given endpoint.
+     * GET data from the given endpoint.
      *
      * @param epUrl Endpoint url.
      * @param eventHandlers event handlers.
