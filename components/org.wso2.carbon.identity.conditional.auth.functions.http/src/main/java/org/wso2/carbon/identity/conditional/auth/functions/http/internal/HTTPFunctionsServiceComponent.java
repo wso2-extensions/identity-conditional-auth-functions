@@ -29,8 +29,17 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.identity.conditional.auth.functions.http.*;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetWithHeadersFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetWithHeadersFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostWithHeadersFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostWithHeadersFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.http.GetCookieFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.http.SetCookieFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImpl;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 
 /**
