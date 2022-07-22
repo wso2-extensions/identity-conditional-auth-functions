@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesF
 import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExistenceFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.GetAuthenticatedApplicationsFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.GetAuthenticatedAppsFuncImp;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetUserSessionsFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunctionImpl;
@@ -75,6 +77,7 @@ public class UserFunctionsServiceComponent {
             RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
             GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
             SetAccountAssociationToLocalUser setAccountAssociationToLocalUserImpl = new SetAccountAssociationToLocalUserImpl();
+            GetAuthenticatedApplicationsFunction getAuthenticatedApplicationsFunctionImp = new GetAuthenticatedAppsFuncImp();
             JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
@@ -99,6 +102,8 @@ public class UserFunctionsServiceComponent {
                     setAccountAssociationToLocalUserImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isAnyOfTheRolesAssignedToUser",
                     new IsAnyOfTheRolesAssignedToUserFunctionImpl());
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAuthenticatedApplications",
+                    getAuthenticatedApplicationsFunctionImp);
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }

@@ -103,6 +103,12 @@
             <artifactId>msf4j-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <version>15.3</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

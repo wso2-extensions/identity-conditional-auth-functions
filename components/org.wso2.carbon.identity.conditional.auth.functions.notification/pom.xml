@@ -56,7 +56,12 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <version>15.3</version>
+            <scope>provided</scope>
+        </dependency>
         <!--Test Dependencies-->
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -115,6 +120,7 @@
                             org.wso2.carbon.identity.conditional.auth.functions.notification
                         </Export-Package>
                         <Import-Package>
+                            javax.servlet.http,
                             org.apache.commons.lang,
                             org.apache.commons.logging,
                             org.osgi.service.component,
@@ -122,9 +128,11 @@
                             org.wso2.carbon,
                             org.wso2.carbon.core.util,
                             org.wso2.carbon.identity.application.authentication.framework,
+                            org.wso2.carbon.identity.application.authentication.framework.context,
                             org.wso2.carbon.identity.application.authentication.framework.exception,
                             org.wso2.carbon.identity.application.authentication.framework.model,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
+                            org.wso2.carbon.identity.application.authentication.framework.util,
                             org.wso2.carbon.identity.event,
                             org.wso2.carbon.identity.event.event,
                             org.wso2.carbon.identity.event.services,
