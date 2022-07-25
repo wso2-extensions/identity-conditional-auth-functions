@@ -21,12 +21,17 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+/**
+ * Function for retrieving authenticated applications for a given session.
+ */
 public class GetAuthenticatedAppsFuncImp implements GetAuthenticatedApplicationsFunction {
 
     private static final Log log = LogFactory.getLog(GetAuthenticatedAppsFuncImp.class);
@@ -35,18 +40,21 @@ public class GetAuthenticatedAppsFuncImp implements GetAuthenticatedApplications
      * Retrieve the already authenticated applications for a given session.
      *
      * @param context context object.
-     * @return List of already authenticated applications' name of the given session.
+     * @return List of already authenticated applications of the given session.
      */
     @Override
-    public List<String> getAuthenticatedApplications(JsAuthenticationContext context) {
+    public List<Application> getAuthenticatedApplications(JsAuthenticationContext context) {
 
         String sessionContextKey = context.getWrapped().getSessionIdentifier();
-        List<String> authenticatedApps = new ArrayList<>();
-        if (sessionContextKey != null) {
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey,
-                    context.getWrapped().getLoginTenantDomain());
-            authenticatedApps = sessionContext.getAuthenticatedIdPsOfApp();
+        try {
+            if (sessionContextKey != null) {
+                UserSession userSession = UserFunctionsServiceHolder.getInstance().getUserSessionManagementService()
+                        .getUserSessionBySessionId(sessionContextKey).get();
+                return userSession.getApplications();
+            }
+        } catch (SessionManagementException e) {
+            log.debug("Error occurred while retrieving the user session.");
         }
-        return authenticatedApps;
+        return Collections.emptyList();
     }
 }
