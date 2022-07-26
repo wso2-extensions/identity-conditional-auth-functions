@@ -29,6 +29,10 @@
     <name>Conditional Authentication - Session Related Functions</name>
     <dependencies>
         <dependency>
+            <groupId>org.wso2.org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
         </dependency>

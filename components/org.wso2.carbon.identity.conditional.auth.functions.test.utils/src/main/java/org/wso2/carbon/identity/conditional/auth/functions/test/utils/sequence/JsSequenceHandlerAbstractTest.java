@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.io.File;
@@ -90,5 +91,6 @@ public class JsSequenceHandlerAbstractTest {
             }
             sequenceHandlerRunner.init(url);
         }
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
     }
 }
