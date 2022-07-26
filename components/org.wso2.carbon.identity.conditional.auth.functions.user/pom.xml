@@ -99,6 +99,11 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -140,6 +145,8 @@
                             org.wso2.carbon.identity.application.authentication.framework.context,
                             org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt,
                             org.wso2.carbon.identity.application.authentication.framework.store,
+                            org.wso2.carbon.identity.application.authentication.framework.dao.impl,
+                            org.wso2.carbon.identity.application.authentication.framework.dao,
                             org.wso2.carbon.identity.base.*,
                             org.wso2.carbon.identity.core.util.*,
                             org.wso2.carbon.identity.core.model.*,
