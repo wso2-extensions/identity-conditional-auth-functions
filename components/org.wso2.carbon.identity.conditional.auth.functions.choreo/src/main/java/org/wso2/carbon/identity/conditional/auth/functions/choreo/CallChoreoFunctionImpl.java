@@ -125,6 +125,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                     outcome = Constants.OUTCOME_SUCCESS;
                                 } else {
                                     outcome = Constants.OUTCOME_FAIL;
+                                    LOG.info("Received non 200 response code from Choreo : " + responseCode);
                                 }
                             } catch (ParseException e) {
                                 LOG.error("Error while building response from Choreo call for " +
@@ -195,10 +196,10 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 LOG.error("Error while calling endpoint.", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (SecretManagementException e) {
-                LOG.error("Error while resolving API key. ", e);
+                LOG.error("Error while resolving API key.", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (Exception e) {
-                LOG.error("Error while invoking callChoreo. ", e);
+                LOG.error("Error while invoking callChoreo.", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             }
         });
