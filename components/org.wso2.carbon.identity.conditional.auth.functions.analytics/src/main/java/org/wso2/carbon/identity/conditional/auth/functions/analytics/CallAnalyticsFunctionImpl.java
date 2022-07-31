@@ -32,7 +32,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBuilderStaticWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -200,6 +200,6 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             }
         });
-        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+        JsBuilderStaticWrapper.addLongWaitProcess(asyncProcess, eventHandlers);
     }
 }

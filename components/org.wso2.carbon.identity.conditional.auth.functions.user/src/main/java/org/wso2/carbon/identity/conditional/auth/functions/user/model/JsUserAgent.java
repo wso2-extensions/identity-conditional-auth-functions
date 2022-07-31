@@ -29,27 +29,9 @@ import org.wso2.carbon.identity.core.model.UserAgent;
  *
  * @see UserAgent
  */
-public class JsUserAgent extends AbstractJSObjectWrapper<UserAgent> {
+public abstract class JsUserAgent extends AbstractJSObjectWrapper<UserAgent> {
 
-    public JsUserAgent(UserAgent wrappedUserAgent) {
-
-        super(wrappedUserAgent);
-    }
-
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case "rawString":
-                return getWrapped().getRawString();
-            case "browser":
-                return getWrapped().getBrowser();
-            case "platform":
-                return getWrapped().getPlatform();
-            case "device":
-                return getWrapped().getDevice();
-            default:
-                return super.getMember(name);
-        }
+    public JsUserAgent(UserAgent wrapped) {
+        super(wrapped);
     }
 }

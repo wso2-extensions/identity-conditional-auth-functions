@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  *
  * @see UserSession
  */
-public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
+public abstract class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
 
     private UserAgent userAgent;
 
@@ -41,26 +41,4 @@ public class JsUserSession extends AbstractJSObjectWrapper<UserSession> {
         super(wrappedUserSession);
         userAgent = new UserAgent(wrappedUserSession.getUserAgent());
     }
-
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case "userAgent":
-                return new JsUserAgent(userAgent);
-            case "ip":
-                return getWrapped().getIp();
-            case "loginTime":
-                return getWrapped().getLoginTime();
-            case "lastAccessTime":
-                return getWrapped().getLastAccessTime();
-            case "id":
-                return getWrapped().getSessionId();
-            case "applications":
-                return getWrapped().getApplications().stream().map(JsApplication::new).collect(Collectors.toList());
-            default:
-                return super.getMember(name);
-        }
-    }
-
 }

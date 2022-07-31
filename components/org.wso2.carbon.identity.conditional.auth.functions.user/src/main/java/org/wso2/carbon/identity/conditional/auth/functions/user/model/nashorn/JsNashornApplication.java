@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.conditional.auth.functions.user.model;
+package org.wso2.carbon.identity.conditional.auth.functions.user.model.nashorn;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.AbstractJsObject;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsApplication;
 
 /**
  * Javascript wrapper for Java level Application.
@@ -29,10 +30,25 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Appli
  *
  * @see Application
  */
-public abstract class JsApplication extends AbstractJSObjectWrapper<Application> {
+public class JsNashornApplication extends JsApplication implements AbstractJsObject {
 
-    public JsApplication(Application wrappedApplication) {
+    public JsNashornApplication(Application wrappedApplication) {
 
         super(wrappedApplication);
+    }
+
+    @Override
+    public Object getMember(String name) {
+
+        switch (name) {
+            case "subject":
+                return getWrapped().getSubject();
+            case "appName":
+                return getWrapped().getAppName();
+            case "appId":
+                return getWrapped().getAppId();
+            default:
+                return super.getMember(name);
+        }
     }
 }

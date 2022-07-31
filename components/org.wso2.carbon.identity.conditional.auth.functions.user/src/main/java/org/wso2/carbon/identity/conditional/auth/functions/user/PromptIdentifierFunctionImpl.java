@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBuilderStaticWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 
@@ -52,6 +52,6 @@ public class PromptIdentifierFunctionImpl implements PromptIdentifierFunction {
         }
         Map<String, Object> promptParameters = new HashMap<>();
         promptParameters.put(STEP_PARAM, step);
-        JsGraphBuilder.addPrompt(IDENTIFIER_TEMPLATE_NAME, promptParameters, validators, callbacks);
+        JsBuilderStaticWrapper.addPrompt(IDENTIFIER_TEMPLATE_NAME, promptParameters, validators, callbacks);
     }
 }

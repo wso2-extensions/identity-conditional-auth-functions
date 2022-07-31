@@ -31,7 +31,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBuilderStaticWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.elk.util.ElasticConfigProvider;
@@ -195,6 +195,6 @@ public class CallElasticFunctionImpl extends AbstractElasticHelper implements Ca
             }
 
         });
-        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+        JsBuilderStaticWrapper.addLongWaitProcess(asyncProcess, eventHandlers);
     }
 }
