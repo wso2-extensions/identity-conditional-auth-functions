@@ -125,7 +125,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                     outcome = Constants.OUTCOME_SUCCESS;
                                 } else {
                                     outcome = Constants.OUTCOME_FAIL;
-                                    LOG.info("Received non 200 response code from Choreo : " + responseCode);
+                                    LOG.info("Received non 200 response code from Choreo: " + responseCode);
                                 }
                             } catch (ParseException e) {
                                 LOG.error("Error while building response from Choreo call for " +
