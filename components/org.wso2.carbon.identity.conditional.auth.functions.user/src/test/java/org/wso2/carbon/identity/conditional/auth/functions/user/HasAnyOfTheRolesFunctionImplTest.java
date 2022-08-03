@@ -56,6 +56,7 @@ public class HasAnyOfTheRolesFunctionImplTest extends JsSequenceHandlerAbstractT
 
         super.setUp();
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         sequenceHandlerRunner.registerJsFunction("hasAnyOfTheRoles", new HasAnyOfTheRolesFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);
         userRealm.getUserStoreManager().addRole("admin", new String[]{"test_user1", "test_user2"}, null);

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.notification;
 
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -58,6 +58,7 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         super.setUp();
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         sequenceHandlerRunner.registerJsFunction("sendEmail", new SendEmailFunctionImpl());
     }
 
@@ -67,7 +68,7 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
         AtomicBoolean hasEmailSent = new AtomicBoolean(false);
         IdentityEventService mockIdentityEventService = Mockito.mock(IdentityEventService.class);
         Mockito.doAnswer(invocationOnMock -> {
-            Event event = invocationOnMock.getArgumentAt(0, Event.class);
+            Event event = invocationOnMock.getArgument(0);
             System.out.println("Event " + event.getEventName());
             if(shouldThrowException) {
                 throw new IdentityEventException("Mock throws shouldThrowException");
@@ -76,7 +77,7 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 hasEmailSent.set(true);
             }
             return null;
-        }).when(mockIdentityEventService).handleEvent(Matchers.any(Event.class));
+        }).when(mockIdentityEventService).handleEvent(ArgumentMatchers.any(Event.class));
 
         NotificationFunctionServiceHolder.getInstance().setIdentityEventService(mockIdentityEventService);
         ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("sendEmail-test-sp.xml", this);

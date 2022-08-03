@@ -73,6 +73,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     protected void initClass() throws Exception {
 
         super.setUp();
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
         CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);
         int connectionTimeout = 5000;

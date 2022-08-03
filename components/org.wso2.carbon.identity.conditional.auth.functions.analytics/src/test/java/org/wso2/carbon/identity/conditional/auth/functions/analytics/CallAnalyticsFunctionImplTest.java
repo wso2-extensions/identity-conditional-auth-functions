@@ -75,6 +75,7 @@ public class CallAnalyticsFunctionImplTest extends JsSequenceHandlerAbstractTest
 
         super.setUp();
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         sequenceHandlerRunner.registerJsFunction("callAnalytics", new CallAnalyticsFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);
         userRealm.getUserStoreManager().addRole("admin", new String[]{"admin", "test_user"}, null);

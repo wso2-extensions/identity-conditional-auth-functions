@@ -58,6 +58,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
     protected void setUp() throws Exception {
 
         super.setUp();
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         sequenceHandlerRunner.registerJsFunction("setCookie", (SetCookieFunction) new CookieFunctionImpl()::setCookie);
         sequenceHandlerRunner.registerJsFunction("getCookieValue", (GetCookieFunction) new CookieFunctionImpl()
                 ::getCookieValue);

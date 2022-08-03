@@ -72,6 +72,11 @@
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.openjdk.nashorn</groupId>
+            <artifactId>openjdk-nashorn</artifactId>
+            <version>${openjdk.nashorn.wso2.version}</version>
+        </dependency>
         <!--Test Dependencies-->
         <dependency>
             <groupId>org.testng</groupId>
@@ -95,7 +100,7 @@
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
+            <artifactId>powermock-api-mockito2</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
