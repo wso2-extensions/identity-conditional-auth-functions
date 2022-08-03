@@ -71,6 +71,7 @@ public class CallElasticFunctionImplTest extends JsSequenceHandlerAbstractTest {
     protected void initClass() throws Exception {
 
         super.setUp();
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         sequenceHandlerRunner.registerJsFunction("callElastic", new CallElasticFunctionImpl());
     }
 

@@ -80,6 +80,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         super.setUp();
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         sequenceHandlerRunner.registerJsFunction("callChoreo", new CallChoreoFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);
         userRealm.getUserStoreManager().addRole("admin", new String[]{"admin", "test_user"}, null);

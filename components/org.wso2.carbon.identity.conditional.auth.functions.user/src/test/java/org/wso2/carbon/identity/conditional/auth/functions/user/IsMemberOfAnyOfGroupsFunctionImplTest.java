@@ -55,6 +55,7 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
     protected void setUp() throws Exception {
 
         super.setUp();
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         sequenceHandlerRunner.registerJsFunction("isMemberOfAnyOfGroups",
                 new IsMemberOfAnyOfGroupsFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);
