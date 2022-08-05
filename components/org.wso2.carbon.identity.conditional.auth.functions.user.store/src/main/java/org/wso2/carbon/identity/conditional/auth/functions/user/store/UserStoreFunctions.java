@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user.store;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -119,9 +120,11 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
                     authenticatedUser.setUserName(username);
                     authenticatedUser.setTenantDomain(tenantDomain);
                     if (authenticationContext != null) {
-                        return new JsAuthenticatedUser(authenticationContext.getContext(), authenticatedUser);
+                        return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                                createJsAuthenticatedUser(authenticationContext.getContext(), authenticatedUser);
                     }
-                    return new JsAuthenticatedUser(authenticatedUser);
+                    return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                            createJsAuthenticatedUser(authenticatedUser);
                 } else {
                     LOG.error("Cannot find the user realm for the given tenant: " + tenantId);
                 }

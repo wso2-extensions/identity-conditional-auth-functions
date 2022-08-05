@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.UserS
 import org.wso2.carbon.identity.conditional.auth.functions.user.exception.UserSessionRetrievalException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSession;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsWrapperFactoryProvider;
 import org.wso2.carbon.user.core.UserRealm;
 
 import java.util.List;
@@ -47,7 +48,8 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
         List<JsUserSession> sessionsForUser = null;
         try {
             sessionsForUser = getUserSessions(user.getWrapped())
-                    .stream().map(JsUserSession::new).collect(Collectors.toList());
+                    .stream().map(JsWrapperFactoryProvider.getInstance().getWrapperFactory()::createJsUserSession)
+                    .collect(Collectors.toList());
         } catch (UserSessionRetrievalException e) {
             LOG.error(e);
         }
