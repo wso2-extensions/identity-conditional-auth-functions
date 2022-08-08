@@ -198,7 +198,7 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.testutil</artifactId>
-                <version>${carbon.identity.framework.testutils.version}</version>
+                <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.governance</groupId>
@@ -280,7 +280,7 @@
             <dependency>
                 <groupId>org.openjdk.nashorn</groupId>
                 <artifactId>nashorn-core</artifactId>
-                <version>${openjdk.nashorn.version}</version>
+                <version>${nashorn.core.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -453,7 +453,7 @@
         <org.testng.version>6.9.10</org.testng.version>
         <org.powermock.version>2.0.2</org.powermock.version>
         <com.h2database.version>1.2.140.wso2v3</com.h2database.version>
-        <openjdk.nashorn.version>15.3</openjdk.nashorn.version>
+        <nashorn.core.version>15.3</nashorn.core.version>
         <openjdk.nashorn.wso2.version>15.3.wso2v1</openjdk.nashorn.wso2.version>
 
         <org.wso2.carbon.identity.conditional.auth.functions.version.range>[1.2,2.0)</org.wso2.carbon.identity.conditional.auth.functions.version.range>
