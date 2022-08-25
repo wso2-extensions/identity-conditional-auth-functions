@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
     <artifactId>identity-conditional-auth-functions</artifactId>
-    <version>1.2.11-SNAPSHOT</version>
+    <version>1.2.11</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - IAM Conditional Authentication Functions</name>
     <url>http://wso2.org</url>
@@ -36,7 +36,7 @@
         <url>https://github.com/wso2-extensions/identity-conditional-auth-functions.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-conditional-auth-functions.git</developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-conditional-auth-functions.git</connection>
-        <tag>HEAD</tag>
+        <tag>v1.2.11</tag>
     </scm>
 
     <modules>
