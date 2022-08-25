@@ -57,14 +57,12 @@ public class ClientManager {
 
     private PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager;
 
-    private static int HTTP_CONNECTION_TIMEOUT = 300;
-    private static int HTTP_READ_TIMEOUT = 300;
-    private static int HTTP_CONNECTION_REQUEST_TIMEOUT = 300;
+    private static int HTTP_CONNECTION_TIMEOUT = 1000;
+    private static int HTTP_READ_TIMEOUT = 1000;
+    private static int HTTP_CONNECTION_REQUEST_TIMEOUT = 1000;
     private static int DEFAULT_MAX_CONNECTIONS = 20;
 
-    public ClientManager() throws FrameworkException {
-
-        poolingHttpClientConnectionManager = createPoolingConnectionManager();
+    public ClientManager() {
 
     }
 
@@ -79,6 +77,7 @@ public class ClientManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         CloseableHttpAsyncClient client = clientMap.get(tenantId);
         if (client == null) {
+            PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = createPoolingConnectionManager();
             RequestConfig config = createRequestConfig();
             HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClients.custom().setDefaultRequestConfig(config);
             addSslContext(httpClientBuilder, tenantDomain);
