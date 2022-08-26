@@ -418,8 +418,6 @@
                 <inherited>true</inherited>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>1.8</source>
-                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -436,9 +434,9 @@
         </plugins>
     </build>
     <properties>
-        <carbon.kernel.version>4.7.0-beta9</carbon.kernel.version>
+        <carbon.kernel.version>4.7.1</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
-        <carbon.identity.framework.version>5.22.0</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.23.14</carbon.identity.framework.version>
         <carbon.identity.package.import.version.range>[5.14.0, 6.0.0)</carbon.identity.package.import.version.range>
         <identity.governance.version>1.1.17</identity.governance.version>
         <identity.governance.import.version.range>[1.5.70,2.0)</identity.governance.import.version.range>
