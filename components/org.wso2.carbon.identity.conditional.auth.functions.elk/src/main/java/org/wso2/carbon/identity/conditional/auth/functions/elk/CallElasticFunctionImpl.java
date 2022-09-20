@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,7 +46,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.apache.http.HttpHeaders.*;
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.*;
 
@@ -108,7 +109,6 @@ public class CallElasticFunctionImpl extends AbstractElasticHelper implements Ca
                             int responseCode = response.getStatusLine().getStatusCode();
                             try {
                                 Map<String, Object> responseMap = new HashMap<>();
-                                LOG.error(responseCode);
                                 if (responseCode == 200) {
                                     try {
                                         String jsonString = EntityUtils.toString(response.getEntity());
@@ -190,7 +190,7 @@ public class CallElasticFunctionImpl extends AbstractElasticHelper implements Ca
                 LOG.error("Error while creating authentication. ", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (IOException e) {
-                LOG.error("Reading query config file failed");
+                LOG.error("Reading query config file failed.");
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             }
 
