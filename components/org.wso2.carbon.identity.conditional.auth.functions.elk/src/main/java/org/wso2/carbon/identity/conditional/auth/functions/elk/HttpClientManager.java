@@ -76,16 +76,11 @@ public class HttpClientManager {
         CloseableHttpAsyncClient client = clientMap.get(tenantId);
 
         if (client == null) {
-
             PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = createPoolingConnectionManager();
-
             RequestConfig config = createRequestConfig(tenantDomain);
-
             HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClients.custom().setDefaultRequestConfig(config);
-
             addSslContext(httpClientBuilder, tenantDomain);
             httpClientBuilder.setConnectionManager(poolingHttpClientConnectionManager);
-
             client = httpClientBuilder.build();
             client.start();
             clientMap.put(tenantId, client);
@@ -134,14 +129,14 @@ public class HttpClientManager {
             try {
                 readTimeout = Integer.parseInt(readTimeoutString);
             } catch (NumberFormatException e) {
-                LOG.error("Error while parsing read timeout : " + connectionTimeoutString, e);
+                LOG.error("Error while parsing read timeout : " + readTimeoutString, e);
             }
         }
         if (connectionRequestTimeoutString != null) {
             try {
                 connectionRequestTimeout = Integer.parseInt(connectionRequestTimeoutString);
             } catch (NumberFormatException e) {
-                LOG.error("Error while parsing connection request timeout : " + connectionTimeoutString, e);
+                LOG.error("Error while parsing connection request timeout : " + connectionRequestTimeoutString, e);
             }
         }
 

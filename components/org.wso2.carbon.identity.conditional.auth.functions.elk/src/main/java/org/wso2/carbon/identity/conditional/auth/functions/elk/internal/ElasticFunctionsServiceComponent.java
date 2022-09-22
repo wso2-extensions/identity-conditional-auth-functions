@@ -90,7 +90,7 @@ public class ElasticFunctionsServiceComponent {
                 LOG.error("Error while loading truststore.", e);
             }
         } catch (Throwable e) {
-            LOG.error("Error while activating AnalyticsFunctionsServiceComponent.");
+            LOG.error("Error while activating AnalyticsFunctionsServiceComponent.", e);
         }
     }
 
