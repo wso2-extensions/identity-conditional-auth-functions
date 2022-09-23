@@ -52,7 +52,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.*;
 
 /**
- * Implementation of the {@link CallElasticFunction}
+ * Implementation of the {@link CallElasticFunction}.
  */
 public class CallElasticFunctionImpl extends AbstractElasticHelper implements CallElasticFunction {
 

@@ -36,26 +36,28 @@ public abstract class AbstractElasticHelper {
     protected AuthenticationFactory authenticationFactory = new AuthenticationFactory();
 
     public AbstractElasticHelper() {
+
     }
 
     protected void handleAuthentication(HttpPost request, String tenantDomain) throws IdentityEventException {
 
-        if (Boolean.parseBoolean(isBasicAuthEnabled(tenantDomain))) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Basic Authentication enabled for outbound analytics calls in the tenant:" + tenantDomain);
-            }
-            String username = getUsername(tenantDomain);
-            String password = getPassword(tenantDomain);
-
-            AuthenticationManager authenticationManager = authenticationFactory.getAuthenticationManager("Basic");
-            request.setHeader(authenticationManager.authenticate(new UsernamePasswordCredentials(username,
-                    password), request));
-        } else {
+        if (!Boolean.parseBoolean(isBasicAuthEnabled(tenantDomain))) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Basic Authentication is not enabled for outbound analytics calls in for the tenant:" +
                         tenantDomain);
             }
+            return;
         }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Basic Authentication enabled for outbound analytics calls in the tenant:" + tenantDomain);
+        }
+        String username = getUsername(tenantDomain);
+        String password = getPassword(tenantDomain);
+
+        AuthenticationManager authenticationManager = authenticationFactory.getAuthenticationManager("Basic");
+        request.setHeader(authenticationManager.authenticate(new UsernamePasswordCredentials(username,
+                password), request));
     }
 
     protected String getPassword(String tenantDomain) throws IdentityEventException {
