@@ -106,7 +106,6 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                             if (responseCode == 200) {
                                 Gson gson = new GsonBuilder().create();
                                 Map<String, String> responseBody = gson.fromJson(EntityUtils.toString(httpResponse.getEntity()), HashMap.class);
-                                LOG.info(responseBody.get("access_token"));
                                 callChoreoEndpoint(epUrl, asyncReturn, authenticationContext, payloadData, responseBody.get("access_token"));
                             } else {
                                 LOG.error("Failed to retrieve access token from Choreo. Response Code: " + responseCode);
@@ -167,7 +166,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 LOG.error("Error while calling endpoint.", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (SecretManagementException e) {
-                LOG.error("Error while resolving API key.", e);
+                LOG.error("Error while resolving Choreo consumer key or secret .", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (Exception e) {
                 LOG.error("Error while invoking callChoreo.", e);
@@ -259,20 +258,12 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             consumerKey = getResolvedSecret(consumerKeyAlias);
         }
 
-        if (StringUtils.isEmpty(consumerKey)) {
-            throw new IllegalArgumentException("Invalid consumer key.");
-        }
-
         String consumerSecret;
         if (StringUtils.isNotEmpty(connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME))) {
             consumerSecret = connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME);
         } else {
             String consumerSecretAlias = connectionMetaData.get(CONSUMER_SECRET_ALIAS_VARIABLE_NAME);
             consumerSecret = getResolvedSecret(consumerSecretAlias);
-        }
-
-        if (StringUtils.isEmpty(consumerSecret)) {
-            throw new IllegalArgumentException("Invalid consumer secret.");
         }
 
         request.setHeader(AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString((consumerKey + ":" + consumerSecret).getBytes()));
