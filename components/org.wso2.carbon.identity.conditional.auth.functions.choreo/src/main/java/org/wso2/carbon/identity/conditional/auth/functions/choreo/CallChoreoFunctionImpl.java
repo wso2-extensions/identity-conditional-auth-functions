@@ -129,12 +129,41 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
                     @Override
                     public void failed(Exception e) {
-                        // TODO: Handle failed scenario.
+
+                        LOG.error("Failed to request access token from Choreo for the session data key: " +
+                                authenticationContext.getContextIdentifier(), e
+                        );
+                        try {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("Requesting access token from Choreo failed for session data key: "
+                                        + authenticationContext.getContextIdentifier()
+                                );
+                            }
+                            String outcome = OUTCOME_FAIL;
+                            if ((e instanceof SocketTimeoutException) || (e instanceof ConnectTimeoutException)) {
+                                outcome = OUTCOME_TIMEOUT;
+                            }
+                            asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
+                        } catch (FrameworkException ex) {
+                            LOG.error("Error while proceeding after failing to request access token for the session data key: " +
+                                    authenticationContext.getContextIdentifier(), e
+                            );
+                        }
                     }
 
                     @Override
                     public void cancelled() {
-                        // TODO: Handle cancelled scenario.
+                        LOG.error("Requesting access token from Choreo for the session data key: " +
+                                authenticationContext.getContextIdentifier() + " is cancelled."
+                        );
+                        try {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug(" Calls to Choreo for session data key: " + authenticationContext.getContextIdentifier());
+                            }
+                            asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                        } catch (FrameworkException e) {
+                            LOG.error("Error while proceeding after cancelled response from Choreo " + "call for session data key: " + authenticationContext.getContextIdentifier(), e);
+                        }
                     }
                 });
 
