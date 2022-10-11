@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.CHOREO_DOMAINS;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.CHOREO_TOKEN_ENDPOINT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_REQUEST_TIMEOUT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_TIMEOUT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_FUNCTION_ALLOWED_DOMAINS;
@@ -40,6 +41,7 @@ public class ConfigProvider {
     private int connectionRequestTimeout;
     private List<String> httpFunctionAllowedDomainList = new ArrayList<>();
     private List<String> choreoDomainList = new ArrayList<>();
+    private final String choreoTokenEndpoint;
 
     private static ConfigProvider instance = new ConfigProvider();
 
@@ -52,6 +54,7 @@ public class ConfigProvider {
         List<String> httpFunctionAllowedDomainList = IdentityUtil.getPropertyAsList(HTTP_FUNCTION_ALLOWED_DOMAINS);
         List<String> choreoDomainList = IdentityUtil.getPropertyAsList(CHOREO_DOMAINS);
 
+        this.choreoTokenEndpoint = IdentityUtil.getProperty(CHOREO_TOKEN_ENDPOINT);
         connectionTimeout = defaultTimeout;
         readTimeout = defaultTimeout;
         connectionRequestTimeout = defaultTimeout;
@@ -124,5 +127,10 @@ public class ConfigProvider {
     public List<String> getChoreoDomains() {
 
         return choreoDomainList;
+    }
+
+    public String getChoreoTokenEndpoint() {
+
+        return choreoTokenEndpoint;
     }
 }

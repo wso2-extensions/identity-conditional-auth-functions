@@ -77,7 +77,6 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
     private static final char DOMAIN_SEPARATOR = '.';
     private final List<String> choreoDomains;
-    private static final String TOKEN_ENDPOINT = "https://sts.choreo.dev/oauth2/token";
 
     public CallChoreoFunctionImpl() {
 
@@ -254,7 +253,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
     private void requestAccessToken(String tenantDomain, Map<String, String> connectionMetaData, FutureCallback<HttpResponse> futureCallback) throws SecretManagementException, IOException, FrameworkException {
 
-        HttpPost request = new HttpPost(TOKEN_ENDPOINT);
+        HttpPost request = new HttpPost(ConfigProvider.getInstance().getChoreoTokenEndpoint());
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
         request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
