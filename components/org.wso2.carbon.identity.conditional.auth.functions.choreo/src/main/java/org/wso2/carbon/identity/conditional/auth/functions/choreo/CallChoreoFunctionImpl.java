@@ -114,6 +114,9 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                         } catch (IOException e) {
                             LOG.error("Failed to parse access token response to string.", e);
                             isFailure = true;
+                        } catch (Exception e){
+                            LOG.error("Error occurred while handling the token response from Choreo", e);
+                            isFailure = true;
                         }
 
                         if (isFailure) {
@@ -163,7 +166,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 LOG.error("Invalid endpoint Url: " + epUrl, e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (IOException e) {
-                LOG.error("Error while calling endpoint.", e);
+                LOG.error("Error while requesting access token from Choreo.", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (SecretManagementException e) {
                 LOG.error("Error while resolving Choreo consumer key or secret .", e);
@@ -244,7 +247,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         return parentDomain;
     }
 
-    private void requestAccessToken(String tenantDomain, Map<String, String> connectionMetaData, FutureCallback<HttpResponse> futureCallback) throws SecretManagementException, IOException, FrameworkException {
+    private void requestAccessToken(String tenantDomain, Map<String, String> connectionMetaData, FutureCallback<HttpResponse> futureCallback)
+            throws SecretManagementException, IOException, FrameworkException {
 
         HttpPost request = new HttpPost(ConfigProvider.getInstance().getChoreoTokenEndpoint());
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
@@ -278,17 +282,16 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
     private void callChoreoEndpoint(String epUrl, AsyncReturn asyncReturn, AuthenticationContext authenticationContext, Map<String, Object> payloadData, String accessToken) {
 
-        try {
+            boolean isFailure = false;
             HttpPost request = new HttpPost(epUrl);
             request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
             request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
             request.setHeader(AUTHORIZATION, "Bearer " + accessToken);
 
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.putAll(payloadData);
             try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.putAll(payloadData);
                 request.setEntity(new StringEntity(jsonObject.toJSONString()));
-
                 CloseableHttpAsyncClient client = ChoreoFunctionServiceHolder.getInstance().getClientManager().getClient(authenticationContext.getTenantDomain());
                 client.execute(request, new FutureCallback<HttpResponse>() {
 
@@ -333,15 +336,25 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     }
                 });
             } catch (UnsupportedEncodingException e) {
-                LOG.error("Error while constructing request payload for calling choreo endpoint", e);
-                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
-            } catch (FrameworkException e) {
-                LOG.error("Error while getting HTTP client for calling the choreo endpoint", e);
-                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                LOG.error("Error while constructing request payload for calling choreo endpoint.", e);
+                isFailure = true;
+            } catch (FrameworkException | IOException e) {
+                LOG.error("Error while getting HTTP client for calling the choreo endpoint.", e);
+                isFailure = true;
+            } catch (Exception e){
+                LOG.error("Error while calling Choreo endpoint.", e);
+                isFailure = true;
             }
-        } catch (Exception e) {
-            LOG.error("Error while trying to return from Choreo call after an exception. session data key: " + authenticationContext.getContextIdentifier(), e);
-        }
+
+            if(isFailure){
+                try {
+                    asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                } catch (FrameworkException e){
+                    LOG.error("Error while trying to return from Choreo call after an exception. session data key: " +
+                            authenticationContext.getContextIdentifier(), e
+                    );
+                }
+            }
     }
 
     private void handleChoreoEndpointResponse(AuthenticationContext authenticationContext, AsyncReturn asyncReturn, final HttpResponse response) throws FrameworkException {
