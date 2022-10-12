@@ -77,7 +77,10 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String CONSUMER_SECRET_ALIAS_VARIABLE_NAME = "consumerSecretAlias";
     private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
     private static final char DOMAIN_SEPARATOR = '.';
+    public static final String ACCESS_TOKEN_KEY = "access_token";
     private final List<String> choreoDomains;
+    private static final String BEARER = "Bearer ";
+    private static final String BASIC = "Basic ";
 
     public CallChoreoFunctionImpl() {
 
@@ -107,7 +110,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                             if (responseCode == 200) {
                                 Gson gson = new GsonBuilder().create();
                                 Map<String, String> responseBody = gson.fromJson(EntityUtils.toString(httpResponse.getEntity()), HashMap.class);
-                                callChoreoEndpoint(epUrl, asyncReturn, authenticationContext, payloadData, responseBody.get("access_token"));
+                                callChoreoEndpoint(epUrl, asyncReturn, authenticationContext, payloadData, responseBody.get(ACCESS_TOKEN_KEY));
                             } else {
                                 LOG.error("Failed to retrieve access token from Choreo. Response Code: " + responseCode +
                                         ". Session data key: " + authenticationContext.getContextIdentifier()
@@ -280,7 +283,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             consumerSecret = getResolvedSecret(consumerSecretAlias);
         }
 
-        request.setHeader(AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString((consumerKey + ":" + consumerSecret).getBytes()));
+        request.setHeader(AUTHORIZATION, BASIC + Base64.getEncoder().encodeToString((consumerKey + ":" + consumerSecret).getBytes()));
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS);
@@ -290,19 +293,22 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         client.execute(request, futureCallback);
     }
 
-    private void callChoreoEndpoint(String epUrl, AsyncReturn asyncReturn, AuthenticationContext authenticationContext, Map<String, Object> payloadData, String accessToken) {
+    private void callChoreoEndpoint(String endpointUrl, AsyncReturn asyncReturn, AuthenticationContext authenticationContext,
+                                    Map<String, Object> payloadData, String accessToken) {
 
         boolean isFailure = false;
-        HttpPost request = new HttpPost(epUrl);
+        HttpPost request = new HttpPost(endpointUrl);
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
         request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
-        request.setHeader(AUTHORIZATION, "Bearer " + accessToken);
+        request.setHeader(AUTHORIZATION, BEARER + accessToken);
 
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.putAll(payloadData);
             request.setEntity(new StringEntity(jsonObject.toJSONString()));
-            CloseableHttpAsyncClient client = ChoreoFunctionServiceHolder.getInstance().getClientManager().getClient(authenticationContext.getTenantDomain());
+            CloseableHttpAsyncClient client = ChoreoFunctionServiceHolder.getInstance().getClientManager().getClient(
+                    authenticationContext.getTenantDomain()
+            );
             client.execute(request, new FutureCallback<HttpResponse>() {
 
                 @Override
