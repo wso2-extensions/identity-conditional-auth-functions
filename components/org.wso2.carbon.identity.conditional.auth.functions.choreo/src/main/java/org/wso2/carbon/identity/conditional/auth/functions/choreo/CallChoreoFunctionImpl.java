@@ -38,12 +38,12 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.conditional.auth.functions.choreo.cache.AccessTokenCache;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
-import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -83,9 +83,12 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
 
+    private final AccessTokenCache accessTokenCache;
+
     public CallChoreoFunctionImpl() {
 
         this.choreoDomains = ConfigProvider.getInstance().getChoreoDomains();
+        this.accessTokenCache = AccessTokenCache.getInstance();
     }
 
     @Override
@@ -100,10 +103,12 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     asyncReturn.accept(authenticationContext, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                     return;
                 }
-                String accessToken = retrieveAccessToken(authenticationContext);
-                if(StringUtils.isEmpty(accessToken)) {
+
+                String tenantDomain = authenticationContext.getTenantDomain();
+                String accessToken = accessTokenCache.getValueFromCache(ACCESS_TOKEN_KEY, tenantDomain);
+                if (StringUtils.isEmpty(accessToken)) {
                     LOG.info("Requesting the access token from Choreo");
-                    requestAccessToken(authenticationContext.getTenantDomain(), connectionMetaData, new FutureCallback<HttpResponse>() {
+                    requestAccessToken(tenantDomain, connectionMetaData, new FutureCallback<HttpResponse>() {
                         @Override
                         public void completed(HttpResponse httpResponse) {
 
@@ -114,7 +119,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                     Gson gson = new GsonBuilder().create();
                                     Map<String, String> responseBody = gson.fromJson(EntityUtils.toString(httpResponse.getEntity()), HashMap.class);
                                     String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
-                                    storeAccessToken(ACCESS_TOKEN_KEY, accessToken);
+                                    accessTokenCache.addToCache(ACCESS_TOKEN_KEY, accessToken, tenantDomain);
                                     callChoreoEndpoint(epUrl, asyncReturn, authenticationContext, payloadData, accessToken);
                                 } else {
                                     LOG.error("Failed to retrieve access token from Choreo. Response Code: " + responseCode +
@@ -201,27 +206,9 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
     public String getResolvedSecret(String name) throws SecretManagementException {
 
-        ResolvedSecret responseDTO = ChoreoFunctionServiceHolder.getSecretResolveManager()
+        ResolvedSecret responseDTO = ChoreoFunctionServiceHolder.getInstance().getSecretConfigManager()
                 .getResolvedSecret(SECRET_TYPE, name);
         return responseDTO.getResolvedSecretValue();
-    }
-
-    public void storeAccessToken(String name, String value) throws SecretManagementException {
-
-        Secret secret = new Secret(name);
-        secret.setSecretValue(value);
-        ChoreoFunctionServiceHolder.getSecretManager().addSecret(SECRET_TYPE, secret);
-    }
-
-    private String retrieveAccessToken(AuthenticationContext authContext) throws SecretManagementException {
-        String accessToken;
-        try {
-            accessToken = getResolvedSecret(ACCESS_TOKEN_KEY);
-        } catch (SecretManagementException e){
-            accessToken = "";
-            LOG.info("Could not retrieve access token for session data key: " + authContext.getContextIdentifier());
-        }
-        return accessToken;
     }
 
     private boolean isValidChoreoDomain(String url) {

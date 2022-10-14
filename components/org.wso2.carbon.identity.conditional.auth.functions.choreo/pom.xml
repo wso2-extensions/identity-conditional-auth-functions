@@ -194,6 +194,7 @@
                             org.wso2.carbon.identity.secret.mgt.core,
                             org.wso2.carbon.identity.secret.mgt.core.exception,
                             org.wso2.carbon.identity.secret.mgt.core.model,
+                            org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>

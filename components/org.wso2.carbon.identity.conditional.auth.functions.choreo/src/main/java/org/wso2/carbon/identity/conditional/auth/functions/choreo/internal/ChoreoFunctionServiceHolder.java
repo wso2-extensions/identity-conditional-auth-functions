@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.choreo.internal;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.ClientManager;
-import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
 import java.security.KeyStore;
@@ -37,8 +36,7 @@ public class ChoreoFunctionServiceHolder {
     private ServerConfigurationService serverConfigurationService;
     private KeyStore trustStore;
     private ClientManager clientManager;
-    private static SecretResolveManager secretResolveManager;
-    private static SecretManager secretManager;
+    private static SecretResolveManager secretConfigManager;
 
     public KeyStore getTrustStore() {
 
@@ -85,23 +83,13 @@ public class ChoreoFunctionServiceHolder {
         return clientManager;
     }
 
-    public static SecretResolveManager getSecretResolveManager() {
+    public SecretResolveManager getSecretConfigManager() {
 
-        return secretResolveManager;
+        return secretConfigManager;
     }
 
-    public static void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+    public void setSecretConfigManager(SecretResolveManager secretConfigManager) {
 
-        ChoreoFunctionServiceHolder.secretResolveManager = secretResolveManager;
-    }
-
-    public static SecretManager getSecretManager() {
-
-        return secretManager;
-    }
-
-    public static void setSecretManager(SecretManager secretManager) {
-
-        ChoreoFunctionServiceHolder.secretManager = secretManager;
+        this.secretConfigManager = secretConfigManager;
     }
 }
