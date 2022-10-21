@@ -77,9 +77,9 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String TOKEN_ENDPOINT_NO_TOKEN = "no-token";
 
     private static final AtomicInteger requestCount = new AtomicInteger(0);
-    public static final String CHOREO_SERVICE_SUCCESS_PATH = "/dummyurl";
-    public static final String CHOREO_SERVICE_EXPIRE_TOKEN_ONCE = "/token-expired-once";
-    public static final String CHOREO_SERVICE_EXPIRE_TOKEN_ALWAYS = "/token-expired-always";
+    public static final String CHOREO_SERVICE_SUCCESS_PATH = "/choreo-service-success";
+    public static final String CHOREO_SERVICE_EXPIRE_TOKEN_ONCE = "/choreo-service-token-expired-once";
+    public static final String CHOREO_SERVICE_EXPIRE_TOKEN_ALWAYS = "/choreo-service-token-expired-always";
     public static final String CHOREO_TOKEN_FAILURE = "/token-failure";
     public static final String CHOREO_TOKEN_SUCCESS = "/token-success";
 
@@ -254,8 +254,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @POST
     @Path(CHOREO_SERVICE_SUCCESS_PATH)
-    @Consumes("application/json")
-    @Produces("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Map<String, String> choreoReceiver(Map<String, String> data) {
 
         Map<String, String> response = new HashMap<>();
@@ -265,8 +265,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @POST
     @Path(CHOREO_TOKEN_SUCCESS)
-    @Consumes("application/json")
-    @Produces("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Map<String, String> choreoTokenEndpointSuccessResponse(Map<String, String> data) {
 
         Map<String, String> response = new HashMap<>();
@@ -279,23 +279,22 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @POST
     @Path(CHOREO_TOKEN_FAILURE)
-    @Consumes("application/json")
-    @Produces("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response choreoTokenEndpointFailureResponse(Map<String, String> data) {
 
         Map<String, String> json = new HashMap<>();
         json.put("test", "value");
         return Response
                 .status(Response.Status.INTERNAL_SERVER_ERROR)
-                .type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(json.toString())
                 .build();
     }
 
     @POST
     @Path(CHOREO_SERVICE_EXPIRE_TOKEN_ONCE)
-    @Consumes("application/json")
-    @Produces("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response choreoServiceEndpointTokenExpiredOnce(Map<String, String> data) {
 
         Map<String, String> responseBody = new HashMap<>();
@@ -304,7 +303,6 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
             requestCount.incrementAndGet();
             return Response
                     .status(Response.Status.UNAUTHORIZED)
-                    .type(MediaType.APPLICATION_JSON_TYPE)
                     .entity(responseBody.toString())
                     .build();
         }
@@ -315,8 +313,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @POST
     @Path(CHOREO_SERVICE_EXPIRE_TOKEN_ALWAYS)
-    @Consumes("application/json")
-    @Produces("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response choreoServiceEndpointTokenExpiredAlways(Map<String, String> data) {
 
         Map<String, String> responseBody = new HashMap<>();
@@ -324,7 +322,6 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         requestCount.incrementAndGet();
         return Response
                 .status(Response.Status.UNAUTHORIZED)
-                .type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(responseBody.toString())
                 .build();
     }
