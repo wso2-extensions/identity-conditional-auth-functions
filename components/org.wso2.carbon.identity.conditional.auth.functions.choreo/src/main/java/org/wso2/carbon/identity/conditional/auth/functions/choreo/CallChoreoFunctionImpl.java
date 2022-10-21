@@ -52,7 +52,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -266,7 +265,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             try {
                 int responseCode = httpResponse.getStatusLine().getStatusCode();
                 if (responseCode == 200) {
-                    Map<String, String> responseBody = this.gson.fromJson(EntityUtils.toString(httpResponse.getEntity()), HashMap.class);
+                    Type responseBodyType = new TypeToken<Map<String, String>>() {}.getType();
+                    Map<String, String> responseBody = this.gson.fromJson(EntityUtils.toString(httpResponse.getEntity()), responseBodyType);
                     String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
                     if (accessToken != null) {
                         accessTokenCache.addToCache(ACCESS_TOKEN_KEY, accessToken, this.authenticationContext.getTenantDomain());
