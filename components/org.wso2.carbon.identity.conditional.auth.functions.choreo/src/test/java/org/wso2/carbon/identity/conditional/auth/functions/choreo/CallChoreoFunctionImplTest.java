@@ -18,6 +18,16 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.choreo;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -48,10 +58,11 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
@@ -75,14 +86,14 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String TOKEN_ENDPOINT_SUCCESS = "success";
     private static final String TOKEN_ENDPOINT_FAILURE = "failure";
     private static final String TOKEN_ENDPOINT_NO_TOKEN = "no-token";
-
     private static final AtomicInteger requestCount = new AtomicInteger(0);
-    public static final String CHOREO_SERVICE_SUCCESS_PATH = "/choreo-service-success";
-    public static final String CHOREO_SERVICE_EXPIRE_TOKEN_ONCE = "/choreo-service-token-expired-once";
-    public static final String CHOREO_SERVICE_EXPIRE_TOKEN_ALWAYS = "/choreo-service-token-expired-always";
-    public static final String CHOREO_TOKEN_FAILURE = "/token-failure";
-    public static final String CHOREO_TOKEN_SUCCESS = "/token-success";
-
+    private static final String CHOREO_SERVICE_SUCCESS_PATH = "/choreo-service-success";
+    private static final String CHOREO_SERVICE_EXPIRE_TOKEN_ONCE = "/choreo-service-token-expired-once";
+    private static final String CHOREO_SERVICE_EXPIRE_TOKEN_ALWAYS = "/choreo-service-token-expired-always";
+    private static final String CHOREO_TOKEN_FAILURE = "/token-failure";
+    private static final String CHOREO_TOKEN_SUCCESS = "/token-success";
+    private static final String TENANT_DOMAIN = "test_domain";
+    private static final String ACCESS_TOKEN_KEY = "access_token";
     @WithRealmService
     private RealmService realmService;
 
@@ -120,7 +131,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @AfterMethod
     private void cleanup() {
-        AccessTokenCache.getInstance().clear("test_domain");
+
+        AccessTokenCache.getInstance().clear(TENANT_DOMAIN);
     }
 
     @DataProvider(name = "choreoEpValidity")
@@ -206,6 +218,40 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         assertEquals(context.getSelectedAcr(), FAILED, "Expected the request to fail");
     }
 
+    @Test
+    public void testCallChoreCachingToken() throws JsTestException, NoSuchFieldException, IllegalAccessException {
+
+        // Clear access token cache to ensure there are no residual values from other tests.
+        AccessTokenCache.getInstance().clear(TENANT_DOMAIN);
+
+        AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
+        setChoreoDomain("localhost");
+        setTokenEndpoint(TOKEN_ENDPOINT_SUCCESS);
+
+        HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
+        HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
+
+        sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
+        assertNotNull(AccessTokenCache.getInstance().getValueFromCache(ACCESS_TOKEN_KEY, TENANT_DOMAIN));
+        assertEquals(context.getSelectedAcr(), "1", "Expected acr value not found");
+
+        // Making another authentication attempt using new authentication context, request and a response to
+        // simulate a subsequent login attempt.
+        AuthenticationContext secondContext = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
+
+        // Set token endpoint to the endpoint which returns a failure response to make sure an access token request
+        // will not receive a valid response. The second authentication attempt will only succeed if there was a valid
+        // token in the cache.
+        setTokenEndpoint(TOKEN_ENDPOINT_FAILURE);
+
+        HttpServletRequest secondRequest = sequenceHandlerRunner.createHttpServletRequest();
+        HttpServletResponse secondResponse = sequenceHandlerRunner.createHttpServletResponse();
+
+        sequenceHandlerRunner.handle(secondRequest, secondResponse, secondContext, "carbon.super");
+        assertEquals(secondContext.getSelectedAcr(), "1", "Expected acr value not found");
+
+    }
+
     private AuthenticationContext getAuthenticationContext(String choreoServiceResourcePath) throws JsTestException {
 
         ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("risk-test-sp.xml", this);
@@ -252,6 +298,28 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         choreoTokenEndpoint.set(instance, String.format(tokenEndpoint, microServicePort));
     }
 
+    private String generateAccessToken(boolean isValid) throws JOSEException {
+        Instant instant = isValid ? Instant.now().plusSeconds(3600) : Instant.now().minusSeconds(3600);
+            RSAKey senderJWK = new RSAKeyGenerator(2048)
+                    .keyID("123")
+                    .keyUse(KeyUse.SIGNATURE)
+                    .generate();
+            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
+                    .type(JOSEObjectType.JWT)
+                    .keyID("MWQ5NWUwYWZiMmMzZTIzMzdmMzBhMWM4YjQyMjVhNWM4NjhkMGRmNzFlMGI3ZDlmYmQzNmEyMzhhYjBiNmZhYw_RS256")
+                    .build();
+            JWTClaimsSet payload = new JWTClaimsSet.Builder()
+                    .issuer("https://sts.choreo.dev:443/oauth2/token")
+                    .audience("3ENOyHzZtwaP54apEjuV5H31Q_gb")
+                    .subject("0aac3d44-b5tf-4641-8902-7af8713364f8")
+                    .expirationTime(Date.from(instant))
+                    .build();
+
+            SignedJWT signedJWT = new SignedJWT(header, payload);
+            signedJWT.sign(new RSASSASigner(senderJWK));
+            return signedJWT.serialize();
+    }
+
     @POST
     @Path(CHOREO_SERVICE_SUCCESS_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -267,10 +335,10 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Path(CHOREO_TOKEN_SUCCESS)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, String> choreoTokenEndpointSuccessResponse(Map<String, String> data) {
+    public Map<String, String> choreoTokenEndpointSuccessResponse(Map<String, String> data) throws JOSEException {
 
         Map<String, String> response = new HashMap<>();
-        response.put("access_token", "eyJ4NXQiOiJNV1E1TldVd1lXWmlNbU16WlRJek16ZG1NekJoTVdNNFlqUXlNalZoTldNNE5qaGtNR1JtTnpGbE1HSTNaRGxtWW1Rek5tRXlNemhoWWpCaU5tWmhZdyIsImtpZCI6Ik1XUTVOV1V3WVdaaU1tTXpaVEl6TXpkbU16QmhNV000WWpReU1qVmhOV000Tmpoa01HUm1OekZsTUdJM1pEbG1ZbVF6Tm1FeU16aGhZakJpTm1aaFl3X1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwYWFjM2Q0My1iNWNmLTQ2NDEtODkwMi03YWY4NjEzMzY0ZjQiLCJhdXQiOiJBUFBMSUNBVElPTiIsImF1ZCI6IjNFV095RHpaMXdhUDU0YWZFanVWNUgzMVFfZ2EiLCJuYmYiOjE2NjYyODUxNDYsImF6cCI6IjNFV095RHpaMXdhUDU0YWZFanVWNUgzMVFfZ2EiLCJzY29wZSI6ImRlZmF1bHQiLCJvcmdhbml6YXRpb24iOnsidXVpZCI6IjQyODA3ZTFmLTA3YmEtNGZiMC1hNmQyLWVjYzdiNDFkZDE0MyJ9LCJpc3MiOiJodHRwczpcL1wvc3RzLmNob3Jlby5kZXY6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNjY2Mjg4NzQ2LCJpYXQiOjE2NjYyODUxNDYsImp0aSI6IjVkYjgzOTEyLWNlY2EtNGU1NC04MGJmLTFiNjAxNWYwZDIyMiJ9.QcSerNslaBJ_k2-nht7qoWh2Q-E4_B5J_9dPo_7jWzSkOZlpsmchnDG_2wL2JR1gEXGyoQg6akovQSGrafPpwQ7ONjqxaYqkFOnuSRLFhevyRWZ7TdnD7ShoZzcaSIF0yb68MpOwLjP87eAE_iHZJVwKYw1w2uHfdJI0VDVz1Q20qtpD1NhodfD5Hks1rXG-GGHwqXVdGwde1vGRGMtVDqSZ37G3b4XYtjMq0MfSni9o1WLPic357P9Y1QGmzrt0X2lCEcc4iy9oDOnfnVGdRMcbmJa7MbKrg1LlpbaK_PTKW1MofjQqTA-glqJGCdA32AiHrpwYkT0a_F2PQgQjD3mWWnKMejvfLPr2d0Ltwg7ykeaG1-3ZxrYo1inxtG5Hj5m8QcLdW43lFMJ6y6HPkc0DkjnwJwk-w-1dF7TkDn35zMXb4U2hBtXAIZsDEyhRCl-j_wRAbczrXCTykngfABhcKjIf5TDQye1zyeCtPMcUtql2lLF133bmRjB-Y4SvWzs00iVOnyN1EmoRGdb_k0yHojY1sURI5I553yykjtP3k7XAQYpNvMwZJC8p_avl6QE6n7VhaWU1ccRZZMe2gvTg1YQSr3qC4QRYwCUjqCpcrRou8pRZBJ9tYnEQRCk5XtNGLwzYUcsk1iGqhfa9G3mSI0WAqBMJO0G39sBS8V0");
+        response.put("access_token", generateAccessToken(true));
         response.put("scope", "default");
         response.put("token_type", "Bearer");
         response.put("expires_in", "3600");
