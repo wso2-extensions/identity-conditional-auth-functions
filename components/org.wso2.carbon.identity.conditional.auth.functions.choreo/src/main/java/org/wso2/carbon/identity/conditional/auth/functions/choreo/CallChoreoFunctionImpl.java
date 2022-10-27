@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.choreo;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,8 +51,12 @@ import java.lang.reflect.Type;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -83,6 +88,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     public static final int HTTP_STATUS_UNAUTHORIZED = 401;
     public static final String ERROR_CODE_ACCESS_TOKEN_INACTIVE = "900901";
     public static final String CODE = "code";
+    public static final String JWT_EXP_CLAIM = "exp";
     private final List<String> choreoDomains;
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
@@ -114,11 +120,11 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                         connectionMetaData, asyncReturn, authenticationContext, payloadData
                 );
                 String accessToken = accessTokenCache.getValueFromCache(ACCESS_TOKEN_KEY, tenantDomain);
-                if (StringUtils.isEmpty(accessToken)) {
+                if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {
+                    accessTokenResponseHandler.callChoreoEndpoint(accessToken);
+                } else {
                     LOG.info("Requesting the access token from Choreo");
                     requestAccessToken(tenantDomain, connectionMetaData, accessTokenResponseHandler);
-                } else {
-                    accessTokenResponseHandler.callChoreoEndpoint(accessToken);
                 }
             } catch (IllegalArgumentException e) {
                 LOG.error("Invalid endpoint Url: " + epUrl, e);
@@ -135,6 +141,14 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+    }
+
+    private boolean isTokenExpired(String accessToken) throws ParseException {
+
+        SignedJWT decodedToken = SignedJWT.parse(accessToken);
+        Date expiryDate = (Date) decodedToken.getJWTClaimsSet().getClaim(JWT_EXP_CLAIM);
+        LocalDateTime expiryTimestamp = LocalDateTime.ofInstant(expiryDate.toInstant(), ZoneId.systemDefault());
+        return LocalDateTime.now().isAfter(expiryTimestamp);
     }
 
     public String getResolvedSecret(String name) throws SecretManagementException {
