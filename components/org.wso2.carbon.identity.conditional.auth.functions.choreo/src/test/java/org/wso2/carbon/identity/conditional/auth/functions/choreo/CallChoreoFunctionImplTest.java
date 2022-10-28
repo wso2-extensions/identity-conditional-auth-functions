@@ -188,6 +188,24 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     @Test
+    public void testCallChoreoExpiredTokenInCache()
+            throws JsTestException, NoSuchFieldException, IllegalAccessException, JOSEException {
+        // set an expired token to the cache.
+        AccessTokenCache.getInstance().addToCache(ACCESS_TOKEN_KEY, generateAccessToken(false), TENANT_DOMAIN);
+
+        AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
+        setChoreoDomain("localhost");
+        setTokenEndpoint(TOKEN_ENDPOINT_SUCCESS);
+
+        HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
+        HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
+
+        sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
+        assertEquals(context.getSelectedAcr(), "1", "Expected the request to fail");
+
+    }
+
+    @Test
     public void testCallChoreTokenExpireOnce() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_EXPIRE_TOKEN_ONCE);
