@@ -83,12 +83,12 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String CONSUMER_SECRET_ALIAS_VARIABLE_NAME = "consumerSecretAlias";
     private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
     private static final char DOMAIN_SEPARATOR = '.';
-    public static final String ACCESS_TOKEN_KEY = "access_token";
-    public static final int HTTP_STATUS_OK = 200;
-    public static final int HTTP_STATUS_UNAUTHORIZED = 401;
-    public static final String ERROR_CODE_ACCESS_TOKEN_INACTIVE = "900901";
-    public static final String CODE = "code";
-    public static final String JWT_EXP_CLAIM = "exp";
+    private static final String ACCESS_TOKEN_KEY = "access_token";
+    private static final int HTTP_STATUS_OK = 200;
+    private static final int HTTP_STATUS_UNAUTHORIZED = 401;
+    private static final String ERROR_CODE_ACCESS_TOKEN_INACTIVE = "900901";
+    private static final String CODE = "code";
+    private static final String JWT_EXP_CLAIM = "exp";
     private final List<String> choreoDomains;
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
@@ -447,20 +447,22 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 if (statusCode == HTTP_STATUS_OK) {
                     responseBodyType = new TypeToken<Map<String, Object>>() {
                     }.getType();
-                    Map<String, Object> json = this.gson.fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
-                    this.asyncReturn.accept(authenticationContext, json, Constants.OUTCOME_SUCCESS);
+                    Map<String, Object> successResponseBody = this.gson.fromJson(
+                            EntityUtils.toString(response.getEntity()), responseBodyType
+                    );
+                    this.asyncReturn.accept(authenticationContext, successResponseBody, Constants.OUTCOME_SUCCESS);
                 } else if (statusCode == HTTP_STATUS_UNAUTHORIZED) {
                     responseBodyType = new TypeToken<Map<String, String>>() {}.getType();
                     Map<String, String> responseBody = this.gson.fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
                     if (ERROR_CODE_ACCESS_TOKEN_INACTIVE.equals(responseBody.get(CODE))) {
                         handleExpiredToken();
                     } else {
-                        LOG.info("Received unauthorized response from Choreo: ");
+                        LOG.info("Received 401 response from Choreo. Session data key: " + authenticationContext.getContextIdentifier());
                         this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                     }
                 } else {
                     LOG.info("Received non 200 response code from Choreo. Status Code: " + statusCode +
-                            " Session Data Key: " + authenticationContext.getContextIdentifier()
+                            " Session data Key: " + authenticationContext.getContextIdentifier()
                     );
                     this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 }
