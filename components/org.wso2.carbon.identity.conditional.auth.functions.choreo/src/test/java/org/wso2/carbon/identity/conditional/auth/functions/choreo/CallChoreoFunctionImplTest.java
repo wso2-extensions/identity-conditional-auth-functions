@@ -85,7 +85,6 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String FAILED = "FAILED";
     private static final String TOKEN_ENDPOINT_SUCCESS = "success";
     private static final String TOKEN_ENDPOINT_FAILURE = "failure";
-    private static final String TOKEN_ENDPOINT_NO_TOKEN = "no-token";
     private static final AtomicInteger requestCount = new AtomicInteger(0);
     private static final String CHOREO_SERVICE_SUCCESS_PATH = "/choreo-service-success";
     private static final String CHOREO_SERVICE_EXPIRE_TOKEN_ONCE = "/choreo-service-token-expired-once";
@@ -133,6 +132,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private void cleanup() {
 
         AccessTokenCache.getInstance().clear(TENANT_DOMAIN);
+        requestCount.set(0);
     }
 
     @DataProvider(name = "choreoEpValidity")
@@ -191,7 +191,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public void testCallChoreoExpiredTokenInCache()
             throws JsTestException, NoSuchFieldException, IllegalAccessException, JOSEException {
         // set an expired token to the cache.
-        AccessTokenCache.getInstance().addToCache(ACCESS_TOKEN_KEY, generateAccessToken(false), TENANT_DOMAIN);
+        AccessTokenCache.getInstance().addToCache(ACCESS_TOKEN_KEY, generateTestAccessToken(true), TENANT_DOMAIN);
 
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
         setChoreoDomain("localhost");
@@ -270,6 +270,13 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     }
 
+    /**
+     * Create and returns an authentication context.
+     *
+     * @param choreoServiceResourcePath The resource path of the Choreo service that needs to be invoked.
+     * @return An authentication context.
+     * @throws JsTestException {@link JsTestException}
+     */
     private AuthenticationContext getAuthenticationContext(String choreoServiceResourcePath) throws JsTestException {
 
         ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("risk-test-sp.xml", this);
@@ -296,19 +303,20 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         ConfigProvider.getInstance().getChoreoDomains().add(domain);
     }
 
+    /**
+     * Set the URL for the Choreo token endpoint.
+     *
+     * @param type The type of the response expected by the token endpoint.
+     * @throws NoSuchFieldException {@link NoSuchFieldException}
+     * @throws IllegalAccessException {@link IllegalAccessException}
+     */
     private void setTokenEndpoint(String type) throws NoSuchFieldException, IllegalAccessException {
 
         final String tokenEndpoint;
-        switch (type) {
-            case TOKEN_ENDPOINT_FAILURE:
-                tokenEndpoint = "http://localhost:%s/token-failure";
-                break;
-            case TOKEN_ENDPOINT_NO_TOKEN:
-                tokenEndpoint = "http://localhost:%s/no-token";
-                break;
-            default:
-                tokenEndpoint = "http://localhost:%s/token-success";
-                break;
+        if (TOKEN_ENDPOINT_FAILURE.equals(type)) {
+            tokenEndpoint = "http://localhost:%s/token-failure";
+        } else {
+            tokenEndpoint = "http://localhost:%s/token-success";
         }
         ConfigProvider instance = ConfigProvider.getInstance();
         Field choreoTokenEndpoint = ConfigProvider.class.getDeclaredField("choreoTokenEndpoint");
@@ -316,28 +324,41 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         choreoTokenEndpoint.set(instance, String.format(tokenEndpoint, microServicePort));
     }
 
-    private String generateAccessToken(boolean isValid) throws JOSEException {
-        Instant instant = isValid ? Instant.now().plusSeconds(3600) : Instant.now().minusSeconds(3600);
-            RSAKey senderJWK = new RSAKeyGenerator(2048)
-                    .keyID("123")
-                    .keyUse(KeyUse.SIGNATURE)
-                    .generate();
-            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
-                    .type(JOSEObjectType.JWT)
-                    .keyID("MWQ5NWUwYWZiMmMzZTIzMzdmMzBhMWM4YjQyMjVhNWM4NjhkMGRmNzFlMGI3ZDlmYmQzNmEyMzhhYjBiNmZhYw_RS256")
-                    .build();
-            JWTClaimsSet payload = new JWTClaimsSet.Builder()
-                    .issuer("https://sts.choreo.dev:443/oauth2/token")
-                    .audience("3ENOyHzZtwaP54apEjuV5H31Q_gb")
-                    .subject("0aac3d44-b5tf-4641-8902-7af8713364f8")
-                    .expirationTime(Date.from(instant))
-                    .build();
+    /**
+     * Generates a JSON Web Token for testing purposes.
+     *
+     * @param isExpired Whether the JWT should be expired.
+     */
+    private String generateTestAccessToken(boolean isExpired) throws JOSEException {
 
-            SignedJWT signedJWT = new SignedJWT(header, payload);
-            signedJWT.sign(new RSASSASigner(senderJWK));
-            return signedJWT.serialize();
+        Instant instant = isExpired ? Instant.now().minusSeconds(3600) : Instant.now().plusSeconds(3600);
+        RSAKey senderJWK = new RSAKeyGenerator(2048)
+                .keyID("123")
+                .keyUse(KeyUse.SIGNATURE)
+                .generate();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
+                .type(JOSEObjectType.JWT)
+                .keyID("MWQ5NWUwYWZiMmMzZTIzMzdmMzBhMWM4YjQyMjVhNWM4NjhkMGRmNzFlMGI3ZDlmYmQzNmEyMzhhYjBiNmZhYw_RS256")
+                .build();
+        JWTClaimsSet payload = new JWTClaimsSet.Builder()
+                .issuer("https://sts.choreo.dev:443/oauth2/token")
+                .audience("3ENOyHzZtwaP54apEjuV5H31Q_gb")
+                .subject("0aac3d44-b5tf-4641-8902-7af8713364f8")
+                .expirationTime(Date.from(instant))
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(header, payload);
+        signedJWT.sign(new RSASSASigner(senderJWK));
+        return signedJWT.serialize();
     }
 
+    /**
+     * This endpoint always returns a 200 OK response with the expected payload from the Choreo API in the response
+     * body.
+     * Simulates a scenario where the call to the Choreo API succeed.
+     *
+     * @param data request payload
+     */
     @POST
     @Path(CHOREO_SERVICE_SUCCESS_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -349,6 +370,13 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return response;
     }
 
+    /**
+     * This endpoint always returns a 200 OK response with an access token that has not been expired.
+     * Simulates a scenario where the call to the Choreo token endpoint succeed.
+     *
+     * @param data request payload
+     * @throws JOSEException {@link JOSEException}
+     */
     @POST
     @Path(CHOREO_TOKEN_SUCCESS)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -356,13 +384,19 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public Map<String, String> choreoTokenEndpointSuccessResponse(Map<String, String> data) throws JOSEException {
 
         Map<String, String> response = new HashMap<>();
-        response.put("access_token", generateAccessToken(true));
+        response.put("access_token", generateTestAccessToken(false));
         response.put("scope", "default");
         response.put("token_type", "Bearer");
         response.put("expires_in", "3600");
         return response;
     }
 
+    /**
+     * This endpoint always returns a 500 internal server error response.
+     * Simulates a scenario where the call to the Choreo token endpoint failing for some reason.
+     *
+     * @param data request payload
+     */
     @POST
     @Path(CHOREO_TOKEN_FAILURE)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -377,6 +411,16 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 .build();
     }
 
+    /**
+     * This endpoint returns a 401 unauthorized response with error code 900901 (sent by Choreo when tokens
+     * are inactive) in the response body for the first request. For the subsequent requests, it returns 200 OK
+     * with expected payload from Choreo API in the response body.
+     *
+     * Simulates a situation where the call to invoke the Choreo API fails due to an expired token, and succeeds after
+     * generating a new token.
+     *
+     * @param data request payload
+     */
     @POST
     @Path(CHOREO_SERVICE_EXPIRE_TOKEN_ONCE)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -397,6 +441,15 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return Response.ok(responseBody.toString()).build();
     }
 
+    /**
+     * This endpoint always return a 401 unauthorized response with error code 900901 (sent by Choreo when tokens
+     * are inactive) in the response body.
+     *
+     * Simulates a situation where the call to invoke the Choreo API fails due to an expired token, and the newly
+     * generated token is also expired.
+     *
+     * @param data request payload
+     */
     @POST
     @Path(CHOREO_SERVICE_EXPIRE_TOKEN_ALWAYS)
     @Consumes(MediaType.APPLICATION_JSON)
