@@ -143,6 +143,14 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
     }
 
+    /**
+     * This method decodes access token and compare its expiry time with the current time to decide whether it's
+     * expired.
+     *
+     * @param accessToken Access token which needs to be evaluated
+     * @return A boolean value indicating whether the token is expired
+     * @throws ParseException {@link ParseException}
+     */
     private boolean isTokenExpired(String accessToken) throws ParseException {
 
         SignedJWT decodedToken = SignedJWT.parse(accessToken);
@@ -219,6 +227,16 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         return parentDomain;
     }
 
+    /**
+     * Performs the access token request using client credentials grant type.
+     *
+     * @param tenantDomain The tenant domain which the request belongs to.
+     * @param connectionMetaData A map which contains necessary info to make the token request.
+     * @param futureCallback The future callback that needs to be called after requesting the token.
+     * @throws SecretManagementException {@link SecretManagementException}
+     * @throws IOException {@link IOException}
+     * @throws FrameworkException {@link FrameworkException}
+     */
     private void requestAccessToken(String tenantDomain, Map<String, String> connectionMetaData, FutureCallback<HttpResponse> futureCallback)
             throws SecretManagementException, IOException, FrameworkException {
 
@@ -272,6 +290,11 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             this.tokenRequestAttemptCount = new AtomicInteger(0);
         }
 
+        /**
+         * The method to be called when access token request receives an HTTP response.
+         *
+         * @param httpResponse Received HTTP response.
+         */
         @Override
         public void completed(HttpResponse httpResponse) {
 
@@ -320,6 +343,11 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         }
 
+        /**
+         * The method to be called when access token request fails.
+         *
+         * @param e Thrown exception.
+         */
         @Override
         public void failed(Exception e) {
 
@@ -339,6 +367,9 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         }
 
+        /**
+         * The method to be called when access token request canceled.
+         */
         @Override
         public void cancelled() {
 
@@ -354,6 +385,11 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         }
 
+        /**
+         * Invokes the Choreo API endpoint specified in the connection metadata using the provided access token.
+         *
+         * @param accessToken Access token that authorizes the request.
+         */
         private void callChoreoEndpoint(String accessToken) {
 
             boolean isFailure = false;
@@ -439,21 +475,28 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         }
 
+        /**
+         * Handles the response from the API call to the Choreo endpoint specified in the connection metadata.
+         *
+         * @param response HTTP response from the Choreo endpoint.
+         * @throws FrameworkException {@link FrameworkException}
+         */
         private void handleChoreoEndpointResponse(final HttpResponse response) throws FrameworkException {
 
             Type responseBodyType;
             try {
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == HTTP_STATUS_OK) {
-                    responseBodyType = new TypeToken<Map<String, Object>>() {
-                    }.getType();
+                    responseBodyType = new TypeToken<Map<String, Object>>() {}.getType();
                     Map<String, Object> successResponseBody = this.gson.fromJson(
                             EntityUtils.toString(response.getEntity()), responseBodyType
                     );
                     this.asyncReturn.accept(authenticationContext, successResponseBody, Constants.OUTCOME_SUCCESS);
                 } else if (statusCode == HTTP_STATUS_UNAUTHORIZED) {
                     responseBodyType = new TypeToken<Map<String, String>>() {}.getType();
-                    Map<String, String> responseBody = this.gson.fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
+                    Map<String, String> responseBody = this.gson.fromJson(
+                            EntityUtils.toString(response.getEntity()), responseBodyType
+                    );
                     if (ERROR_CODE_ACCESS_TOKEN_INACTIVE.equals(responseBody.get(CODE))) {
                         handleExpiredToken();
                     } else {
@@ -479,6 +522,15 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         }
 
+        /**
+         * Handles the scenario where the response from the Choreo API call is 401 Unauthorized due to an expired
+         * token. The program will retry the token request flow until it exceeds the specified max request attempt
+         * count.
+         *
+         * @throws SecretManagementException {@link SecretManagementException}
+         * @throws IOException {@link IOException}
+         * @throws FrameworkException {@link FrameworkException}
+         */
         private void handleExpiredToken() throws SecretManagementException, IOException, FrameworkException {
 
             if (tokenRequestAttemptCount.get() < MAX_TOKEN_REQUEST_ATTEMPTS) {
