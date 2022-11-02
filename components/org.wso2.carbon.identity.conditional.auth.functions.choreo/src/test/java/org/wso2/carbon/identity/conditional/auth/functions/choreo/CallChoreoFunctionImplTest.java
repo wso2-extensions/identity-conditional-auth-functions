@@ -28,6 +28,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -82,6 +84,7 @@ import static org.testng.Assert.assertNotNull;
 @Path("/")
 public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
+    private static final Log LOG = LogFactory.getLog(CallChoreoFunctionImplTest.class);
     private static final String FAILED = "FAILED";
     private static final String TOKEN_ENDPOINT_SUCCESS = "success";
     private static final String TOKEN_ENDPOINT_FAILURE = "failure";
@@ -148,6 +151,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public void testCallChoreoDomainValidity(boolean isValidChoreoDomain) throws JsTestException,
             NoSuchFieldException, IllegalAccessException {
 
+        LOG.info("===== Testing callChoreo domain validity. Is valid domain: " + isValidChoreoDomain );
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
 
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
@@ -175,6 +179,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public void testCallChoreUnsuccessfulTokenResponse() throws JsTestException,
             NoSuchFieldException, IllegalAccessException {
 
+        LOG.info("===== Testing callChoreo unsuccessful token response");
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
 
         setChoreoDomain("localhost");
@@ -190,6 +195,9 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testCallChoreoExpiredTokenInCache()
             throws JsTestException, NoSuchFieldException, IllegalAccessException, JOSEException {
+
+        LOG.info("===== Testing callChoreo expired token in cache");
+
         // set an expired token to the cache.
         AccessTokenCache.getInstance().addToCache(ACCESS_TOKEN_KEY, generateTestAccessToken(true), TENANT_DOMAIN);
 
@@ -208,6 +216,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testCallChoreTokenExpireOnce() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
+        LOG.info("===== Testing callChoreo token expire once");
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_EXPIRE_TOKEN_ONCE);
 
         setChoreoDomain("localhost");
@@ -224,6 +233,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testCallChoreTokenExpireAlways() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
+        LOG.info("===== Testing callChoreo token expire always");
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_EXPIRE_TOKEN_ALWAYS);
 
         setChoreoDomain("localhost");
@@ -238,6 +248,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @Test
     public void testCallChoreCachingToken() throws JsTestException, NoSuchFieldException, IllegalAccessException {
+
+        LOG.info("===== Testing caching token");
 
         // Clear access token cache to ensure there are no residual values from other tests.
         AccessTokenCache.getInstance().clear(TENANT_DOMAIN);
