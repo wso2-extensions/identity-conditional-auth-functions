@@ -261,7 +261,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             consumerSecret = getResolvedSecret(consumerSecretAlias);
         }
 
-        request.setHeader(AUTHORIZATION, BASIC + Base64.getEncoder().encodeToString((consumerKey + ":" + consumerSecret).getBytes()));
+        request.setHeader(AUTHORIZATION, BASIC + Base64.getEncoder()
+                .encodeToString((consumerKey + ":" + consumerSecret).getBytes(StandardCharsets.UTF_8)));
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS);
