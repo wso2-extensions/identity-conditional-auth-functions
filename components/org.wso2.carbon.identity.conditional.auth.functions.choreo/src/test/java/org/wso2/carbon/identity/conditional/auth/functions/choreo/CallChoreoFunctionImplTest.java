@@ -65,6 +65,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
@@ -151,7 +152,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public void testCallChoreoDomainValidity(boolean isValidChoreoDomain) throws JsTestException,
             NoSuchFieldException, IllegalAccessException {
 
-        LOG.info("===== Testing callChoreo domain validity. Is valid domain: " + isValidChoreoDomain );
+        LOG.info("===== Testing callChoreo domain validity. Is valid domain: " + isValidChoreoDomain);
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
 
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
