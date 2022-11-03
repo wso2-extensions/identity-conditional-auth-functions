@@ -307,10 +307,10 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             try {
                 LOG.debug("Access token response received.");
                 int responseCode = httpResponse.getStatusLine().getStatusCode();
-                if (responseCode == 200) {
+                if (responseCode == HTTP_STATUS_OK) {
                     Type responseBodyType = new TypeToken<Map<String, String>>() { }.getType();
-                    Map<String, String> responseBody = this.gson.fromJson(
-                            EntityUtils.toString(httpResponse.getEntity()), responseBodyType);
+                    Map<String, String> responseBody = this.gson
+                            .fromJson(EntityUtils.toString(httpResponse.getEntity()), responseBodyType);
                     String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
                     if (accessToken != null) {
                         choreoAccessTokenCache.addToCache(ACCESS_TOKEN_KEY, accessToken,
