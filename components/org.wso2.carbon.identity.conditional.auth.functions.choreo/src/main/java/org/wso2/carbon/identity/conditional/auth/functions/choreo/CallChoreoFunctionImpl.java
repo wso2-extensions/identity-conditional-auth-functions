@@ -123,7 +123,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {
                     accessTokenResponseHandler.callChoreoEndpoint(accessToken);
                 } else {
-                    LOG.info("Requesting the access token from Choreo");
+                    LOG.debug("Requesting the access token from Choreo");
                     requestAccessToken(tenantDomain, connectionMetaData, accessTokenResponseHandler);
                 }
             } catch (IllegalArgumentException e) {
@@ -305,6 +305,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
             boolean isFailure = false;
             try {
+                LOG.debug("Access token response received.");
                 int responseCode = httpResponse.getStatusLine().getStatusCode();
                 if (responseCode == 200) {
                     Type responseBodyType = new TypeToken<Map<String, String>>() { }.getType();
@@ -489,15 +490,16 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     responseBodyType = new TypeToken<Map<String, String>>() { }.getType();
                     Map<String, String> responseBody = this.gson
                             .fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
+
                     if (ERROR_CODE_ACCESS_TOKEN_INACTIVE.equals(responseBody.get(CODE))) {
                         handleExpiredToken();
                     } else {
-                        LOG.info("Received 401 response from Choreo. Session data key: " +
+                        LOG.warn("Received 401 response from Choreo. Session data key: " +
                                 authenticationContext.getContextIdentifier());
                         this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                     }
                 } else {
-                    LOG.info("Received non 200 response code from Choreo. Status Code: " + statusCode +
+                    LOG.warn("Received non 200 response code from Choreo. Status Code: " + statusCode +
                             " Session data Key: " + authenticationContext.getContextIdentifier());
                     this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 }
@@ -527,7 +529,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 requestAccessToken(this.authenticationContext.getTenantDomain(), this.connectionMetaData, this);
                 tokenRequestAttemptCount.incrementAndGet();
             } else {
-                LOG.info("Maximum token request attempt count exceeded for session data key: " +
+                LOG.warn("Maximum token request attempt count exceeded for session data key: " +
                         this.authenticationContext.getContextIdentifier());
                 tokenRequestAttemptCount.set(0);
                 this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
