@@ -49,7 +49,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithMicroService;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
-import org.wso2.carbon.identity.conditional.auth.functions.choreo.cache.AccessTokenCache;
+import org.wso2.carbon.identity.conditional.auth.functions.choreo.cache.ChoreoAccessTokenCache;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.internal.FunctionsDataHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
@@ -135,7 +135,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @AfterMethod
     private void cleanup() {
 
-        AccessTokenCache.getInstance().clear(TENANT_DOMAIN);
+        ChoreoAccessTokenCache.getInstance().clear(TENANT_DOMAIN);
         requestCount.set(0);
     }
 
@@ -200,7 +200,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         LOG.info("===== Testing callChoreo expired token in cache");
 
         // set an expired token to the cache.
-        AccessTokenCache.getInstance().addToCache(ACCESS_TOKEN_KEY, generateTestAccessToken(true), TENANT_DOMAIN);
+        ChoreoAccessTokenCache.getInstance().addToCache(ACCESS_TOKEN_KEY, generateTestAccessToken(true), TENANT_DOMAIN);
 
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
         setChoreoDomain("localhost");
@@ -253,7 +253,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         LOG.info("===== Testing caching token");
 
         // Clear access token cache to ensure there are no residual values from other tests.
-        AccessTokenCache.getInstance().clear(TENANT_DOMAIN);
+        ChoreoAccessTokenCache.getInstance().clear(TENANT_DOMAIN);
 
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
         setChoreoDomain("localhost");
@@ -263,7 +263,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
         sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
-        assertNotNull(AccessTokenCache.getInstance().getValueFromCache(ACCESS_TOKEN_KEY, TENANT_DOMAIN));
+        assertNotNull(ChoreoAccessTokenCache.getInstance().getValueFromCache(ACCESS_TOKEN_KEY, TENANT_DOMAIN));
         assertEquals(context.getSelectedAcr(), "1", "Expected acr value not found");
 
         // Making another authentication attempt using new authentication context, request and a response to

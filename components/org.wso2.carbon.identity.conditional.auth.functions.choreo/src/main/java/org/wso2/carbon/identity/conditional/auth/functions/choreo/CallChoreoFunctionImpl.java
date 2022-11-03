@@ -38,7 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.conditional.auth.functions.choreo.cache.AccessTokenCache;
+import org.wso2.carbon.identity.conditional.auth.functions.choreo.cache.ChoreoAccessTokenCache;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
@@ -95,12 +95,12 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String BASIC = "Basic ";
     private static final int MAX_TOKEN_REQUEST_ATTEMPTS = 2;
 
-    private final AccessTokenCache accessTokenCache;
+    private final ChoreoAccessTokenCache choreoAccessTokenCache;
 
     public CallChoreoFunctionImpl() {
 
         this.choreoDomains = ConfigProvider.getInstance().getChoreoDomains();
-        this.accessTokenCache = AccessTokenCache.getInstance();
+        this.choreoAccessTokenCache = ChoreoAccessTokenCache.getInstance();
     }
 
     @Override
@@ -119,7 +119,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 String tenantDomain = authenticationContext.getTenantDomain();
                 AccessTokenResponseHandler accessTokenResponseHandler = new AccessTokenResponseHandler(
                         connectionMetaData, asyncReturn, authenticationContext, payloadData);
-                String accessToken = accessTokenCache.getValueFromCache(ACCESS_TOKEN_KEY, tenantDomain);
+                String accessToken = choreoAccessTokenCache.getValueFromCache(ACCESS_TOKEN_KEY, tenantDomain);
                 if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {
                     accessTokenResponseHandler.callChoreoEndpoint(accessToken);
                 } else {
@@ -313,7 +313,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                             EntityUtils.toString(httpResponse.getEntity()), responseBodyType);
                     String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
                     if (accessToken != null) {
-                        accessTokenCache.addToCache(ACCESS_TOKEN_KEY, accessToken,
+                        choreoAccessTokenCache.addToCache(ACCESS_TOKEN_KEY, accessToken,
                                 this.authenticationContext.getTenantDomain());
                         callChoreoEndpoint(accessToken);
                     } else {
