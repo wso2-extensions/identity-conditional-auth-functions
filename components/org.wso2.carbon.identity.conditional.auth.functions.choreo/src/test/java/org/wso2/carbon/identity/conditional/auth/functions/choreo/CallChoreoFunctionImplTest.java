@@ -96,7 +96,9 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String CHOREO_TOKEN_FAILURE = "/token-failure";
     private static final String CHOREO_TOKEN_SUCCESS = "/token-success";
     private static final String TENANT_DOMAIN = "test_domain";
-    private static final String ACCESS_TOKEN_KEY = "access_token";
+    private static final String CONSUMER_KEY = "dummyKey";
+    private static final String CONSUMER_SECRET = "dummySecret";
+
     @WithRealmService
     private RealmService realmService;
 
@@ -200,7 +202,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         LOG.info("===== Testing callChoreo expired token in cache");
 
         // set an expired token to the cache.
-        ChoreoAccessTokenCache.getInstance().addToCache(ACCESS_TOKEN_KEY, generateTestAccessToken(true), TENANT_DOMAIN);
+        ChoreoAccessTokenCache.getInstance().addToCache(CONSUMER_KEY, generateTestAccessToken(true), TENANT_DOMAIN);
 
         AuthenticationContext context = getAuthenticationContext(CHOREO_SERVICE_SUCCESS_PATH);
         setChoreoDomain("localhost");
@@ -263,7 +265,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
         sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
-        assertNotNull(ChoreoAccessTokenCache.getInstance().getValueFromCache(ACCESS_TOKEN_KEY, TENANT_DOMAIN));
+        assertNotNull(ChoreoAccessTokenCache.getInstance().getValueFromCache(CONSUMER_KEY, TENANT_DOMAIN));
         assertEquals(context.getSelectedAcr(), "1", "Expected acr value not found");
 
         // Making another authentication attempt using new authentication context, request and a response to
@@ -298,7 +300,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
                 .getAuthenticationScriptConfig();
         String content = authenticationScriptConfig.getContent();
-        String newContent = String.format(content, microServicePort, choreoServiceResourcePath);
+        String newContent = String.format(content, microServicePort, choreoServiceResourcePath,
+                CONSUMER_KEY, CONSUMER_SECRET);
         authenticationScriptConfig.setContent(newContent);
         localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
         sp1.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);

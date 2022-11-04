@@ -117,14 +117,15 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 }
 
                 String tenantDomain = authenticationContext.getTenantDomain();
-                AccessTokenResponseHandler accessTokenResponseHandler = new AccessTokenResponseHandler(
+                AccessTokenRequestHelper accessTokenRequestHelper = new AccessTokenRequestHelper(
                         connectionMetaData, asyncReturn, authenticationContext, payloadData);
-                String accessToken = choreoAccessTokenCache.getValueFromCache(ACCESS_TOKEN_KEY, tenantDomain);
+                String accessToken = choreoAccessTokenCache.getValueFromCache(accessTokenRequestHelper.getConsumerKey(),
+                        tenantDomain);
                 if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {
-                    accessTokenResponseHandler.callChoreoEndpoint(accessToken);
+                    accessTokenRequestHelper.callChoreoEndpoint(accessToken);
                 } else {
                     LOG.debug("Requesting the access token from Choreo");
-                    requestAccessToken(tenantDomain, connectionMetaData, accessTokenResponseHandler);
+                    requestAccessToken(tenantDomain, accessTokenRequestHelper);
                 }
             } catch (IllegalArgumentException e) {
                 LOG.error("Invalid endpoint Url: " + epUrl, e);
@@ -231,38 +232,21 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
      * Performs the access token request using client credentials grant type.
      *
      * @param tenantDomain       The tenant domain which the request belongs to.
-     * @param connectionMetaData A map which contains necessary info to make the token request.
-     * @param futureCallback     The future callback that needs to be called after requesting the token.
+     * @param accessTokenRequestHelper     The future callback that needs to be called after requesting the token.
      * @throws SecretManagementException {@link SecretManagementException}
      * @throws IOException               {@link IOException}
      * @throws FrameworkException        {@link FrameworkException}
      */
-    private void requestAccessToken(String tenantDomain, Map<String, String> connectionMetaData,
-                                    FutureCallback<HttpResponse> futureCallback) throws SecretManagementException,
-                                    IOException, FrameworkException {
+    private void requestAccessToken(String tenantDomain, AccessTokenRequestHelper accessTokenRequestHelper)
+                                    throws IOException, FrameworkException {
 
         HttpPost request = new HttpPost(ConfigProvider.getInstance().getChoreoTokenEndpoint());
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
         request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
 
-        String consumerKey;
-        if (StringUtils.isNotEmpty(connectionMetaData.get(CONSUMER_KEY_VARIABLE_NAME))) {
-            consumerKey = connectionMetaData.get(CONSUMER_KEY_VARIABLE_NAME);
-        } else {
-            String consumerKeyAlias = connectionMetaData.get(CONSUMER_KEY_ALIAS_VARIABLE_NAME);
-            consumerKey = getResolvedSecret(consumerKeyAlias);
-        }
-
-        String consumerSecret;
-        if (StringUtils.isNotEmpty(connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME))) {
-            consumerSecret = connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME);
-        } else {
-            String consumerSecretAlias = connectionMetaData.get(CONSUMER_SECRET_ALIAS_VARIABLE_NAME);
-            consumerSecret = getResolvedSecret(consumerSecretAlias);
-        }
-
         request.setHeader(AUTHORIZATION, BASIC + Base64.getEncoder()
-                .encodeToString((consumerKey + ":" + consumerSecret).getBytes(StandardCharsets.UTF_8)));
+                .encodeToString((accessTokenRequestHelper.consumerKey + ":" + accessTokenRequestHelper.consumerSecret)
+                .getBytes(StandardCharsets.UTF_8)));
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS);
@@ -270,10 +254,10 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
         CloseableHttpAsyncClient client = ChoreoFunctionServiceHolder.getInstance().getClientManager()
                 .getClient(tenantDomain);
-        client.execute(request, futureCallback);
+        client.execute(request, accessTokenRequestHelper);
     }
 
-    private class AccessTokenResponseHandler implements FutureCallback<HttpResponse> {
+    private class AccessTokenRequestHelper implements FutureCallback<HttpResponse> {
 
         private final Map<String, String> connectionMetaData;
         private final AsyncReturn asyncReturn;
@@ -281,11 +265,13 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         private final Map<String, Object> payloadData;
         private final Gson gson;
         private final AtomicInteger tokenRequestAttemptCount;
+        private String consumerKey;
+        private String consumerSecret;
 
-        public AccessTokenResponseHandler(Map<String, String> connectionMetaData,
-                                          AsyncReturn asyncReturn,
-                                          AuthenticationContext authenticationContext,
-                                          Map<String, Object> payloadData) {
+        public AccessTokenRequestHelper(Map<String, String> connectionMetaData,
+                                        AsyncReturn asyncReturn,
+                                        AuthenticationContext authenticationContext,
+                                        Map<String, Object> payloadData) throws SecretManagementException {
 
             this.connectionMetaData = connectionMetaData;
             this.asyncReturn = asyncReturn;
@@ -293,6 +279,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             this.payloadData = payloadData;
             this.gson = new GsonBuilder().create();
             this.tokenRequestAttemptCount = new AtomicInteger(0);
+            resolveConsumerKeySecrete();
         }
 
         /**
@@ -313,7 +300,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                             .fromJson(EntityUtils.toString(httpResponse.getEntity()), responseBodyType);
                     String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
                     if (accessToken != null) {
-                        choreoAccessTokenCache.addToCache(ACCESS_TOKEN_KEY, accessToken,
+                        choreoAccessTokenCache.addToCache(this.consumerKey, accessToken,
                                 this.authenticationContext.getTenantDomain());
                         callChoreoEndpoint(accessToken);
                     } else {
@@ -519,14 +506,13 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
          * token. The program will retry the token request flow until it exceeds the specified max request attempt
          * count.
          *
-         * @throws SecretManagementException {@link SecretManagementException}
          * @throws IOException {@link IOException}
          * @throws FrameworkException {@link FrameworkException}
          */
-        private void handleExpiredToken() throws SecretManagementException, IOException, FrameworkException {
+        private void handleExpiredToken() throws IOException, FrameworkException {
 
             if (tokenRequestAttemptCount.get() < MAX_TOKEN_REQUEST_ATTEMPTS) {
-                requestAccessToken(this.authenticationContext.getTenantDomain(), this.connectionMetaData, this);
+                requestAccessToken(this.authenticationContext.getTenantDomain(), this);
                 tokenRequestAttemptCount.incrementAndGet();
             } else {
                 LOG.warn("Maximum token request attempt count exceeded for session data key: " +
@@ -534,6 +520,43 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 tokenRequestAttemptCount.set(0);
                 this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             }
+        }
+
+        public void resolveConsumerKeySecrete() throws SecretManagementException {
+
+            if (StringUtils.isNotEmpty(connectionMetaData.get(CONSUMER_KEY_VARIABLE_NAME))) {
+                this.consumerKey = connectionMetaData.get(CONSUMER_KEY_VARIABLE_NAME);
+            } else {
+                String consumerKeyAlias = connectionMetaData.get(CONSUMER_KEY_ALIAS_VARIABLE_NAME);
+                this.consumerKey = getResolvedSecret(consumerKeyAlias);
+            }
+
+            if (StringUtils.isNotEmpty(connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME))) {
+                this.consumerSecret = connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME);
+            } else {
+                String consumerSecretAlias = connectionMetaData.get(CONSUMER_SECRET_ALIAS_VARIABLE_NAME);
+                this.consumerSecret = getResolvedSecret(consumerSecretAlias);
+            }
+        }
+
+        public void setConsumerKey(String consumerKey) {
+
+            this.consumerKey = consumerKey;
+        }
+
+        public String getConsumerKey() {
+
+            return consumerKey;
+        }
+
+        public String getConsumerSecret() {
+
+            return consumerSecret;
+        }
+
+        public void setConsumerSecret(String consumerSecret) {
+
+            this.consumerSecret = consumerSecret;
         }
     }
 }
