@@ -26,11 +26,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
@@ -55,6 +57,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
@@ -74,6 +77,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
     private static final Log LOG = LogFactory.getLog(CallChoreoFunctionImpl.class);
     private static final String TYPE_APPLICATION_JSON = "application/json";
+    private static final String TYPE_FORM_DATA = "application/x-www-form-urlencoded";
     private static final String AUTHORIZATION = "Authorization";
     private static final String GRANT_TYPE = "grant_type";
     private static final String GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
@@ -242,15 +246,15 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
         HttpPost request = new HttpPost(ConfigProvider.getInstance().getChoreoTokenEndpoint());
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-        request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+        request.setHeader(CONTENT_TYPE, TYPE_FORM_DATA);
 
         request.setHeader(AUTHORIZATION, BASIC + Base64.getEncoder()
                 .encodeToString((accessTokenRequestHelper.consumerKey + ":" + accessTokenRequestHelper.consumerSecret)
                 .getBytes(StandardCharsets.UTF_8)));
 
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS);
-        request.setEntity(new StringEntity(jsonObject.toJSONString()));
+        List<BasicNameValuePair> bodyParams = new ArrayList<>();
+        bodyParams.add(new BasicNameValuePair(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS));
+        request.setEntity(new UrlEncodedFormEntity(bodyParams));
 
         CloseableHttpAsyncClient client = ChoreoFunctionServiceHolder.getInstance().getClientManager()
                 .getClient(tenantDomain);

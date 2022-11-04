@@ -229,7 +229,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
         sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
-        assertEquals(context.getSelectedAcr(), "1", "Expected the request to fail");
+        assertEquals(context.getSelectedAcr(), "1", "Expected acr value not found");
 
     }
 
@@ -389,15 +389,13 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     /**
      * This endpoint always returns a 200 OK response with an access token that has not been expired.
      * Simulates a scenario where the call to the Choreo token endpoint succeed.
-     *
-     * @param data request payload
      * @throws JOSEException {@link JOSEException}
      */
     @POST
     @Path(CHOREO_TOKEN_SUCCESS)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, String> choreoTokenEndpointSuccessResponse(Map<String, String> data) throws JOSEException {
+    public Map<String, String> choreoTokenEndpointSuccessResponse() throws JOSEException {
 
         Map<String, String> response = new HashMap<>();
         response.put("access_token", generateTestAccessToken(false));
@@ -410,14 +408,12 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     /**
      * This endpoint always returns a 500 internal server error response.
      * Simulates a scenario where the call to the Choreo token endpoint failing for some reason.
-     *
-     * @param data request payload
      */
     @POST
     @Path(CHOREO_TOKEN_FAILURE)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response choreoTokenEndpointFailureResponse(Map<String, String> data) {
+    public Response choreoTokenEndpointFailureResponse() {
 
         Map<String, String> json = new HashMap<>();
         json.put("test", "value");
