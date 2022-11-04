@@ -72,6 +72,10 @@
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+        </dependency>
         <!--Test Dependencies-->
         <dependency>
             <groupId>org.testng</groupId>
@@ -159,6 +163,7 @@
                             org.apache.http.client,
                             org.apache.http.client.methods,
                             org.apache.http.client.config,
+                            org.apache.http.client.entity;version="${httpcore.version}",
                             org.apache.http.impl.client,
                             org.apache.http.conn,
                             org.apache.http.conn.ssl,
@@ -199,6 +204,8 @@
                             org.wso2.carbon.identity.secret.mgt.core,
                             org.wso2.carbon.identity.secret.mgt.core.exception,
                             org.wso2.carbon.identity.secret.mgt.core.model,
+                            org.apache.http.message;version="${httpcore.version}",
+                            com.nimbusds.jwt.*;version="${nimbusds.osgi.version.range}",
                             org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                     </instructions>
