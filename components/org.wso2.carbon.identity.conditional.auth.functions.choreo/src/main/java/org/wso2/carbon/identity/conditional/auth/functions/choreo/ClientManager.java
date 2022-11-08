@@ -58,7 +58,7 @@ public class ClientManager {
     private PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager;
 
     private static final int HTTP_CONNECTION_TIMEOUT = 1000;
-    private static final int HTTP_READ_TIMEOUT = 1000;
+    private static final int HTTP_READ_TIMEOUT = 5000;
     private static final int HTTP_CONNECTION_REQUEST_TIMEOUT = 1000;
     private static final int DEFAULT_MAX_CONNECTIONS = 20;
 
