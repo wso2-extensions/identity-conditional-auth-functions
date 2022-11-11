@@ -132,6 +132,11 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         LongWaitStatusStoreService longWaitStatusStoreService =
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         availableInstance.setLongWaitStatusStoreService(longWaitStatusStoreService);
+
+        // Increase socket timeout duration to avoid intermittent failures due to socket timeouts.
+       Field httpReadTimeout = ClientManager.class.getDeclaredField("httpReadTimeout");
+       httpReadTimeout.setAccessible(true);
+       httpReadTimeout.setInt(null, 5000);
     }
 
     @AfterMethod

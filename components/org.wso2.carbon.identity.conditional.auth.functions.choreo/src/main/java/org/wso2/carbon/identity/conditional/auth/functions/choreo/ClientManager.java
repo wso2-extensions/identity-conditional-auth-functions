@@ -58,9 +58,9 @@ public class ClientManager {
     private PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager;
 
     private static final int HTTP_CONNECTION_TIMEOUT = 1000;
-    private static final int HTTP_READ_TIMEOUT = 5000;
     private static final int HTTP_CONNECTION_REQUEST_TIMEOUT = 1000;
     private static final int DEFAULT_MAX_CONNECTIONS = 20;
+    private static int httpReadTimeout = 1000;
 
     public ClientManager() {
 
@@ -95,7 +95,7 @@ public class ClientManager {
         return RequestConfig.custom()
                 .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
                 .setConnectionRequestTimeout(HTTP_CONNECTION_REQUEST_TIMEOUT)
-                .setSocketTimeout(HTTP_READ_TIMEOUT)
+                .setSocketTimeout(httpReadTimeout)
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();
