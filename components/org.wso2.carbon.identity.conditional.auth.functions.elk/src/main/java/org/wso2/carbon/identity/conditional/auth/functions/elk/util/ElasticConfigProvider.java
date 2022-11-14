@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,10 +52,11 @@ public class ElasticConfigProvider {
     }
 
     /**
+     * Compose the search query URL for Elasticsearch.
      *
-     * @param elasticDomain Elasticsearch host domain
-     * @param params User defined parameter from script
-     * @return Elasticsearch query URL
+     * @param elasticDomain Elasticsearch host domain.
+     * @param params        User defined parameter from script.
+     * @return Elasticsearch query URL.
      */
     public String getElasticSearchUrl(String elasticDomain, Map<String, String> params) {
 
@@ -63,10 +64,11 @@ public class ElasticConfigProvider {
     }
 
     /**
+     * Build the Elasticsearch query.
      *
-     * @param params User defined parameter from script
-     * @return Elasticsearch query to get risk score
-     * @throws IOException For query file read failures
+     * @param params User defined parameter from script.
+     * @return Elasticsearch query to get risk score.
+     * @throws IOException For query file read failures.
      */
     public String getQuery(Map<String, String> params) throws IOException {
 
@@ -105,7 +107,6 @@ public class ElasticConfigProvider {
             }
             fileContent = sb.toString();
         }
-
         return fileContent;
     }
 

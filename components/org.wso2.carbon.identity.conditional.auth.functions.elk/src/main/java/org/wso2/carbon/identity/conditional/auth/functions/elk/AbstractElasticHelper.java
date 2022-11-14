@@ -1,7 +1,7 @@
 /*
- *  Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com).
+ *  Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License.
  *  You may obtain a copy of the License at
@@ -36,26 +36,28 @@ public abstract class AbstractElasticHelper {
     protected AuthenticationFactory authenticationFactory = new AuthenticationFactory();
 
     public AbstractElasticHelper() {
+
     }
 
     protected void handleAuthentication(HttpPost request, String tenantDomain) throws IdentityEventException {
 
-        if (Boolean.parseBoolean(isBasicAuthEnabled(tenantDomain))) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Basic Authentication enabled for outbound analytics calls in the tenant:" + tenantDomain);
-            }
-            String username = getUsername(tenantDomain);
-            String password = getPassword(tenantDomain);
-
-            AuthenticationManager authenticationManager = authenticationFactory.getAuthenticationManager("Basic");
-            request.setHeader(authenticationManager.authenticate(new UsernamePasswordCredentials(username,
-                    password), request));
-        } else {
+        if (!Boolean.parseBoolean(isBasicAuthEnabled(tenantDomain))) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Basic Authentication is not enabled for outbound analytics calls in for the tenant:" +
                         tenantDomain);
             }
+            return;
         }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Basic Authentication enabled for outbound analytics calls in the tenant:" + tenantDomain);
+        }
+        String username = getUsername(tenantDomain);
+        String password = getPassword(tenantDomain);
+
+        AuthenticationManager authenticationManager = authenticationFactory.getAuthenticationManager("Basic");
+        request.setHeader(authenticationManager.authenticate(new UsernamePasswordCredentials(username,
+                password), request));
     }
 
     protected String getPassword(String tenantDomain) throws IdentityEventException {

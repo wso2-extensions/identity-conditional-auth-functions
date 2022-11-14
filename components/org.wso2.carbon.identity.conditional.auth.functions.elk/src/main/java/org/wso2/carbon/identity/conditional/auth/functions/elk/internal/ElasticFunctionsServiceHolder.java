@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 
 import java.security.KeyStore;
 
+/**
+ * Class to hold services discovered via OSGI on this component.
+ */
 public class ElasticFunctionsServiceHolder {
 
     private static final ElasticFunctionsServiceHolder instance = new ElasticFunctionsServiceHolder();
@@ -51,6 +54,7 @@ public class ElasticFunctionsServiceHolder {
 
         this.serverConfigurationService = serverConfigurationService;
     }
+
     public static ElasticFunctionsServiceHolder getInstance() {
 
         return instance;
