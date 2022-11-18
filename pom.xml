@@ -283,6 +283,12 @@
                 <version>${nashorn.core.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+                <scope>test</scope>
+                <version>${org.wso2.carbon.identity.organization.management.core.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -431,14 +437,14 @@
         </plugins>
     </build>
     <properties>
-        <carbon.kernel.version>4.6.3-m5</carbon.kernel.version>
+        <carbon.kernel.version>4.9.0-m3</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
-        <carbon.identity.framework.version>5.22.0</carbon.identity.framework.version>
+        <carbon.identity.framework.version>6.0.0</carbon.identity.framework.version>
         <carbon.identity.framework.testutils.version>5.20.447</carbon.identity.framework.testutils.version>
-        <carbon.identity.package.import.version.range>[5.14.0, 6.0.0)</carbon.identity.package.import.version.range>
-        <identity.governance.version>1.1.17</identity.governance.version>
-        <identity.governance.import.version.range>[1.5.70,2.0)</identity.governance.import.version.range>
-        <identity.event.handler.notification.version>[1.0.23,2.0.0)</identity.event.handler.notification.version>
+        <carbon.identity.package.import.version.range>[6.0.0, 7.0.0)</carbon.identity.package.import.version.range>
+        <identity.governance.version>2.0.0</identity.governance.version>
+        <identity.governance.import.version.range>[2.0.0, 3.0.0)</identity.governance.import.version.range>
+        <identity.event.handler.notification.version>2.0.0</identity.event.handler.notification.version>
 
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <pax.logging.api.version>1.10.1</pax.logging.api.version>
@@ -450,7 +456,7 @@
         <org.powermock.version>1.7.3</org.powermock.version>
         <com.h2database.version>1.2.140.wso2v3</com.h2database.version>
 
-        <org.wso2.carbon.identity.conditional.auth.functions.version.range>[1.2,2.0)</org.wso2.carbon.identity.conditional.auth.functions.version.range>
+        <org.wso2.carbon.identity.conditional.auth.functions.version.range>[2.0,3.0)</org.wso2.carbon.identity.conditional.auth.functions.version.range>
 
         <org.json.version.range>[3.0,4)</org.json.version.range>
         <maven.scr.plugin.version>1.26.0</maven.scr.plugin.version>
@@ -480,6 +486,7 @@
         <org.osgi.framework.imp.pkg.version.range>[1.9.0,2.0.0)</org.osgi.framework.imp.pkg.version.range>
         <xml.apis.version>1.4.01</xml.apis.version>
         <nashorn.core.version>15.3</nashorn.core.version>
+        <org.wso2.carbon.identity.organization.management.core.version>2.0.0</org.wso2.carbon.identity.organization.management.core.version>
         <sonar.coverage.exclusions>
             **/*Exception.java,
             **/*Constants*.java,

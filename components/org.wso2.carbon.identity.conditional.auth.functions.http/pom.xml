@@ -103,6 +103,11 @@
             <artifactId>msf4j-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
