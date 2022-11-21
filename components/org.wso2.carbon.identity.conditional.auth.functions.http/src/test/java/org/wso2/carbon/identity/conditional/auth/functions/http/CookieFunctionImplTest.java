@@ -152,6 +152,18 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         internalTestSetAndGetCookieValues(inputCookieValue, shouldEncrypt, shouldDecrypt, shouldSign);
     }
 
+    @DataProvider(name = "cookieValues")
+    public Object[][] getCookieValues() {
+
+        return new Object[][]{
+                {"Test"},
+                {"1234"},
+                {"Test1234"},
+                {"asgh@123&*()!@#$"},
+                {"{\"usr\" : \"" + "JohnDoe" + "\", \"str\" : \"" + "PRIMARY" + "\"}"}
+        };
+    }
+
     private void internalTestSetAndGetCookieValues(String inputCookieValue, boolean shouldEncrypt,
                                                    boolean shouldDecrypt, boolean shouldSign) throws JsTestException {
 
@@ -181,18 +193,6 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String value = cookieFunction.getCookieValue(jsServletRequest, name, getCookieParams );
 
         Assert.assertEquals(value, inputCookieValue);
-    }
-
-    @DataProvider(name = "cookieValues")
-    public Object[][] getCookieValues() {
-
-        return new Object[][]{
-                {"Test"},
-                {"1234"},
-                {"Test1234"},
-                {"asgh@123&*()!@#$"},
-                {"{\"usr\" : \"" + "JohnDoe" + "\", \"str\" : \"" + "PRIMARY" + "\"}"}
-        };
     }
 
     private class MockServletRequestWithCookie extends JsSequenceHandlerRunner.MockServletRequest {

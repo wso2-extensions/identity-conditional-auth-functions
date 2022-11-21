@@ -29,15 +29,6 @@ import javax.crypto.spec.SecretKeySpec;
 public class CryptoProviderTest implements InternalCryptoProvider {
     private static final String ALGO = "AES";
 
-    /*
-     * Method to generate a secret key for AES algorithm with a given secret key.
-     */
-    private static Key generateKey(String secretKey) throws Exception
-    {
-        Key key = new SecretKeySpec(secretKey.getBytes(), ALGO);
-        return key;
-    }
-
     @Override
     public byte[] encrypt(byte[] cleartext, String algorithm, String javaSecurityAPIProvider) throws CryptoException {
 
@@ -86,5 +77,14 @@ public class CryptoProviderTest implements InternalCryptoProvider {
         c.init(Cipher.DECRYPT_MODE, key);
         byte[] decValue = c.doFinal(encryptedData);
         return decValue;
+    }
+
+    /*
+     * Method to generate a secret key for AES algorithm with a given secret key.
+     */
+    private static Key generateKey(String secretKey) throws Exception
+    {
+        Key key = new SecretKeySpec(secretKey.getBytes(), ALGO);
+        return key;
     }
 }
