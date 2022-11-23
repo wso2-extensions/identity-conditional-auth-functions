@@ -82,8 +82,8 @@ public class CryptoProviderTest implements InternalCryptoProvider {
     /*
      * Method to generate a secret key for AES algorithm with a given secret key.
      */
-    private static Key generateKey(String secretKey) throws Exception
-    {
+    private static Key generateKey(String secretKey) throws Exception {
+        
         Key key = new SecretKeySpec(secretKey.getBytes(), ALGO);
         return key;
     }

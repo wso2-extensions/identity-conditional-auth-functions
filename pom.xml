@@ -292,7 +292,7 @@
             <dependency>
                 <groupId>org.wso2.carbon.crypto</groupId>
                 <artifactId>org.wso2.carbon.crypto.impl</artifactId>
-                <version>1.1.13</version>
+                <version>${carbon.crypto.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -486,6 +486,7 @@
         <org.testng.version>6.9.10</org.testng.version>
         <org.powermock.version>1.7.3</org.powermock.version>
         <com.h2database.version>1.2.140.wso2v3</com.h2database.version>
+        <carbon.crypto.version>1.1.13</carbon.crypto.version>
 
         <org.wso2.carbon.identity.conditional.auth.functions.version.range>[1.2,2.0)</org.wso2.carbon.identity.conditional.auth.functions.version.range>
 
