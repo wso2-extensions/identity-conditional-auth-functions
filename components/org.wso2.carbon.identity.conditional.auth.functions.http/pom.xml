@@ -103,6 +103,11 @@
             <artifactId>msf4j-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.crypto</groupId>
+            <artifactId>org.wso2.carbon.crypto.impl</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
