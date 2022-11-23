@@ -289,6 +289,11 @@
                 <version>1.1.1</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.crypto</groupId>
+                <artifactId>org.wso2.carbon.crypto.impl</artifactId>
+                <version>1.1.13</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

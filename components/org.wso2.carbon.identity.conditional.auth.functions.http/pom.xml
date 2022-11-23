@@ -104,9 +104,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <artifactId>org.wso2.carbon.crypto.impl</artifactId>
             <groupId>org.wso2.carbon.crypto</groupId>
-            <version>1.1.13</version>
+            <artifactId>org.wso2.carbon.crypto.impl</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
