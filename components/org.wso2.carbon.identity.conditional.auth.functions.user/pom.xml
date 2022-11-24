@@ -104,6 +104,10 @@
             <artifactId>nashorn-core</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.wso2.identity.asgardeo.user.manager</groupId>
+            <artifactId>com.wso2.identity.asgardeo.realm.config.builder</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -158,8 +162,11 @@
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.common; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.api.*; version="${carbon.user.api.imp.pkg.version.range}",
                             org.wso2.carbon.idp.mgt.*,
                             org.wso2.carbon.identity.application.common.*,
+                            com.wso2.identity.asgardeo.realm.config.builder;
+                            version="${asgardeo.tenant.association.manager.imp.pkg.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>

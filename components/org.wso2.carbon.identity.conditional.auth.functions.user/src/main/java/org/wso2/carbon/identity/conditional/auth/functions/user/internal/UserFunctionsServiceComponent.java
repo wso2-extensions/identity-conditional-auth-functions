@@ -37,19 +37,21 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLoc
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAuthenticatedApplicationsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAuthenticatedAppsFuncImp;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetUserSessionsFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.HandleAsgardeoSSOFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.HandleAsgardeoSSOFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsAnyOfTheRolesAssignedToUserFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.user.TerminateUserSessionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUserImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUser;
+import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUserImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.TerminateUserSessionImpl;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -76,6 +78,7 @@ public class UserFunctionsServiceComponent {
             AssignUserRolesFunction assignUserRolesFunctionImpl = new AssignUserRolesFunctionImpl();
             RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
             GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
+            HandleAsgardeoSSOFunction handleAsgardeoSSOFunctionImpl = new HandleAsgardeoSSOFunctionImpl();
             SetAccountAssociationToLocalUser setAccountAssociationToLocalUserImpl = new SetAccountAssociationToLocalUserImpl();
             GetAuthenticatedApplicationsFunction getAuthenticatedApplicationsFunctionImp = new GetAuthenticatedAppsFuncImp();
             JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
@@ -94,6 +97,8 @@ public class UserFunctionsServiceComponent {
                     new CheckSessionExistenceFunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser",
                     getAssociatedLocalUserFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "handleAsgardeoSSO",
+                    handleAsgardeoSSOFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUserSessions",
                     new GetUserSessionsFunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "terminateUserSession",
@@ -122,6 +127,7 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRoles");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRoles");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAssociatedLocalUser");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "handleAsgardeoSSO");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUserSessions");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "terminateUserSession");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "doAssociationWithLocalUser");
