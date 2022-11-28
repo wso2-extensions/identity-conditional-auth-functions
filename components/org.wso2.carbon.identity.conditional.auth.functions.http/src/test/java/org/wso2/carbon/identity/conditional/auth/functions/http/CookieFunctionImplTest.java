@@ -72,7 +72,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         sequenceHandlerRunner.registerJsFunction("getCookieValue", (GetCookieFunction) new CookieFunctionImpl()
                 ::getCookieValue);
         DefaultCryptoService defaultCryptoService = new DefaultCryptoService();
-        defaultCryptoService.registerInternalCryptoProvider(new CryptoProviderTest());
+        defaultCryptoService.registerInternalCryptoProvider(new SimpleCryptoProviderTest());
         CarbonCoreDataHolder.getInstance().setCryptoService(defaultCryptoService);
     }
 
