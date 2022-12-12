@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.choreo.cache.ChoreoAc
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 
@@ -136,6 +137,9 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (IOException e) {
                 LOG.error("Error while requesting access token from Choreo.", e);
+                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            } catch (SecretManagementClientException e) {
+                LOG.debug("Client error while resolving Choreo consumer key or secret.", e);
                 asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             } catch (SecretManagementException e) {
                 LOG.error("Error while resolving Choreo consumer key or secret.", e);
