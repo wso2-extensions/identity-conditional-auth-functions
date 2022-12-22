@@ -48,7 +48,7 @@ import javax.servlet.http.Cookie;
 public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction {
 
     private static final Log log = LogFactory.getLog(CookieFunctionImpl.class);
-    private static final String COOKIES_WITHOUT_SPECIAL_CHARACTERS = "cookiesWithoutSpecialCharacters";
+    private static final String KEEP_ADAPTIVE_SCRIPT_OLD_COOKIE = "keepAdaptiveScriptOldCookie";
 
     @Override
     public void setCookie(JsServletResponse response, String name, Object... params) {
@@ -78,7 +78,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
             }
             if (encrypt) {
                 try {
-                    if (Boolean.parseBoolean(System.getProperty(COOKIES_WITHOUT_SPECIAL_CHARACTERS))) {
+                    if (Boolean.parseBoolean(System.getProperty(KEEP_ADAPTIVE_SCRIPT_OLD_COOKIE))) {
                         value = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(Base64.decode(value));
                     } else {
                         value = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(
@@ -157,7 +157,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                             .orElse(false);
                     if (decrypt) {
                         try {
-                            if (Boolean.parseBoolean(System.getProperty(COOKIES_WITHOUT_SPECIAL_CHARACTERS))) {
+                            if (Boolean.parseBoolean(System.getProperty(KEEP_ADAPTIVE_SCRIPT_OLD_COOKIE))) {
                                 valueString = Base64.encode(CryptoUtil.getDefaultCryptoUtil()
                                         .base64DecodeAndDecrypt(valueString));
                             } else {
