@@ -51,11 +51,15 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
         String externalSubject = null;
         try {
             String userIdClaimURI = Utils.getUserIdClaimURI(externalIdpName, tenantDomain);
+            if (StringUtils.isEmpty(userIdClaimURI)) {
+                userIdClaimURI = Utils.resolveUserIDClaimURIFromMapping(externalIdpName, tenantDomain);
+            }
             if (StringUtils.isNotEmpty(userIdClaimURI) &&
                     MapUtils.isNotEmpty(federatedUser.getWrapped().getUserAttributes())) {
+                String finalUserIdClaimURI = userIdClaimURI;
                 externalSubject = federatedUser.getWrapped().getUserAttributes().entrySet().stream().filter(
                         userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
-                                .equals(userIdClaimURI))
+                                .equals(finalUserIdClaimURI))
                         .map(Map.Entry::getValue)
                         .findFirst()
                         .orElse(null);

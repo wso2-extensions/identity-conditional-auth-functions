@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -34,6 +36,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Utility methods required for user functions.
@@ -41,6 +44,8 @@ import java.util.Collections;
 public class Utils {
 
     private static final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
+    private static final String SUB_ATTRIBUTE = "sub";
+    private static final String OIDC_DIALECT = "http://wso2.org/oidc/claim";
 
     /**
      * Get userRealm for the given tenantDomain.
@@ -120,17 +125,7 @@ public class Utils {
             throws IdentityProviderManagementException {
 
         String userIdClaimURI = null;
-        IdentityProvider idp =
-                UserFunctionsServiceHolder.getInstance().getIdentityProviderManagementService()
-                        .getIdPByName(federatedIdpName, tenantDomain);
-        if (idp == null) {
-            return null;
-        }
-        ClaimConfig claimConfigs = idp.getClaimConfig();
-        if (claimConfigs == null) {
-            return null;
-        }
-        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        ClaimMapping[] claimMappings = getIdPClaimMapping(federatedIdpName, tenantDomain);
         if (claimMappings == null || claimMappings.length < 1) {
             return null;
         }
@@ -144,4 +139,107 @@ public class Utils {
         return userIdClaimURI;
     }
 
+    /**
+     * Resolve the userID claim URI from the IdP mapping or the default OIDC mapping.
+     *
+     * @param federatedIdpName federated IdP name.
+     * @param tenantDomain  tenant domain.
+     * @return userIDcClaimURI.
+     * @throws IdentityProviderManagementException If an error occurred in resolving userID claim URI.
+     */
+    public static String resolveUserIDClaimURIFromMapping(String federatedIdpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        List<ExternalClaim> defaultClaims = getDefaultOIDCDialectClaims(tenantDomain);
+        ClaimMapping[] idpClaimMappings = getIdPClaimMapping(federatedIdpName, tenantDomain);
+        String userIDLocalClaimURI = getMappedLocalClaimURI(defaultClaims, SUB_ATTRIBUTE);
+        if (userIDLocalClaimURI == null) {
+            return null;
+        }
+        if (idpClaimMappings != null) {
+            ClaimMapping userNameClaimMapping = Arrays.stream(idpClaimMappings).filter(claimMapping ->
+                            StringUtils.equals(userIDLocalClaimURI, claimMapping.getLocalClaim().getClaimUri()))
+                    .findFirst()
+                    .orElse(null);
+            if (userNameClaimMapping != null) {
+                return userNameClaimMapping.getRemoteClaim().getClaimUri();
+            }
+        }
+        if (defaultClaims != null && !defaultClaims.isEmpty()) {
+            ExternalClaim claim = defaultClaims.stream().filter(externalClaim -> userIDLocalClaimURI
+                            .equalsIgnoreCase(externalClaim.getMappedLocalClaim()))
+                    .findFirst()
+                    .orElse(null);
+            if (claim != null) {
+                return claim.getClaimURI();
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Get claim mapping for Identity provider.
+     *
+     * @param federatedIdpName Name of the Identity provider.
+     * @param tenantDomain Tenant domain.
+     * @return claimMappings
+     * @throws IdentityProviderManagementException If an error occurred in getting claim mapping.
+     */
+    private static ClaimMapping[] getIdPClaimMapping(String federatedIdpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        IdentityProvider idp =
+                UserFunctionsServiceHolder.getInstance().getIdentityProviderManagementService()
+                        .getIdPByName(federatedIdpName, tenantDomain);
+        if (idp == null) {
+            return null;
+        }
+        ClaimConfig claimConfigs = idp.getClaimConfig();
+        if (claimConfigs == null) {
+            return null;
+        }
+        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        return claimMappings;
+    }
+
+    /**
+     * Get default claim mapping.
+     *
+     * @param tenantDomain tenant domain.
+     * @return default claim mapping.
+     * @throws IdentityProviderManagementException If an error occurred in getting default claim mapping.
+     */
+    private static List<ExternalClaim> getDefaultOIDCDialectClaims(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        try {
+            return UserFunctionsServiceHolder.getInstance()
+                    .getClaimMetadataManagementService()
+                    .getExternalClaims(OIDC_DIALECT, tenantDomain);
+
+        } catch (ClaimMetadataException e) {
+            throw new IdentityProviderManagementException("Error while fetching default oidc dialect claim mapping " +
+                    "for tenantDomain: " + tenantDomain);
+        }
+    }
+
+    /**
+     * Get the local mapped claim URI for an identity provider claim.
+     *
+     * @param claims Identity provider claim mapping.
+     * @param idpClaim  Identity provider claim.
+     * @return  Local claim URI.
+     */
+    private static String getMappedLocalClaimURI(List<ExternalClaim> claims, String idpClaim) {
+
+        ExternalClaim claim = claims.stream().filter(externalClaim -> idpClaim.equalsIgnoreCase(externalClaim
+                        .getClaimURI()))
+                .findFirst()
+                .orElse(null);
+        if (claim != null) {
+            return claim.getMappedLocalClaim();
+        }
+        return null;
+    }
 }

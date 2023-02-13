@@ -148,6 +148,7 @@
                             org.wso2.carbon.identity.application.authentication.framework.dao.impl,
                             org.wso2.carbon.identity.application.authentication.framework.dao,
                             org.wso2.carbon.identity.base.*,
+                            org.wso2.carbon.identity.claim.*,
                             org.wso2.carbon.identity.core.util.*,
                             org.wso2.carbon.identity.core.model.*,
                             org.wso2.carbon.identity.user.profile.mgt,

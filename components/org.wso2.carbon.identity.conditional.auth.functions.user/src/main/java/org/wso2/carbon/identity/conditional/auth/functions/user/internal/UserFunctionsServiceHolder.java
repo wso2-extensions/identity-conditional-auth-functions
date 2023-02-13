@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user.internal;
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -34,6 +35,8 @@ public class UserFunctionsServiceHolder {
     private UserSessionManagementService userSessionManagementService;
     private IdpManager identityProviderManagementService;
     private JsFunctionRegistry jsFunctionRegistry;
+    private ClaimMetadataManagementService claimMetadataManagementService;
+
 
     private UserFunctionsServiceHolder() {
 
@@ -94,5 +97,16 @@ public class UserFunctionsServiceHolder {
     public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
         this.jsFunctionRegistry = jsFunctionRegistry;
+    }
+
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    public void setClaimMetadataManagementService(
+            ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 }

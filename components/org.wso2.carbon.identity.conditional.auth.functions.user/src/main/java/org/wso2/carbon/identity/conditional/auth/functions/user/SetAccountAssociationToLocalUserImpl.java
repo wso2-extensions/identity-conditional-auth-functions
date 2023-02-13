@@ -50,11 +50,15 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
                     }
                     federatedIdpName = federatedUser.getWrapped().getFederatedIdPName();
                     String userIdClaimURI = Utils.getUserIdClaimURI(federatedIdpName, tenantDomain);
+                    if (StringUtils.isEmpty(userIdClaimURI)) {
+                        userIdClaimURI = Utils.resolveUserIDClaimURIFromMapping(federatedIdpName, tenantDomain);
+                    }
                     String externalSubject;
                     if (StringUtils.isNotEmpty(userIdClaimURI)) {
+                        String finalUserIdClaimURI = userIdClaimURI;
                         externalSubject = federatedUser.getWrapped().getUserAttributes().entrySet().stream().filter(
                                 userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
-                                        .equals(userIdClaimURI))
+                                        .equals(finalUserIdClaimURI))
                                 .map(Map.Entry::getValue)
                                 .findFirst()
                                 .orElse(null);
