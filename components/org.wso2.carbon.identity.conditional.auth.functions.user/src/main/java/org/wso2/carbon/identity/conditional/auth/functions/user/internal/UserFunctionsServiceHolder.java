@@ -99,11 +99,21 @@ public class UserFunctionsServiceHolder {
         this.jsFunctionRegistry = jsFunctionRegistry;
     }
 
+    /**
+     * Method to get the Claim Metadata Management Service.
+     *
+     * @return claimMetadataManagementService.
+     */
     public ClaimMetadataManagementService getClaimMetadataManagementService() {
 
         return claimMetadataManagementService;
     }
 
+    /**
+     * Method to set the Claim Metadata Management Service.
+     *
+     * @param claimMetadataManagementService Claim Metadata Management Service.
+     */
     public void setClaimMetadataManagementService(
             ClaimMetadataManagementService claimMetadataManagementService) {
 

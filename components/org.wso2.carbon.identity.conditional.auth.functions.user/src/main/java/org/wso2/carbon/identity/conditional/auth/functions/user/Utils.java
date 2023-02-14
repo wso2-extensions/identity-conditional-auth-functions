@@ -144,10 +144,10 @@ public class Utils {
      *
      * @param federatedIdpName federated IdP name.
      * @param tenantDomain  tenant domain.
-     * @return userIDcClaimURI.
+     * @return user ID ClaimURI.
      * @throws IdentityProviderManagementException If an error occurred in resolving userID claim URI.
      */
-    public static String resolveUserIDClaimURIFromMapping(String federatedIdpName, String tenantDomain)
+    public static String resolveUsername(String federatedIdpName, String tenantDomain)
             throws IdentityProviderManagementException {
 
         List<ExternalClaim> defaultClaims = getDefaultOIDCDialectClaims(tenantDomain);
@@ -183,7 +183,7 @@ public class Utils {
      *
      * @param federatedIdpName Name of the Identity provider.
      * @param tenantDomain Tenant domain.
-     * @return claimMappings
+     * @return claimMappings.
      * @throws IdentityProviderManagementException If an error occurred in getting claim mapping.
      */
     private static ClaimMapping[] getIdPClaimMapping(String federatedIdpName, String tenantDomain)

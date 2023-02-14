@@ -52,7 +52,7 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
         try {
             String userIdClaimURI = Utils.getUserIdClaimURI(externalIdpName, tenantDomain);
             if (StringUtils.isEmpty(userIdClaimURI)) {
-                userIdClaimURI = Utils.resolveUserIDClaimURIFromMapping(externalIdpName, tenantDomain);
+                userIdClaimURI = Utils.resolveUsername(externalIdpName, tenantDomain);
             }
             if (StringUtils.isNotEmpty(userIdClaimURI) &&
                     MapUtils.isNotEmpty(federatedUser.getWrapped().getUserAttributes())) {
