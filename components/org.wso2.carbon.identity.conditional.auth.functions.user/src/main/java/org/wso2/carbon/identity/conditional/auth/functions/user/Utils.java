@@ -141,6 +141,7 @@ public class Utils {
         if (userNameClaimMapping != null) {
             userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
         }
+        userIdClaimURI = claimConfigs.getUserClaimURI();
         return userIdClaimURI;
     }
 
