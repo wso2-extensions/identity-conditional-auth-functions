@@ -134,6 +134,10 @@ public class Utils {
         if (claimMappings == null || claimMappings.length < 1) {
             return null;
         }
+        userIdClaimURI = claimConfigs.getUserClaimURI();
+        if (userIdClaimURI != null) {
+            return userIdClaimURI;
+        }
         ClaimMapping userNameClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
                 StringUtils.equals(USERNAME_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
                 .findFirst()
@@ -141,7 +145,6 @@ public class Utils {
         if (userNameClaimMapping != null) {
             userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
         }
-        userIdClaimURI = claimConfigs.getUserClaimURI();
         return userIdClaimURI;
     }
 
