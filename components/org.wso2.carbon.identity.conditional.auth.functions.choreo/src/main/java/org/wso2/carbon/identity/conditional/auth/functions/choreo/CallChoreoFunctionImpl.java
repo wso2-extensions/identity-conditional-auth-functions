@@ -127,7 +127,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                         connectionMetaData, asyncReturn, authenticationContext, payloadData);
                 String accessToken = choreoAccessTokenCache.getValueFromCache(accessTokenRequestHelper.getConsumerKey(),
                         tenantDomain);
-                if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {
+                if (StringUtils.isNotBlank(accessToken) && !isTokenExpired(accessToken)) {
                     accessTokenRequestHelper.callChoreoEndpoint(accessToken);
                 } else {
                     LOG.debug("Requesting the access token from Choreo");
@@ -240,11 +240,11 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     /**
      * Performs the access token request using client credentials grant type.
      *
-     * @param tenantDomain       The tenant domain which the request belongs to.
-     * @param accessTokenRequestHelper     The future callback that needs to be called after requesting the token.
-     * @throws SecretManagementException {@link SecretManagementException}
-     * @throws IOException               {@link IOException}
-     * @throws FrameworkException        {@link FrameworkException}
+     * @param tenantDomain                  The tenant domain which the request belongs to.
+     * @param accessTokenRequestHelper      The future callback that needs to be called after requesting the token.
+     * @throws SecretManagementException    {@link SecretManagementException}
+     * @throws IOException                  {@link IOException}
+     * @throws FrameworkException           {@link FrameworkException}
      */
     private void requestAccessToken(String tenantDomain, AccessTokenRequestHelper accessTokenRequestHelper)
                                     throws IOException, FrameworkException {
@@ -295,7 +295,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             this.payloadData = payloadData;
             this.gson = new GsonBuilder().create();
             this.tokenRequestAttemptCount = new AtomicInteger(0);
-            resolveConsumerKeySecrete();
+            resolveConsumerKeySecret();
         }
 
         /**
@@ -315,7 +315,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     Map<String, String> responseBody = this.gson
                             .fromJson(EntityUtils.toString(httpResponse.getEntity()), responseBodyType);
                     String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
-                    if (accessToken != null) {
+                    if (StringUtils.isNotBlank(accessToken)) {
                         choreoAccessTokenCache.addToCache(this.consumerKey, accessToken,
                                 this.authenticationContext.getTenantDomain());
                         callChoreoEndpoint(accessToken);
@@ -544,16 +544,23 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         }
 
-        public void resolveConsumerKeySecrete() throws SecretManagementException {
+        /**
+         * Resolves the consumer key and the secret from the connection metadata. Consumer key and secret should be
+         * present in the connection metadata as a variable or as an alias, otherwise a SecretManagementException will
+         * be thrown.
+         *
+         * @throws SecretManagementException {@link SecretManagementException}
+         */
+        public void resolveConsumerKeySecret() throws SecretManagementException {
 
-            if (StringUtils.isNotEmpty(connectionMetaData.get(CONSUMER_KEY_VARIABLE_NAME))) {
+            if (StringUtils.isNotBlank(connectionMetaData.get(CONSUMER_KEY_VARIABLE_NAME))) {
                 this.consumerKey = connectionMetaData.get(CONSUMER_KEY_VARIABLE_NAME);
             } else {
                 String consumerKeyAlias = connectionMetaData.get(CONSUMER_KEY_ALIAS_VARIABLE_NAME);
                 this.consumerKey = getResolvedSecret(consumerKeyAlias);
             }
 
-            if (StringUtils.isNotEmpty(connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME))) {
+            if (StringUtils.isNotBlank(connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME))) {
                 this.consumerSecret = connectionMetaData.get(CONSUMER_SECRET_VARIABLE_NAME);
             } else {
                 String consumerSecretAlias = connectionMetaData.get(CONSUMER_SECRET_ALIAS_VARIABLE_NAME);
