@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.choreo;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.config.RequestConfig;
@@ -93,9 +94,19 @@ public class ClientManager {
     private RequestConfig createRequestConfig() {
 
         return RequestConfig.custom()
-                .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
-                .setConnectionRequestTimeout(HTTP_CONNECTION_REQUEST_TIMEOUT)
-                .setSocketTimeout(httpReadTimeout)
+                .setConnectTimeout(StringUtils.isNotBlank(
+                        IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_CONNECTION_TIMEOUT)) ?
+                        Integer.parseInt(IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_CONNECTION_TIMEOUT)) :
+                        HTTP_CONNECTION_TIMEOUT)
+                .setConnectionRequestTimeout(StringUtils.isNotBlank(
+                        IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_CONNECTION_REQUEST_TIMEOUT)) ?
+                        Integer.parseInt(
+                                IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_CONNECTION_REQUEST_TIMEOUT)) :
+                        HTTP_CONNECTION_REQUEST_TIMEOUT)
+                .setSocketTimeout(StringUtils.isNotBlank(
+                        IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_READ_TIMEOUT)) ?
+                        Integer.parseInt(IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_READ_TIMEOUT)) :
+                        httpReadTimeout)
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();
