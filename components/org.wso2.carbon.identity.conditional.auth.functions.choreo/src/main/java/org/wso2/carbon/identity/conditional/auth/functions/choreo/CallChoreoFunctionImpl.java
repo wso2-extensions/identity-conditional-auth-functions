@@ -250,8 +250,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                     throws IOException, FrameworkException {
 
         String tokenEndpoint;
-        if (StringUtils.isNotEmpty(accessTokenRequestHelper.asgardeoTokenEndpoint)) {
-            tokenEndpoint = accessTokenRequestHelper.asgardeoTokenEndpoint;
+        if (StringUtils.isNotEmpty(accessTokenRequestHelper.getAsgardeoTokenEndpoint())) {
+            tokenEndpoint = accessTokenRequestHelper.getAsgardeoTokenEndpoint();
         } else {
             tokenEndpoint = ConfigProvider.getInstance().getChoreoTokenEndpoint();
         }
