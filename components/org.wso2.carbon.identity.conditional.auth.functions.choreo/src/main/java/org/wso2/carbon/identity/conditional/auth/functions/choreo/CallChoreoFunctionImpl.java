@@ -87,6 +87,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String CONSUMER_KEY_ALIAS_VARIABLE_NAME = "consumerKeyAlias";
     private static final String CONSUMER_SECRET_VARIABLE_NAME = "consumerSecret";
     private static final String CONSUMER_SECRET_ALIAS_VARIABLE_NAME = "consumerSecretAlias";
+    private static final String ASGARDEO_TOKEN_ENDPOINT = "asgardeoTokenEndpoint";
     private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
     private static final char DOMAIN_SEPARATOR = '.';
     private static final String ACCESS_TOKEN_KEY = "access_token";
@@ -248,7 +249,13 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private void requestAccessToken(String tenantDomain, AccessTokenRequestHelper accessTokenRequestHelper)
                                     throws IOException, FrameworkException {
 
-        HttpPost request = new HttpPost(ConfigProvider.getInstance().getChoreoTokenEndpoint());
+        String tokenEndpoint;
+        if (StringUtils.isNotEmpty(accessTokenRequestHelper.getAsgardeoTokenEndpoint())) {
+            tokenEndpoint = accessTokenRequestHelper.getAsgardeoTokenEndpoint();
+        } else {
+            tokenEndpoint = ConfigProvider.getInstance().getChoreoTokenEndpoint();
+        }
+        HttpPost request = new HttpPost(tokenEndpoint);
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
         request.setHeader(CONTENT_TYPE, TYPE_FORM_DATA);
 
@@ -275,6 +282,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         private final AtomicInteger tokenRequestAttemptCount;
         private String consumerKey;
         private String consumerSecret;
+        private String asgardeoTokenEndpoint;
 
         public AccessTokenRequestHelper(Map<String, String> connectionMetaData,
                                         AsyncReturn asyncReturn,
@@ -476,10 +484,16 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             Type responseBodyType;
             try {
                 int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode == HTTP_STATUS_OK) {
+                Map<String, Object> successResponseBody;
+                if (statusCode >= 200 && statusCode < 300) { // Accepting 2xx as success.
                     responseBodyType = new TypeToken<Map<String, Object>>() { }.getType();
-                    Map<String, Object> successResponseBody = this.gson
-                            .fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
+                    String responseBodyString = EntityUtils.toString(response.getEntity());
+                    if (StringUtils.isEmpty(responseBodyString)) {
+                        // To handle the case where the response body is empty.
+                        successResponseBody = Collections.emptyMap();
+                    } else {
+                        successResponseBody = this.gson.fromJson(responseBodyString, responseBodyType);
+                    }
                     this.asyncReturn.accept(authenticationContext, successResponseBody, Constants.OUTCOME_SUCCESS);
                 } else if (statusCode == HTTP_STATUS_UNAUTHORIZED) {
                     responseBodyType = new TypeToken<Map<String, String>>() { }.getType();
@@ -545,6 +559,10 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 String consumerSecretAlias = connectionMetaData.get(CONSUMER_SECRET_ALIAS_VARIABLE_NAME);
                 this.consumerSecret = getResolvedSecret(consumerSecretAlias);
             }
+
+            if (StringUtils.isNotEmpty(connectionMetaData.get(ASGARDEO_TOKEN_ENDPOINT))) {
+                this.asgardeoTokenEndpoint = connectionMetaData.get(ASGARDEO_TOKEN_ENDPOINT);
+            }
         }
 
         public void setConsumerKey(String consumerKey) {
@@ -565,6 +583,11 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         public void setConsumerSecret(String consumerSecret) {
 
             this.consumerSecret = consumerSecret;
+        }
+
+        public String getAsgardeoTokenEndpoint() {
+
+            return asgardeoTokenEndpoint;
         }
     }
 }
