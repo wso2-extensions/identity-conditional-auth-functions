@@ -148,19 +148,26 @@
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework,
-                            org.wso2.carbon.identity.application.authentication.framework.context,
-                            org.wso2.carbon.identity.application.authentication.framework.exception,
-                            org.wso2.carbon.identity.application.authentication.framework.model,
-                            org.wso2.carbon.identity.application.authentication.framework.config.model,
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph,
-                            org.wso2.carbon.identity.application.common.model,
-                            org.wso2.carbon.identity.event,
-                            org.wso2.carbon.identity.core.util,
+                            org.wso2.carbon.identity.application.authentication.framework;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.context;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.exception;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.registry.core.service,
-                            org.wso2.carbon.identity.governance,
-                            org.wso2.carbon.identity.governance.common,
+                            org.wso2.carbon.identity.governance; version="${identity.governance.import.version.range}",
+                            org.wso2.carbon.identity.governance.common; version="${identity.governance.import.version.range}",
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.conditional.auth.functions.common.utils,
                             org.wso2.carbon.identity.conditional.auth.functions.common.auth,
