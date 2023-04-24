@@ -549,7 +549,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
          * present in the connection metadata as a variable or as an alias, otherwise a SecretManagementException will
          * be thrown.
          *
-         * @throws SecretManagementException {@link SecretManagementException}
+         * @throws SecretManagementException {@link SecretManagementException}.
          */
         public void resolveConsumerKeySecret() throws SecretManagementException {
 
