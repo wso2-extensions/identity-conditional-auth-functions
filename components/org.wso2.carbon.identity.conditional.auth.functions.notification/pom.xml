@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>1.2.11-SNAPSHOT</version>
+        <version>1.2.24-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -120,15 +120,20 @@
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
                             org.wso2.carbon.core.util,
-                            org.wso2.carbon.identity.application.authentication.framework,
-                            org.wso2.carbon.identity.application.authentication.framework.exception,
-                            org.wso2.carbon.identity.application.authentication.framework.model,
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
-                            org.wso2.carbon.identity.event,
-                            org.wso2.carbon.identity.event.event,
-                            org.wso2.carbon.identity.event.services,
+                            org.wso2.carbon.identity.application.authentication.framework;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.exception;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.services; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.registry.core.service,
-                            org.wso2.carbon.identity.event.handler.notification.exception,
+                            org.wso2.carbon.identity.event.handler.notification.exception;
+                            version="${identity.event.handler.notification.version}",
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}"
                         </Import-Package>
                     </instructions>

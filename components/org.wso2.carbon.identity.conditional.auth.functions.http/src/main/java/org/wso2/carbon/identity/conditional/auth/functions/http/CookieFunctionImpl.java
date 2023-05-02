@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +48,7 @@ import javax.servlet.http.Cookie;
 public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction {
 
     private static final Log log = LogFactory.getLog(CookieFunctionImpl.class);
+    private static final String ENABLE_ADAPTIVE_SCRIPT_COOKIE_LEGACY_MODE = "enableAdaptiveScriptCookieLegacyMode";
 
     @Override
     public void setCookie(JsServletResponse response, String name, Object... params) {
@@ -76,7 +78,12 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
             }
             if (encrypt) {
                 try {
-                    value = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(Base64.decode(value));
+                    if (Boolean.parseBoolean(System.getProperty(ENABLE_ADAPTIVE_SCRIPT_COOKIE_LEGACY_MODE))) {
+                        value = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(Base64.decode(value));
+                    } else {
+                        value = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(
+                                value.getBytes(StandardCharsets.UTF_8));
+                    }
                 } catch (CryptoException e) {
                     log.error("Error occurred when encrypting the cookie value.", e);
                     return;
@@ -150,8 +157,13 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                             .orElse(false);
                     if (decrypt) {
                         try {
-                            valueString = Base64.encode(CryptoUtil.getDefaultCryptoUtil()
-                                    .base64DecodeAndDecrypt(valueString));
+                            if (Boolean.parseBoolean(System.getProperty(ENABLE_ADAPTIVE_SCRIPT_COOKIE_LEGACY_MODE))) {
+                                valueString = Base64.encode(CryptoUtil.getDefaultCryptoUtil()
+                                        .base64DecodeAndDecrypt(valueString));
+                            } else {
+                                valueString = new String(CryptoUtil.getDefaultCryptoUtil()
+                                        .base64DecodeAndDecrypt(valueString), StandardCharsets.UTF_8);
+                            }
                         } catch (CryptoException e) {
                             log.error("Error occurred when decrypting the cookie value.", e);
                             return null;

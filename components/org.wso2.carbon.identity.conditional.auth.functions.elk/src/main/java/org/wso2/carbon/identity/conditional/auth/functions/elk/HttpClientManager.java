@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,16 +76,11 @@ public class HttpClientManager {
         CloseableHttpAsyncClient client = clientMap.get(tenantId);
 
         if (client == null) {
-
             PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = createPoolingConnectionManager();
-
             RequestConfig config = createRequestConfig(tenantDomain);
-
             HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClients.custom().setDefaultRequestConfig(config);
-
             addSslContext(httpClientBuilder, tenantDomain);
             httpClientBuilder.setConnectionManager(poolingHttpClientConnectionManager);
-
             client = httpClientBuilder.build();
             client.start();
             clientMap.put(tenantId, client);
@@ -134,14 +129,14 @@ public class HttpClientManager {
             try {
                 readTimeout = Integer.parseInt(readTimeoutString);
             } catch (NumberFormatException e) {
-                LOG.error("Error while parsing read timeout : " + connectionTimeoutString, e);
+                LOG.error("Error while parsing read timeout : " + readTimeoutString, e);
             }
         }
         if (connectionRequestTimeoutString != null) {
             try {
                 connectionRequestTimeout = Integer.parseInt(connectionRequestTimeoutString);
             } catch (NumberFormatException e) {
-                LOG.error("Error while parsing connection request timeout : " + connectionTimeoutString, e);
+                LOG.error("Error while parsing connection request timeout : " + connectionRequestTimeoutString, e);
             }
         }
 
@@ -181,9 +176,9 @@ public class HttpClientManager {
         }
         PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = new
                 PoolingNHttpClientConnectionManager(ioReactor);
-        // Increase max total connection to 50
+        // Increase max total connection to 50.
         poolingHttpClientConnectionManager.setMaxTotal(maxConnections);
-        // Increase default max connection per route to 50
+        // Increase default max connection per route to 50.
         poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
         return poolingHttpClientConnectionManager;
     }
@@ -223,5 +218,4 @@ public class HttpClientManager {
                     tenantDomain, e);
         }
     }
-
 }

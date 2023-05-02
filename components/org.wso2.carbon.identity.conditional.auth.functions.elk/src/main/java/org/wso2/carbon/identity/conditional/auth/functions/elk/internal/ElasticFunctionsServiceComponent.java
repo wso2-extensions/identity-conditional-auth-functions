@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,6 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -51,7 +50,6 @@ import java.security.cert.CertificateException;
 /**
  * OSGi declarative services component which handle ELK related conditional auth functions.
  */
-
 @Component(
         name = "identity.conditional.auth.functions.elk.component",
         immediate = true
@@ -67,6 +65,7 @@ public class ElasticFunctionsServiceComponent {
 
     @Activate
     protected void activate(ComponentContext context) {
+
         try {
             JsFunctionRegistry jsFunctionRegistry = ElasticFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
 
@@ -91,7 +90,7 @@ public class ElasticFunctionsServiceComponent {
                 LOG.error("Error while loading truststore.", e);
             }
         } catch (Throwable e) {
-            LOG.error("Error while activating AnalyticsFunctionsServiceComponent");
+            LOG.error("Error while activating AnalyticsFunctionsServiceComponent.", e);
         }
     }
 
@@ -128,14 +127,14 @@ public class ElasticFunctionsServiceComponent {
             unbind = "unsetIdentityCoreInitializedEventService")
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
 
-    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
+    /* Reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started. */
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
 
-    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
+    /* Reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started. */
     }
 
     @Reference(
@@ -148,7 +147,7 @@ public class ElasticFunctionsServiceComponent {
     protected void setIdentityGovernanceService(IdentityGovernanceService identityGovernanceService) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Identity Governance service is set form functions");
+            LOG.debug("Identity Governance service is set form functions.");
         }
         // Do nothing. Wait for the service before registering the governance connector.
     }
@@ -156,7 +155,7 @@ public class ElasticFunctionsServiceComponent {
     protected void unsetIdentityGovernanceService(IdentityGovernanceService identityGovernanceService) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Identity Governance service is unset from functions");
+            LOG.debug("Identity Governance service is unset from functions.");
         }
         // Do nothing.
     }
@@ -171,7 +170,7 @@ public class ElasticFunctionsServiceComponent {
     protected void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Setting the serverConfigurationService");
+            LOG.debug("Setting the serverConfigurationService.");
         }
         ElasticFunctionsServiceHolder.getInstance().setServerConfigurationService(serverConfigurationService);
     }
@@ -179,7 +178,7 @@ public class ElasticFunctionsServiceComponent {
     protected void unsetServerConfigurationService(ServerConfigurationService serverConfigurationService) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Unsetting the ServerConfigurationService");
+            LOG.debug("Unsetting the ServerConfigurationService.");
         }
         ElasticFunctionsServiceHolder.getInstance().setServerConfigurationService(null);
     }

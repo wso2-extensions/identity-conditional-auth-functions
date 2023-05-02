@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
     <artifactId>identity-conditional-auth-functions</artifactId>
-    <version>1.2.11-SNAPSHOT</version>
+    <version>1.2.24-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - IAM Conditional Authentication Functions</name>
     <url>http://wso2.org</url>
@@ -283,6 +283,17 @@
                 <version>${nashorn.core.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>jsr311-api</artifactId>
+                <version>1.1.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.crypto</groupId>
+                <artifactId>org.wso2.carbon.crypto.impl</artifactId>
+                <version>${carbon.crypto.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -392,6 +403,32 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven.checkstyleplugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>validate</id>
+                            <phase>validate</phase>
+                            <configuration>
+                                <configLocation>
+                                    https://raw.githubusercontent.com/wso2/code-quality-tools/v1.3/checkstyle/checkstyle.xml
+                                </configLocation>
+                                <suppressionsLocation>
+                                    https://raw.githubusercontent.com/wso2/code-quality-tools/v1.3/checkstyle/suppressions.xml
+                                </suppressionsLocation>
+                                <encoding>UTF-8</encoding>
+                                <consoleOutput>true</consoleOutput>
+                                <failsOnError>true</failsOnError>
+                                <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                            </configuration>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -435,9 +472,9 @@
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.identity.framework.version>5.22.0</carbon.identity.framework.version>
         <carbon.identity.framework.testutils.version>5.20.447</carbon.identity.framework.testutils.version>
-        <carbon.identity.package.import.version.range>[5.14.0, 6.0.0)</carbon.identity.package.import.version.range>
+        <carbon.identity.package.import.version.range>[5.14.0, 7.0.0)</carbon.identity.package.import.version.range>
         <identity.governance.version>1.1.17</identity.governance.version>
-        <identity.governance.import.version.range>[1.5.70,2.0)</identity.governance.import.version.range>
+        <identity.governance.import.version.range>[1.5.70,3.0)</identity.governance.import.version.range>
         <identity.event.handler.notification.version>[1.0.23,2.0.0)</identity.event.handler.notification.version>
 
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
@@ -449,6 +486,7 @@
         <org.testng.version>6.9.10</org.testng.version>
         <org.powermock.version>1.7.3</org.powermock.version>
         <com.h2database.version>1.2.140.wso2v3</com.h2database.version>
+        <carbon.crypto.version>1.1.13</carbon.crypto.version>
 
         <org.wso2.carbon.identity.conditional.auth.functions.version.range>[1.2,2.0)</org.wso2.carbon.identity.conditional.auth.functions.version.range>
 
@@ -458,6 +496,7 @@
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+        <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <jacoco.version>0.8.4</jacoco.version>
         <org.apache.axis2.transport.version.range>[1.6,2)</org.apache.axis2.transport.version.range>
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.choreo;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.config.RequestConfig;
@@ -31,7 +32,6 @@ import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.nio.reactor.IOReactorException;
-
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
@@ -44,6 +44,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.net.ssl.SSLContext;
 
 /**
@@ -57,14 +58,12 @@ public class ClientManager {
 
     private PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager;
 
-    private static int HTTP_CONNECTION_TIMEOUT = 300;
-    private static int HTTP_READ_TIMEOUT = 300;
-    private static int HTTP_CONNECTION_REQUEST_TIMEOUT = 300;
-    private static int DEFAULT_MAX_CONNECTIONS = 20;
+    private static final int HTTP_CONNECTION_TIMEOUT = 1000;
+    private static final int HTTP_CONNECTION_REQUEST_TIMEOUT = 1000;
+    private static final int DEFAULT_MAX_CONNECTIONS = 20;
+    private static int httpReadTimeout = 1000;
 
-    public ClientManager() throws FrameworkException {
-
-        poolingHttpClientConnectionManager = createPoolingConnectionManager();
+    public ClientManager() {
 
     }
 
@@ -79,6 +78,7 @@ public class ClientManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         CloseableHttpAsyncClient client = clientMap.get(tenantId);
         if (client == null) {
+            PoolingNHttpClientConnectionManager poolingHttpClientConnectionManager = createPoolingConnectionManager();
             RequestConfig config = createRequestConfig();
             HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClients.custom().setDefaultRequestConfig(config);
             addSslContext(httpClientBuilder, tenantDomain);
@@ -94,9 +94,19 @@ public class ClientManager {
     private RequestConfig createRequestConfig() {
 
         return RequestConfig.custom()
-                .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
-                .setConnectionRequestTimeout(HTTP_CONNECTION_REQUEST_TIMEOUT)
-                .setSocketTimeout(HTTP_READ_TIMEOUT)
+                .setConnectTimeout(StringUtils.isNotBlank(
+                        IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_CONNECTION_TIMEOUT)) ?
+                        Integer.parseInt(IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_CONNECTION_TIMEOUT)) :
+                        HTTP_CONNECTION_TIMEOUT)
+                .setConnectionRequestTimeout(StringUtils.isNotBlank(
+                        IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_CONNECTION_REQUEST_TIMEOUT)) ?
+                        Integer.parseInt(
+                                IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_CONNECTION_REQUEST_TIMEOUT)) :
+                        HTTP_CONNECTION_REQUEST_TIMEOUT)
+                .setSocketTimeout(StringUtils.isNotBlank(
+                        IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_READ_TIMEOUT)) ?
+                        Integer.parseInt(IdentityUtil.getProperty(Constants.CALL_CHOREO_HTTP_READ_TIMEOUT)) :
+                        httpReadTimeout)
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();

@@ -18,14 +18,10 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -50,7 +46,7 @@ public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
         String username = user.getWrapped().getUserName();
         try {
             UserRealm userRealm = Utils.getUserRealm(user.getWrapped().getTenantDomain());
-            boolean isFederated = user.getContext().getSubject().isFederatedUser();
+            boolean isFederated = user.getWrapped().isFederatedUser();
             if (userRealm != null && !isFederated) {
                 UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                 if (userStore != null) {
