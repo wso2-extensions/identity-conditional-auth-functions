@@ -21,7 +21,13 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
 @FunctionalInterface
-public interface CheckVerifiedEmailFunction {
+public interface MicrosoftEmailVerificationFunction {
 
-    boolean checkVerifiedEmail(JsAuthenticationContext context);
+    /**
+     * Function to check whether the email from Microsoft is verified.
+     *
+     * @param context   Authentication context.
+     * @return True if the email is verified.
+     */
+    boolean checkMicrosoftEmailVerification(JsAuthenticationContext context);
 }

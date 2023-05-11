@@ -31,9 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class CheckVerifiedEmailFunctionImpl implements CheckVerifiedEmailFunction {
+/**
+ * Function to check whether email received from microsoft account is verified.
+ */
+public class MicrosoftEmailVerificationFunctionImpl implements MicrosoftEmailVerificationFunction {
 
-    private static final Log log = LogFactory.getLog(CheckVerifiedEmailFunctionImpl.class);
+    private static final Log LOG = LogFactory.getLog(MicrosoftEmailVerificationFunctionImpl.class);
     private static final String ISSUER = "iss";
     private static final String ID_TOKEN = "id_token";
     private static final String VERIFIED_PRIMARY_EMAIL = "verified_primary_email";
@@ -42,8 +45,11 @@ public class CheckVerifiedEmailFunctionImpl implements CheckVerifiedEmailFunctio
             "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0";
 
     @Override
-    public boolean checkVerifiedEmail(JsAuthenticationContext context) {
+    public boolean checkMicrosoftEmailVerification(JsAuthenticationContext context) {
 
+        if (context.getWrapped().getParameter(ID_TOKEN) == null) {
+            return false;
+        }
         String idToken = context.getWrapped().getParameter(ID_TOKEN).toString();
         Map<String, Object> idTokenClaims = getIdTokenClaims(idToken);
         // Handle whether the user is logged in with a Microsoft account which is not verified.
@@ -74,7 +80,7 @@ public class CheckVerifiedEmailFunctionImpl implements CheckVerifiedEmailFunctio
         try {
             jwtAttributeSet = JSONObjectUtils.parseJSONObject(new String(decoded)).entrySet();
         } catch (ParseException e) {
-            log.error("Error occurred while parsing JWT provided by federated IDP: ", e);
+            LOG.error("Error occurred while parsing JWT provided by federated IDP: ", e);
         }
         Map<String, Object> jwtAttributeMap = new HashMap<>();
         for (Map.Entry<String, Object> entry : jwtAttributeSet) {
