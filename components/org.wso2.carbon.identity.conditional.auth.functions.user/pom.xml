@@ -173,6 +173,8 @@
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.idp.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",
+                            com.nimbusds.jose.*; version="${nimbusds.osgi.version.range}",
+                            net.minidev.json; version="${net.minidev.json.imp.pkg.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>
