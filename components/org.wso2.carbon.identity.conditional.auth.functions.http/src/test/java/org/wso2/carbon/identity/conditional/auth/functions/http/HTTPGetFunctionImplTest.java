@@ -103,6 +103,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test(dependsOnMethods = {"testHttpGetMethod"})
     public void testHttpGetMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
+        sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
         setAllowedDomain(ALLOWED_DOMAIN);
         String requestUrl = getRequestUrl();
         String result = executeHttpGetFunction(requestUrl);
