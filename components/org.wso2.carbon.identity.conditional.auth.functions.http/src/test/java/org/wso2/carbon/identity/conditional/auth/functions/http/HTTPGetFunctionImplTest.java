@@ -17,6 +17,8 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -58,6 +60,7 @@ import static org.testng.Assert.assertEquals;
 @Path("/")
 public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
+    private static final Log LOG = LogFactory.getLog(HTTPGetFunctionImplTest.class);
     private static final String TEST_SP_CONFIG = "http-get-test-sp.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
@@ -79,6 +82,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(longWaitStatusStoreService);
         sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
+        LOG.info("Http get function registered successfully.");
     }
 
     @AfterClass
