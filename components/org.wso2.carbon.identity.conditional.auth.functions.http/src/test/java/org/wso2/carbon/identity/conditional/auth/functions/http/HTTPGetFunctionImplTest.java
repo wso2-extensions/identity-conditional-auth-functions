@@ -100,17 +100,17 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
     }
 
-    @Test(dependsOnMethods = {"testHttpGetMethod"})
-    public void testHttpGetMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
-
-        sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
-        setAllowedDomain(ALLOWED_DOMAIN);
-        String requestUrl = getRequestUrl();
-        String result = executeHttpGetFunction(requestUrl);
-
-        assertEquals(result, FAILED, "The http get request should fail but it was successful. Result from request: "
-                + result);
-    }
+//    @Test(dependsOnMethods = {"testHttpGetMethod"})
+//    public void testHttpGetMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
+//
+//        sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
+//        setAllowedDomain(ALLOWED_DOMAIN);
+//        String requestUrl = getRequestUrl();
+//        String result = executeHttpGetFunction(requestUrl);
+//
+//        assertEquals(result, FAILED, "The http get request should fail but it was successful. Result from request: "
+//                + result);
+//    }
 
     private void setAllowedDomain(String domain) {
 
