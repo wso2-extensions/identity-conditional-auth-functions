@@ -1,7 +1,7 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License.
  *  You may obtain a copy of the License at
@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.application.authentication.framework.UserSession
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExistenceFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.MicrosoftEmailVerificationFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.MicrosoftEmailVerificationFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAuthenticatedApplicationsFunction;
@@ -78,6 +80,7 @@ public class UserFunctionsServiceComponent {
             GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
             SetAccountAssociationToLocalUser setAccountAssociationToLocalUserImpl = new SetAccountAssociationToLocalUserImpl();
             GetAuthenticatedApplicationsFunction getAuthenticatedApplicationsFunctionImp = new GetAuthenticatedAppsFuncImp();
+            MicrosoftEmailVerificationFunction microsoftEmailVerificationFunction = new MicrosoftEmailVerificationFunctionImpl();
             JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
@@ -104,6 +107,8 @@ public class UserFunctionsServiceComponent {
                     new IsAnyOfTheRolesAssignedToUserFunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAuthenticatedApplications",
                     getAuthenticatedApplicationsFunctionImp);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkMicrosoftEmailVerification",
+                    microsoftEmailVerificationFunction);
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }
@@ -126,6 +131,7 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "terminateUserSession");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "doAssociationWithLocalUser");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isAnyOfTheRolesAssignedToUser");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkMicrosoftEmailVerification");
         }
     }
 

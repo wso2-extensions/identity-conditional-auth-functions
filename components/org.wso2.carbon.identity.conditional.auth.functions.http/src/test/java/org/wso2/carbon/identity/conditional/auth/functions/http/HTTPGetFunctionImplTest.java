@@ -40,7 +40,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -99,6 +98,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test(dependsOnMethods = {"testHttpGetMethod"})
     public void testHttpGetMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
+        sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
         setAllowedDomain(ALLOWED_DOMAIN);
         String requestUrl = getRequestUrl();
         String result = executeHttpGetFunction(requestUrl);
