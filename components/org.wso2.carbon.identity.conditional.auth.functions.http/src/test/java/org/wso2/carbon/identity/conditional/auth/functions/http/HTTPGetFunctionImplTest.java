@@ -17,8 +17,6 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -42,7 +40,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -60,7 +57,6 @@ import static org.testng.Assert.assertEquals;
 @Path("/")
 public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
-    private static final Log LOG = LogFactory.getLog(HTTPGetFunctionImplTest.class);
     private static final String TEST_SP_CONFIG = "http-get-test-sp.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
@@ -82,7 +78,6 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(longWaitStatusStoreService);
         sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
-        LOG.info("Http get function registered successfully.");
     }
 
     @AfterClass
@@ -100,17 +95,17 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
     }
 
-//    @Test(dependsOnMethods = {"testHttpGetMethod"})
-//    public void testHttpGetMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
-//
-//        sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
-//        setAllowedDomain(ALLOWED_DOMAIN);
-//        String requestUrl = getRequestUrl();
-//        String result = executeHttpGetFunction(requestUrl);
-//
-//        assertEquals(result, FAILED, "The http get request should fail but it was successful. Result from request: "
-//                + result);
-//    }
+    @Test(dependsOnMethods = {"testHttpGetMethod"})
+    public void testHttpGetMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
+
+        sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
+        setAllowedDomain(ALLOWED_DOMAIN);
+        String requestUrl = getRequestUrl();
+        String result = executeHttpGetFunction(requestUrl);
+
+        assertEquals(result, FAILED, "The http get request should fail but it was successful. Result from request: "
+                + result);
+    }
 
     private void setAllowedDomain(String domain) {
 
