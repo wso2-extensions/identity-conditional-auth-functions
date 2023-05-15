@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -30,6 +33,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Function to check whether the specified user belongs to one of the groups specified in the list of user groups.
@@ -45,6 +49,10 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
         String tenantDomain = user.getWrapped().getTenantDomain();
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
         String username = user.getWrapped().getUserName();
+
+        if (user.getWrapped().isFederatedUser()) {
+            return isFederatedUserMemberOfAnyGroup(user, groupNames);
+        }
 
         // Build the user store domain aware role name list.
         List<String> groupsWithDomain = getDomainAwareGroupNames(userStoreDomain, groupNames);
@@ -64,6 +72,56 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
             LOG.error("Error in getting user from store at the function ", e);
         }
         return result;
+    }
+
+    /**
+     * Check the federated user belongs to one of the groups specified in the list of user groups.
+     *
+     * @param user Authenticate user.
+     * @param groupNames      List of groups.
+     * @return whether the federated user belongs to one of the groups specified in the list of user groups .
+     */
+    private boolean isFederatedUserMemberOfAnyGroup(JsAuthenticatedUser user, List<String> groupNames) {
+
+        String[] groupsOfFederatedUser = null;
+        try {
+            String groupsClaimURI = Utils.getGroupsClaimURI(user.getWrapped().getFederatedIdPName(),
+                    user.getWrapped().getTenantDomain());
+            Object groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
+
+            if (groupsClaimValue == null) {
+                return false;
+            }
+            if (groupsClaimValue instanceof String) {
+                groupsOfFederatedUser = ((String) groupsClaimValue).split(",");
+            }
+
+        } catch (IdentityProviderManagementException e) {
+            String msg =
+                    "Error while retrieving identity provider by name: ";
+            LOG.error(msg, e);
+        }
+        return Arrays.stream(groupsOfFederatedUser).anyMatch(groupNames::contains);
+    }
+
+    /**
+     * Get the value of the given groups claimURI.
+     *
+     * @param user Authenticate user.
+     * @param groupsClaimURI URI of the groups claim.
+     * @return groups claim value .
+     */
+    private Object getGroupsClaimValue(JsAuthenticatedUser user, String groupsClaimURI) {
+
+        Object groups = null;
+        if (StringUtils.isNotEmpty(groupsClaimURI) && MapUtils.isNotEmpty(user.getWrapped().getUserAttributes())) {
+            groups = user.getWrapped().getUserAttributes().entrySet().stream().filter(
+                    userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri().equals(groupsClaimURI))
+                        .map(Map.Entry::getValue)
+                        .findFirst()
+                        .orElse(null);
+        }
+        return groups;
     }
 
     /**

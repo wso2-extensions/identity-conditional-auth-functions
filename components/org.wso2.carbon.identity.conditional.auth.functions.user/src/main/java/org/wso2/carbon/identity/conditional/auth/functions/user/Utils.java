@@ -41,6 +41,7 @@ import java.util.Collections;
 public class Utils {
 
     private static final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
+    private static final String GROUPS_LOCAL_CLAIM = "http://wso2.org/claims/groups";
 
     /**
      * Get userRealm for the given tenantDomain.
@@ -146,6 +147,59 @@ public class Utils {
             userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
         }
         return userIdClaimURI;
+    }
+
+    /**
+     * Retrieve the groups claim configured for the federated IDP.
+     *
+     * @param federatedIdpName  Federated IDP name.
+     * @param tenantDomain      Tenant domain.
+     * @return  groups claim configured for the IDP.
+     * @throws IdentityProviderManagementException
+     */
+    public static String getGroupsClaimURI(String federatedIdpName, String tenantDomain) throws 
+            IdentityProviderManagementException {
+
+        String groupsClaimURI = null;
+        ClaimMapping[] claimMappings = getClaimMappings(federatedIdpName, tenantDomain);
+        if (claimMappings == null || claimMappings.length < 1) {
+            return null;
+        }
+
+        ClaimMapping groupsClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
+                        StringUtils.equals(GROUPS_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
+                .findFirst()
+                .orElse(null);
+
+        if (groupsClaimMapping != null) {
+            groupsClaimURI = groupsClaimMapping.getRemoteClaim().getClaimUri();
+        }
+        return groupsClaimURI;
+    }
+
+    /**
+     * Retrieve the claim mappings for the federated IDP.
+     *
+     * @param federatedIdpName  Federated IDP name.
+     * @param tenantDomain      Tenant domain.
+     * @return  groups claim configured for the IDP.
+     * @throws IdentityProviderManagementException
+     */
+    private static ClaimMapping[] getClaimMappings(String federatedIdpName, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        IdentityProvider idp =
+                UserFunctionsServiceHolder.getInstance().getIdentityProviderManagementService()
+                        .getIdPByName(federatedIdpName, tenantDomain);
+        if (idp == null) {
+            return null;
+        }
+        ClaimConfig claimConfigs = idp.getClaimConfig();
+        if (claimConfigs == null) {
+            return null;
+        }
+        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        return claimMappings;
     }
 
 }
