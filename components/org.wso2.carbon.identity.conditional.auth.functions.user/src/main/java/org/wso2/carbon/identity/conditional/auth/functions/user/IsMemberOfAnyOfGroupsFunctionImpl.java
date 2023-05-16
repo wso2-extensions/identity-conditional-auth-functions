@@ -42,6 +42,8 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
     private static final Log LOG = LogFactory.getLog(IsMemberOfAnyOfGroupsFunctionImpl.class);
 
+    private static final String GROUPS_LOCAL_CLAIM_URI = "groups";
+
     @Override
     public boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames) {
 
@@ -84,11 +86,15 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private boolean isFederatedUserMemberOfAnyGroup(JsAuthenticatedUser user, List<String> groupNames) {
 
         String[] groupsOfFederatedUser = null;
+        Object groupsClaimValue = null;
         try {
-            String groupsClaimURI = Utils.getGroupsClaimURI(user.getWrapped().getFederatedIdPName(),
-                    user.getWrapped().getTenantDomain());
-            Object groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
+            groupsClaimValue = getGroupsClaimValue(user, GROUPS_LOCAL_CLAIM_URI);
 
+            if (groupsClaimValue == null) {
+                String groupsClaimURI = Utils.getGroupsClaimURIByClaimMappings(user.getWrapped().getFederatedIdPName(),
+                        user.getWrapped().getTenantDomain());
+                groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
+            }
             if (groupsClaimValue == null) {
                 return false;
             }

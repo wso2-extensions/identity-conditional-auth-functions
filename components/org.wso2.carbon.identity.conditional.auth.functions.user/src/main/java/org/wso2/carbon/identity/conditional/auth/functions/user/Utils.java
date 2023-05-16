@@ -157,7 +157,7 @@ public class Utils {
      * @return  groups claim configured for the IDP.
      * @throws IdentityProviderManagementException
      */
-    public static String getGroupsClaimURI(String federatedIdpName, String tenantDomain) throws 
+    public static String getGroupsClaimURIByClaimMappings(String federatedIdpName, String tenantDomain) throws
             IdentityProviderManagementException {
 
         String groupsClaimURI = null;
