@@ -88,23 +88,22 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
         String[] groupsOfFederatedUser = null;
         Object groupsClaimValue = null;
         try {
-            groupsClaimValue = getGroupsClaimValue(user, GROUPS_LOCAL_CLAIM_URI);
-
-            if (groupsClaimValue == null) {
-                String groupsClaimURI = Utils.getGroupsClaimURIByClaimMappings(user.getWrapped().getFederatedIdPName(),
+            String groupsClaimURI = Utils.getGroupsClaimURIByClaimMappings(user.getWrapped().getFederatedIdPName(),
                         user.getWrapped().getTenantDomain());
-                groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
+            if (groupsClaimURI == null) {
+                groupsClaimURI = GROUPS_LOCAL_CLAIM_URI;
             }
+            groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
             if (groupsClaimValue == null) {
                 return false;
             }
             if (groupsClaimValue instanceof String) {
                 groupsOfFederatedUser = ((String) groupsClaimValue).split(",");
+            } else {
+                return false;
             }
-
         } catch (IdentityProviderManagementException e) {
-            String msg =
-                    "Error while retrieving identity provider by name: ";
+            String msg = "Error while retrieving identity provider by name: ";
             LOG.error(msg, e);
         }
         return Arrays.stream(groupsOfFederatedUser).anyMatch(groupNames::contains);
