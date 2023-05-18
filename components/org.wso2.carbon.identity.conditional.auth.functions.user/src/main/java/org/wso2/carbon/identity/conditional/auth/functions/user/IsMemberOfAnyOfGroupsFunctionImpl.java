@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -86,11 +87,12 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private boolean isFederatedUserMemberOfAnyGroup(JsAuthenticatedUser user, List<String> groupNames) {
 
         String[] groupsOfFederatedUser = null;
-        Object groupsClaimValue = null;
+        String groupsClaimValue = null;
+        String federatedIdPName = user.getWrapped().getFederatedIdPName();
+        String tenantDomain = user.getWrapped().getTenantDomain();
         try {
             // Get the claim URI for groups claim from the claim mappings for federated idp.
-            String groupsClaimURI = Utils.getGroupsClaimURIByClaimMappings(user.getWrapped().getFederatedIdPName(),
-                        user.getWrapped().getTenantDomain());
+            String groupsClaimURI = Utils.getGroupsClaimURIByClaimMappings(federatedIdPName, tenantDomain);
             if (groupsClaimURI == null) {
                 groupsClaimURI = GROUPS_LOCAL_CLAIM_URI;
             }
@@ -98,13 +100,9 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
             if (groupsClaimValue == null) {
                 return false;
             }
-            if (groupsClaimValue instanceof String) {
-                groupsOfFederatedUser = ((String) groupsClaimValue).split(",");
-            } else {
-                return false;
-            }
+            groupsOfFederatedUser = groupsClaimValue.split(FrameworkUtils.getMultiAttributeSeparator());
         } catch (IdentityProviderManagementException e) {
-            String msg = "Error while retrieving identity provider by name: ";
+            String msg = "Error while retrieving identity provider by name: " + federatedIdPName;
             LOG.error(msg, e);
         }
         return Arrays.stream(groupsOfFederatedUser).anyMatch(groupNames::contains);
@@ -117,9 +115,9 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      * @param groupsClaimURI URI of the groups claim.
      * @return groups claim value .
      */
-    private Object getGroupsClaimValue(JsAuthenticatedUser user, String groupsClaimURI) {
+    private String getGroupsClaimValue(JsAuthenticatedUser user, String groupsClaimURI) {
 
-        Object groups = null;
+        String groups = null;
         if (StringUtils.isNotEmpty(groupsClaimURI) && MapUtils.isNotEmpty(user.getWrapped().getUserAttributes())) {
             groups = user.getWrapped().getUserAttributes().entrySet().stream().filter(
                     userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri().equals(groupsClaimURI))
