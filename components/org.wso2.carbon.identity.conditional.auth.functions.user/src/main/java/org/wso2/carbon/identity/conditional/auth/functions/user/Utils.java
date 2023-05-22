@@ -41,7 +41,7 @@ import java.util.Collections;
 public class Utils {
 
     private static final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
-    private static final String GROUPS_LOCAL_CLAIM = "http://wso2.org/claims/groups";
+    private static final String APP_ROLES_LOCAL_CLAIM = "http://wso2.org/claims/applicationRoles";
 
     /**
      * Get userRealm for the given tenantDomain.
@@ -166,8 +166,11 @@ public class Utils {
             return null;
         }
 
+        /* Here we get the mapping for the application roles claim because federated IDP's groups claim is mapped to
+        local application roles claim.
+         */
         ClaimMapping groupsClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
-                        StringUtils.equals(GROUPS_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
+                        StringUtils.equals(APP_ROLES_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
                 .findFirst()
                 .orElse(null);
 

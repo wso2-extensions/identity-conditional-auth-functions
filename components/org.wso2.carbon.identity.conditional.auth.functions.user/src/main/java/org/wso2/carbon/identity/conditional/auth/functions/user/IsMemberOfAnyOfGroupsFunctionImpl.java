@@ -43,7 +43,8 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
     private static final Log LOG = LogFactory.getLog(IsMemberOfAnyOfGroupsFunctionImpl.class);
 
-    private static final String GROUPS_LOCAL_CLAIM_URI = "groups";
+    private static final String DEFAULT_OIDC_GROUPS_CLAIM_URI = "groups";
+    private static final String OPENIDCONNECT_AUTHENTICATOR_NAME = "OpenIDConnectAuthenticator";
 
     @Override
     public boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames) {
@@ -93,8 +94,12 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
         try {
             // Get the claim URI for groups claim from the claim mappings for federated idp.
             String groupsClaimURI = Utils.getGroupsClaimURIByClaimMappings(federatedIdPName, tenantDomain);
+            if (groupsClaimURI == null && user.getContext().getCurrentAuthenticator()
+                    .equals(OPENIDCONNECT_AUTHENTICATOR_NAME)) {
+                groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
+            }
             if (groupsClaimURI == null) {
-                groupsClaimURI = GROUPS_LOCAL_CLAIM_URI;
+                return false;
             }
             groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
             if (groupsClaimValue == null) {
