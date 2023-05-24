@@ -21,8 +21,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -43,6 +41,7 @@ import java.util.Collections;
 public class Utils {
 
     private static final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
+    private static final String APP_ROLES_LOCAL_CLAIM = "http://wso2.org/claims/applicationRoles";
 
     /**
      * Get userRealm for the given tenantDomain.
@@ -149,4 +148,61 @@ public class Utils {
         }
         return userIdClaimURI;
     }
+
+    /**
+     * Retrieve the groups claim configured for the federated IDP.
+     *
+     * @param federatedIdpName  Federated IDP name.
+     * @param tenantDomain      Tenant domain.
+     * @return  groups claim configured for the IDP.
+     * @throws IdentityProviderManagementException
+     */
+    public static String getGroupsClaimURIByClaimMappings(String federatedIdpName, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        String groupsClaimURI = null;
+        ClaimMapping[] claimMappings = getClaimMappings(federatedIdpName, tenantDomain);
+        if (claimMappings == null || claimMappings.length < 1) {
+            return null;
+        }
+
+        /* Here we get the mapping for the application roles claim because federated IDP's groups claim is mapped to
+        local application roles claim.
+         */
+        ClaimMapping groupsClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
+                        StringUtils.equals(APP_ROLES_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
+                .findFirst()
+                .orElse(null);
+
+        if (groupsClaimMapping != null) {
+            groupsClaimURI = groupsClaimMapping.getRemoteClaim().getClaimUri();
+        }
+        return groupsClaimURI;
+    }
+
+    /**
+     * Retrieve the claim mappings for the federated IDP.
+     *
+     * @param federatedIdpName  Federated IDP name.
+     * @param tenantDomain      Tenant domain.
+     * @return  groups claim configured for the IDP.
+     * @throws IdentityProviderManagementException
+     */
+    private static ClaimMapping[] getClaimMappings(String federatedIdpName, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        IdentityProvider idp =
+                UserFunctionsServiceHolder.getInstance().getIdentityProviderManagementService()
+                        .getIdPByName(federatedIdpName, tenantDomain);
+        if (idp == null) {
+            return null;
+        }
+        ClaimConfig claimConfigs = idp.getClaimConfig();
+        if (claimConfigs == null) {
+            return null;
+        }
+        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        return claimMappings;
+    }
+
 }

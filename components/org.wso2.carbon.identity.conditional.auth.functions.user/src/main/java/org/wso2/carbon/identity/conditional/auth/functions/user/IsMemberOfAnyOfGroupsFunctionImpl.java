@@ -22,11 +22,9 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -47,7 +45,6 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
     private static final String DEFAULT_OIDC_GROUPS_CLAIM_URI = "groups";
     private static final String OPENIDCONNECT_AUTHENTICATOR_NAME = "OpenIDConnectAuthenticator";
-    private static final String APP_ROLES_LOCAL_CLAIM = "http://wso2.org/claims/applicationRoles";
 
     @Override
     public boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames) {
@@ -82,40 +79,38 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     }
 
     /**
-     * Checks if the federated user belongs to any of the specified user groups.
+     * Check the federated user belongs to one of the groups specified in the list of user groups.
      *
-     * @param user The authenticated user.
-     * @param groupNames A list of group names.
-     * @return true if the federated user is a member of any of the specified groups, false otherwise.
+     * @param user Authenticate user.
+     * @param groupNames      List of groups.
+     * @return whether the federated user belongs to one of the groups specified in the list of user groups .
      */
     private boolean isFederatedUserMemberOfAnyGroup(JsAuthenticatedUser user, List<String> groupNames) {
 
         String[] groupsOfFederatedUser = null;
         String groupsClaimValue = null;
-
-        // Get the claim URI for groups claim from the claim mappings for federated idp.
-        String groupsClaimURI = getGroupsClaimURI(user);
-        if (groupsClaimURI == null) {
-            return false;
+        String federatedIdPName = user.getWrapped().getFederatedIdPName();
+        String tenantDomain = user.getWrapped().getTenantDomain();
+        try {
+            // Get the claim URI for groups claim from the claim mappings for federated idp.
+            String groupsClaimURI = Utils.getGroupsClaimURIByClaimMappings(federatedIdPName, tenantDomain);
+            if (groupsClaimURI == null && user.getContext().getCurrentAuthenticator()
+                    .equals(OPENIDCONNECT_AUTHENTICATOR_NAME)) {
+                groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
+            }
+            if (groupsClaimURI == null) {
+                return false;
+            }
+            groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
+            if (groupsClaimValue == null) {
+                return false;
+            }
+            groupsOfFederatedUser = groupsClaimValue.split(FrameworkUtils.getMultiAttributeSeparator());
+        } catch (IdentityProviderManagementException e) {
+            String msg = "Error while retrieving identity provider by name: " + federatedIdPName;
+            LOG.error(msg, e);
         }
-        groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
-        if (groupsClaimValue == null) {
-            return false;
-        }
-        String seperator = FrameworkUtils.getMultiAttributeSeparator();
-        groupsOfFederatedUser = groupsClaimValue.split(seperator);
-
         return Arrays.stream(groupsOfFederatedUser).anyMatch(groupNames::contains);
-    }
-
-    private String getGroupsClaimURI(JsAuthenticatedUser user) {
-
-        String groupsClaimURI = getGroupsClaimURIByClaimMappings(user);
-        if (groupsClaimURI == null && user.getContext().getCurrentAuthenticator() != null &&
-                user.getContext().getCurrentAuthenticator().equals(OPENIDCONNECT_AUTHENTICATOR_NAME)) {
-            groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
-        }
-        return groupsClaimURI;
     }
 
     /**
@@ -164,50 +159,5 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
             }
         }
         return groupsWithDomain;
-    }
-
-    /**
-     * Retrieve the groups claim configured for the federated IDP.
-     *
-     * @param user Authenticated user.
-     * @return  groups claim configured for the IDP.
-     */
-    private static String getGroupsClaimURIByClaimMappings(JsAuthenticatedUser user){
-
-        String groupsClaimURI = null;
-        ClaimMapping[] claimMappings = getClaimMappings(user);
-        if (claimMappings == null || claimMappings.length < 1) {
-            return null;
-        }
-
-        /* Here we get the mapping for the application roles claim because federated IDP's groups claim is mapped to
-        local application roles claim.
-         */
-        ClaimMapping groupsClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
-                        StringUtils.equals(APP_ROLES_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
-                .findFirst()
-                .orElse(null);
-
-        if (groupsClaimMapping != null) {
-            groupsClaimURI = groupsClaimMapping.getRemoteClaim().getClaimUri();
-        }
-        return groupsClaimURI;
-    }
-
-    /**
-     * Retrieve the claim mappings for the federated IDP.
-     *
-     * @param user Authenticated user.
-     * @return  groups claim configured for the IDP.
-     * @throws IdentityProviderManagementException
-     */
-    private static ClaimMapping[] getClaimMappings(JsAuthenticatedUser user) {
-
-        ExternalIdPConfig idp = user.getContext().getExternalIdP();
-        if (idp == null) {
-            return null;
-        }
-        ClaimMapping[] claimMappings = idp.getClaimMappings();
-        return claimMappings;
     }
 }
