@@ -26,6 +26,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
@@ -37,10 +38,12 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.MockAuthenticator;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.SubjectCallback;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -56,6 +59,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.security.Principal;
+import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -79,8 +83,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 import javax.xml.stream.XMLStreamException;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 /**
  * Framework runner for Javascript based Sequence execution.
@@ -274,6 +277,40 @@ public class JsSequenceHandlerRunner {
         authenticatedUser.setTenantDomain(MultitenantUtils.getTenantDomain(authenticatedSubjectIdentifier));
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
         authenticatedUser.setUserId(UUID.randomUUID().toString());
+
+        return authenticatedUser;
+    }
+
+    public void addSubjectAuthenticatorForFederatedUser(String authenticatorName, String subject,
+                                                        Map<String, String> claims, String idpName) {
+
+        FrameworkServiceDataHolder.getInstance().getAuthenticators().removeIf(
+                applicationAuthenticator -> applicationAuthenticator.getName().equals(authenticatorName));
+        MockAuthenticator authenticator = new MockAuthenticator(authenticatorName,
+                (SubjectCallback) context1 -> {
+                    AuthenticatedUser user = createFederatedAuthenticatedUserFromSubjectIdentifier(subject, idpName);
+                    if (claims != null) {
+                        for (Map.Entry<String, String> entry : claims.entrySet()) {
+                            user.getUserAttributes().put(ClaimMapping.build(entry.getKey(), entry.getKey(),
+                                    entry.getValue(), false), entry.getValue());
+                        }
+                    }
+                    return user;
+                });
+        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
+
+    }
+
+    private static AuthenticatedUser createFederatedAuthenticatedUserFromSubjectIdentifier
+            (String authenticatedSubjectIdentifier, String idpName) {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserName(MultitenantUtils.getTenantAwareUsername(authenticatedSubjectIdentifier));
+        authenticatedUser.setTenantDomain(MultitenantUtils.getTenantDomain(authenticatedSubjectIdentifier));
+        authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
+        authenticatedUser.setUserId(UUID.randomUUID().toString());
+        authenticatedUser.setFederatedUser(true);
+        authenticatedUser.setFederatedIdPName(idpName);
 
         return authenticatedUser;
     }
