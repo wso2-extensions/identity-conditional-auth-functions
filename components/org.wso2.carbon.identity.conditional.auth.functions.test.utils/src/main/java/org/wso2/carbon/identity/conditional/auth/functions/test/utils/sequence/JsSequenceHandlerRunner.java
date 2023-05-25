@@ -79,8 +79,8 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 import javax.xml.stream.XMLStreamException;
 
-import static org.mockito.Mockito.*;
-
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 /**
  * Framework runner for Javascript based Sequence execution.
  */
