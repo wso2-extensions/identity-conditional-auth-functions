@@ -100,7 +100,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
             return false;
         }
         groupsOfFederatedUser = getGroupsOfFederatedUser(user, groupsClaimURI);
-        if (groupsOfFederatedUser == null || groupsOfFederatedUser.isEmpty()) {
+        if (groupsOfFederatedUser.isEmpty()) {
             return false;
         }
         return groupNames.stream().anyMatch(groupsOfFederatedUser::contains);
@@ -179,7 +179,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
         String groupsClaimURI = null;
         ClaimMapping[] claimMappings = getClaimMappings(user);
-        if (claimMappings == null || claimMappings.length < 1) {
+        if (claimMappings == null || claimMappings.length == 0) {
             return null;
         }
 
