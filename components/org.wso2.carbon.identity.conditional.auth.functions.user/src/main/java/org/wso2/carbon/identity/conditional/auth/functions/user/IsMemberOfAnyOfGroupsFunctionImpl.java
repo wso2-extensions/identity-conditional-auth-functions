@@ -92,14 +92,12 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      */
     private boolean isFederatedUserMemberOfAnyGroup(JsAuthenticatedUser user, List<String> groupNames) {
 
-        Set<String> groupsOfFederatedUser = null;
-
         // Get the claim URI for groups claim from the claim mappings for federated idp.
         String groupsClaimURI = getGroupsClaimURI(user);
         if (StringUtils.isEmpty(groupsClaimURI)) {
             return false;
         }
-        groupsOfFederatedUser = getGroupsOfFederatedUser(user, groupsClaimURI);
+        Set<String> groupsOfFederatedUser = getGroupsOfFederatedUser(user, groupsClaimURI);
         if (groupsOfFederatedUser.isEmpty()) {
             return false;
         }
@@ -177,7 +175,6 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      */
     private static String getGroupsClaimURIByClaimMappings(JsAuthenticatedUser user){
 
-        String groupsClaimURI = null;
         ClaimMapping[] claimMappings = getClaimMappings(user);
         if (claimMappings == null || claimMappings.length == 0) {
             return null;
@@ -191,10 +188,8 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
                 .findFirst()
                 .orElse(null);
 
-        if (groupsClaimMapping != null) {
-            groupsClaimURI = groupsClaimMapping.getRemoteClaim().getClaimUri();
-        }
-        return groupsClaimURI;
+        return groupsClaimMapping != null ? groupsClaimMapping.getRemoteClaim().getClaimUri() : null;
+
     }
 
     /**
@@ -207,10 +202,6 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private static ClaimMapping[] getClaimMappings(JsAuthenticatedUser user) {
 
         ExternalIdPConfig idp = user.getContext().getExternalIdP();
-        if (idp == null) {
-            return null;
-        }
-        ClaimMapping[] claimMappings = idp.getClaimMappings();
-        return claimMappings;
+        return (idp != null) ? idp.getClaimMappings() : null;
     }
 }
