@@ -96,7 +96,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
         // Get the claim URI for groups claim from the claim mappings for federated idp.
         String groupsClaimURI = getGroupsClaimURI(user);
-        if (groupsClaimURI == null || groupsClaimURI.isEmpty()) {
+        if (StringUtils.isEmpty(groupsClaimURI)) {
             return false;
         }
         groupsOfFederatedUser = getGroupsOfFederatedUser(user, groupsClaimURI);
