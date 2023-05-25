@@ -21,8 +21,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -149,4 +147,5 @@ public class Utils {
         }
         return userIdClaimURI;
     }
+
 }

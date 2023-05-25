@@ -39,21 +39,6 @@
                         <IsEnabled>true</IsEnabled>
                     </LocalAuthenticatorConfig>
                 </LocalAuthenticatorConfigs>
-                <FederatedIdentityProviders>
-                    <FederatedIdentityIdentityProvider>
-                        <IdentityProviderName>HwkMockAuthenticator</IdentityProviderName>
-                        <IsEnabled>true</IsEnabled>
-                        <DefaultAuthenticatorConfig>
-                            <Name>HwkMockAuthenticator</Name>
-                        </DefaultAuthenticatorConfig>
-                        <FederatedAuthenticatorConfigs>
-                            <FederatedAuthenticatorConfig>
-                                <Name>HwkMockAuthenticator</Name>
-                                <IsEnabled>true</IsEnabled>
-                            </FederatedAuthenticatorConfig>
-                        </FederatedAuthenticatorConfigs>
-                    </FederatedIdentityIdentityProvider>
-                </FederatedIdentityProviders>
                 <SubjectStep>true</SubjectStep>
                 <AttributeStep>true</AttributeStep>
             </AuthenticationStep>

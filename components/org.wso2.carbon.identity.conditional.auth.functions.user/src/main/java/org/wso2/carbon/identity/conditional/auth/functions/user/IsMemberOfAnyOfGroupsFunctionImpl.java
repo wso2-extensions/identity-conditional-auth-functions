@@ -102,8 +102,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
         if (groupsClaimValue == null) {
             return false;
         }
-        String seperator = FrameworkUtils.getMultiAttributeSeparator();
-        groupsOfFederatedUser = groupsClaimValue.split(seperator);
+        groupsOfFederatedUser = groupsClaimValue.split(FrameworkUtils.getMultiAttributeSeparator());
 
         return Arrays.stream(groupsOfFederatedUser).anyMatch(groupNames::contains);
     }
