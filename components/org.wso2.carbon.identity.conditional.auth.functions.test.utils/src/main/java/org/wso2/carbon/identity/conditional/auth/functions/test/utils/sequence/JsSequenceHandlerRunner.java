@@ -81,6 +81,7 @@ import javax.xml.stream.XMLStreamException;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+
 /**
  * Framework runner for Javascript based Sequence execution.
  */
