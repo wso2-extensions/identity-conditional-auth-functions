@@ -96,11 +96,11 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
         // Get the claim URI for groups claim from the claim mappings for federated idp.
         String groupsClaimURI = getGroupsClaimURI(user);
-        if (groupsClaimURI == null) {
+        if (groupsClaimURI == null || groupsClaimURI.isEmpty()) {
             return false;
         }
         groupsOfFederatedUser = getGroupsOfFederatedUser(user, groupsClaimURI);
-        if (groupsOfFederatedUser == null) {
+        if (groupsOfFederatedUser == null || groupsOfFederatedUser.isEmpty()) {
             return false;
         }
         return groupNames.stream().anyMatch(groupsOfFederatedUser::contains);
@@ -126,7 +126,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private Set<String> getGroupsOfFederatedUser(JsAuthenticatedUser user, String groupsClaimURI) {
 
         String groups = null;
-        Set<String> groupsOfFederatedUser = null;
+        Set<String> groupsOfFederatedUser = new HashSet<>();
         if (StringUtils.isNotEmpty(groupsClaimURI) && MapUtils.isNotEmpty(user.getWrapped().getUserAttributes())) {
             groups = user.getWrapped().getUserAttributes().entrySet().stream().filter(
                     userAttribute -> groupsClaimURI.equals(userAttribute.getKey().getRemoteClaim().getClaimUri()))
@@ -135,8 +135,8 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
                         .orElse(null);
         }
         if (groups != null) {
-            groupsOfFederatedUser = new HashSet<>(Arrays.asList(groups.split(FrameworkUtils
-                    .getMultiAttributeSeparator())));
+            String[] groupArray = groups.split(FrameworkUtils.getMultiAttributeSeparator());
+            groupsOfFederatedUser.addAll(Arrays.asList(groupArray));
         }
         return groupsOfFederatedUser;
     }
