@@ -110,7 +110,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
         String groupsClaimURI = getGroupsClaimURIByClaimMappings(user);
         if (groupsClaimURI == null && user.getContext().getCurrentAuthenticator() != null &&
-                user.getContext().getCurrentAuthenticator().equals(OPENIDCONNECT_AUTHENTICATOR_NAME)) {
+                OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) {
             groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
         }
         return groupsClaimURI;
@@ -129,7 +129,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
         Set<String> groupsOfFederatedUser = null;
         if (StringUtils.isNotEmpty(groupsClaimURI) && MapUtils.isNotEmpty(user.getWrapped().getUserAttributes())) {
             groups = user.getWrapped().getUserAttributes().entrySet().stream().filter(
-                    userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri().equals(groupsClaimURI))
+                    userAttribute -> groupsClaimURI.equals(userAttribute.getKey().getRemoteClaim().getClaimUri()))
                         .map(Map.Entry::getValue)
                         .findFirst()
                         .orElse(null);
