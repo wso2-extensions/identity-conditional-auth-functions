@@ -91,19 +91,16 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private boolean isFederatedUserMemberOfAnyGroup(JsAuthenticatedUser user, List<String> groupNames) {
 
         String[] groupsOfFederatedUser = null;
-        String groupsClaimValue = null;
 
         // Get the claim URI for groups claim from the claim mappings for federated idp.
         String groupsClaimURI = getGroupsClaimURI(user);
         if (groupsClaimURI == null) {
             return false;
         }
-        groupsClaimValue = getGroupsClaimValue(user, groupsClaimURI);
-        if (groupsClaimValue == null) {
+        groupsOfFederatedUser = getGroupsOfFederatedUser(user, groupsClaimURI);
+        if (groupsOfFederatedUser == null) {
             return false;
         }
-        groupsOfFederatedUser = groupsClaimValue.split(FrameworkUtils.getMultiAttributeSeparator());
-
         return Arrays.stream(groupsOfFederatedUser).anyMatch(groupNames::contains);
     }
 
@@ -118,15 +115,16 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     }
 
     /**
-     * Get the value of the given groups claimURI.
+     * Get the groups of the federated user.
      *
      * @param user Authenticate user.
      * @param groupsClaimURI URI of the groups claim.
-     * @return groups claim value .
+     * @return groups of the federated user .
      */
-    private String getGroupsClaimValue(JsAuthenticatedUser user, String groupsClaimURI) {
+    private String[] getGroupsOfFederatedUser(JsAuthenticatedUser user, String groupsClaimURI) {
 
         String groups = null;
+        String[] groupsOfFederatedUser = null;
         if (StringUtils.isNotEmpty(groupsClaimURI) && MapUtils.isNotEmpty(user.getWrapped().getUserAttributes())) {
             groups = user.getWrapped().getUserAttributes().entrySet().stream().filter(
                     userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri().equals(groupsClaimURI))
@@ -134,7 +132,10 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
                         .findFirst()
                         .orElse(null);
         }
-        return groups;
+        if (groups != null) {
+            groupsOfFederatedUser = groups.split(FrameworkUtils.getMultiAttributeSeparator());
+        }
+        return groupsOfFederatedUser;
     }
 
     /**
