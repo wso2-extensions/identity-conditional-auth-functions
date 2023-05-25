@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * Function to check whether the specified user belongs to one of the groups specified in the list of user groups.
@@ -90,7 +92,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      */
     private boolean isFederatedUserMemberOfAnyGroup(JsAuthenticatedUser user, List<String> groupNames) {
 
-        String[] groupsOfFederatedUser = null;
+        Set<String> groupsOfFederatedUser = null;
 
         // Get the claim URI for groups claim from the claim mappings for federated idp.
         String groupsClaimURI = getGroupsClaimURI(user);
@@ -101,7 +103,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
         if (groupsOfFederatedUser == null) {
             return false;
         }
-        return Arrays.stream(groupsOfFederatedUser).anyMatch(groupNames::contains);
+        return groupNames.stream().anyMatch(groupsOfFederatedUser::contains);
     }
 
     private String getGroupsClaimURI(JsAuthenticatedUser user) {
@@ -121,10 +123,10 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      * @param groupsClaimURI URI of the groups claim.
      * @return groups of the federated user .
      */
-    private String[] getGroupsOfFederatedUser(JsAuthenticatedUser user, String groupsClaimURI) {
+    private Set<String> getGroupsOfFederatedUser(JsAuthenticatedUser user, String groupsClaimURI) {
 
         String groups = null;
-        String[] groupsOfFederatedUser = null;
+        Set<String> groupsOfFederatedUser = null;
         if (StringUtils.isNotEmpty(groupsClaimURI) && MapUtils.isNotEmpty(user.getWrapped().getUserAttributes())) {
             groups = user.getWrapped().getUserAttributes().entrySet().stream().filter(
                     userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri().equals(groupsClaimURI))
@@ -133,7 +135,8 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
                         .orElse(null);
         }
         if (groups != null) {
-            groupsOfFederatedUser = groups.split(FrameworkUtils.getMultiAttributeSeparator());
+            groupsOfFederatedUser = new HashSet<>(Arrays.asList(groups.split(FrameworkUtils
+                    .getMultiAttributeSeparator())));
         }
         return groupsOfFederatedUser;
     }
