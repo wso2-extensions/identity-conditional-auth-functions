@@ -49,7 +49,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
     private static final String DEFAULT_OIDC_GROUPS_CLAIM_URI = "groups";
     private static final String OPENIDCONNECT_AUTHENTICATOR_NAME = "OpenIDConnectAuthenticator";
-    private static final String APP_ROLES_LOCAL_CLAIM = "http://wso2.org/claims/applicationRoles";
+    private static final String GROUPS_LOCAL_CLAIM = "http://wso2.org/claims/groups";
 
     @Override
     public boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames) {
@@ -180,11 +180,9 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
             return null;
         }
 
-        /* Here we get the mapping for the application roles claim because federated IDP's groups claim is mapped to
-        local application roles claim.
-         */
+        // Here we get the mapping for the local groups claim URI.
         ClaimMapping groupsClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
-                        StringUtils.equals(APP_ROLES_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
+                        StringUtils.equals(GROUPS_LOCAL_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
                 .findFirst()
                 .orElse(null);
 
