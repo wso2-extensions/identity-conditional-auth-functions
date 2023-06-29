@@ -165,7 +165,6 @@
                             org.wso2.carbon.identity.application.common.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.registry.core.service,
                             org.wso2.carbon.identity.governance; version="${identity.governance.import.version.range}",
                             org.wso2.carbon.identity.governance.common; version="${identity.governance.import.version.range}",
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",

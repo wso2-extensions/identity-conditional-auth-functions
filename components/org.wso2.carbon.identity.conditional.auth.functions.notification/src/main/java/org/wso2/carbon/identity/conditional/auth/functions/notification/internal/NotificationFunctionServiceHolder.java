@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.notification.interna
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 public class NotificationFunctionServiceHolder {
@@ -28,7 +27,6 @@ public class NotificationFunctionServiceHolder {
     private static NotificationFunctionServiceHolder instance = new NotificationFunctionServiceHolder();
 
     private RealmService realmService;
-    private RegistryService registryService;
     private JsFunctionRegistry jsFunctionRegistry;
     private IdentityEventService identityEventService;
 
@@ -48,16 +46,6 @@ public class NotificationFunctionServiceHolder {
     public void setRealmService(RealmService realmService) {
 
         this.realmService = realmService;
-    }
-
-    public RegistryService getRegistryService() {
-
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-
-        this.registryService = registryService;
     }
 
     public JsFunctionRegistry getJsFunctionRegistry() {

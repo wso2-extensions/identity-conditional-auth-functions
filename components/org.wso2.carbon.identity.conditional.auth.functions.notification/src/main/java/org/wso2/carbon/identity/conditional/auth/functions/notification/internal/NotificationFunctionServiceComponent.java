@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.conditional.auth.functions.notification.SendEmailFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.SendEmailFunctionImpl;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -85,29 +84,6 @@ public class NotificationFunctionServiceComponent {
             LOG.debug("RealmService is unset in the conditional authentication notification functions bundle");
         }
         NotificationFunctionServiceHolder.getInstance().setRealmService(null);
-    }
-
-    @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("RegistryService is set in the conditional authentication notification functions bundle");
-        }
-        NotificationFunctionServiceHolder.getInstance().setRegistryService(registryService);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("RegistryService is unset in the conditional authentication notification functions bundle");
-        }
-        NotificationFunctionServiceHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(
