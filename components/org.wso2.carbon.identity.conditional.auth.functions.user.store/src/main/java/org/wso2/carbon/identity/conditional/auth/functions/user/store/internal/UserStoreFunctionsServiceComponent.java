@@ -30,7 +30,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.user.store.GetUserWithClaimValues;
 import org.wso2.carbon.identity.conditional.auth.functions.user.store.UserStoreFunctions;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -94,29 +93,6 @@ public class UserStoreFunctionsServiceComponent {
             LOG.debug("RealmService is unset in the conditional authentication user functions bundle");
         }
         UserStoreFunctionsServiceHolder.getInstance().setRealmService(null);
-    }
-
-    @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("RegistryService is set in the conditional authentication user functions bundle");
-        }
-        UserStoreFunctionsServiceHolder.getInstance().setRegistryService(registryService);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("RegistryService is unset in the conditional authentication user functions bundle");
-        }
-        UserStoreFunctionsServiceHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(

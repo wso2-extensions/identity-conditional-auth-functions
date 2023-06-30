@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user.store.internal;
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 public class UserStoreFunctionsServiceHolder {
@@ -27,7 +26,6 @@ public class UserStoreFunctionsServiceHolder {
     private static UserStoreFunctionsServiceHolder instance = new UserStoreFunctionsServiceHolder();
 
     private RealmService realmService;
-    private RegistryService registryService;
     private JsFunctionRegistry jsFunctionRegistry;
 
     private UserStoreFunctionsServiceHolder() {
@@ -47,16 +45,6 @@ public class UserStoreFunctionsServiceHolder {
     public void setRealmService(RealmService realmService) {
 
         this.realmService = realmService;
-    }
-
-    public RegistryService getRegistryService() {
-
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-
-        this.registryService = registryService;
     }
 
     public JsFunctionRegistry getJsFunctionRegistry() {

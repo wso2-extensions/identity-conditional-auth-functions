@@ -53,7 +53,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.TerminateUserSes
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUserImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUser;
 import org.wso2.carbon.idp.mgt.IdpManager;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -156,29 +155,6 @@ public class UserFunctionsServiceComponent {
             LOG.debug("RealmService is unset in the conditional authentication user functions bundle");
         }
         UserFunctionsServiceHolder.getInstance().setRealmService(null);
-    }
-
-    @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("RegistryService is set in the conditional authentication user functions bundle");
-        }
-        UserFunctionsServiceHolder.getInstance().setRegistryService(registryService);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("RegistryService is unset in the conditional authentication user functions bundle");
-        }
-        UserFunctionsServiceHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(

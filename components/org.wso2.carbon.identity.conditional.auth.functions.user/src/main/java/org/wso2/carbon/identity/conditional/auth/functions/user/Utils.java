@@ -19,8 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -31,9 +29,9 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Utility methods required for user functions.
@@ -52,10 +50,11 @@ public class Utils {
     public static UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
 
         UserRealm realm;
+        RealmService realmService = UserFunctionsServiceHolder.getInstance().getRealmService();
         try {
-            realm = AnonymousSessionUtil.getRealmByTenantDomain(UserFunctionsServiceHolder.getInstance()
-                    .getRegistryService(), UserFunctionsServiceHolder.getInstance().getRealmService(), tenantDomain);
-        } catch (CarbonException e) {
+            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new FrameworkException(
                     "Error occurred while retrieving the Realm for " + tenantDomain + " to retrieve user roles", e);
         }
