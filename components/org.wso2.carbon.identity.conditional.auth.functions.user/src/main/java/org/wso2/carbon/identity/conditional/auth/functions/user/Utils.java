@@ -52,7 +52,7 @@ public class Utils {
         UserRealm realm;
         RealmService realmService = UserFunctionsServiceHolder.getInstance().getRealmService();
         try {
-            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            int tenantId = getTenantId(tenantDomain);
             realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new FrameworkException(
