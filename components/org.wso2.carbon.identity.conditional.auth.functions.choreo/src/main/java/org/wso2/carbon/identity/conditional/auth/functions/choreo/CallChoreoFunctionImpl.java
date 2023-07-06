@@ -274,6 +274,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
         CloseableHttpAsyncClient client = ChoreoFunctionServiceHolder.getInstance().getClientManager()
                 .getClient(tenantDomain);
+        LOG.info("CloseableHttpAsyncClient executing access token request for session data key: " +
+                accessTokenRequestHelper.authenticationContext.getContextIdentifier());
         client.execute(request, accessTokenRequestHelper);
     }
 
@@ -411,12 +413,16 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 request.setEntity(new StringEntity(jsonObject.toJSONString()));
                 CloseableHttpAsyncClient client = ChoreoFunctionServiceHolder.getInstance().getClientManager()
                         .getClient(this.authenticationContext.getTenantDomain());
+                LOG.info("Calling Choreo endpoint for session data key: " +
+                        authenticationContext.getContextIdentifier() + " with payload: " + jsonObject.toJSONString());
                 client.execute(request, new FutureCallback<HttpResponse>() {
 
                     @Override
                     public void completed(final HttpResponse response) {
 
                         try {
+                            LOG.info("Choreo call completed for session data key: " +
+                                    authenticationContext.getContextIdentifier());
                             handleChoreoEndpointResponse(response);
                         } catch (Exception e) {
                             LOG.error("Error while proceeding after handling the response from Choreo call for " +
@@ -508,6 +514,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                             .fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
 
                     if (ERROR_CODE_ACCESS_TOKEN_INACTIVE.equals(responseBody.get(CODE))) {
+                        LOG.info("Access token inactive for session data key: " +
+                                authenticationContext.getContextIdentifier());
                         handleExpiredToken();
                     } else {
                         LOG.warn("Received 401 response from Choreo. Session data key: " +
