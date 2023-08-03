@@ -95,10 +95,8 @@ public abstract class AbstractHTTPFunction {
                 Header contentType = response.getEntity().getContentType();
                 if (responseCode >= 200 && responseCode < 300) {
                     outcome = Constants.OUTCOME_SUCCESS;
-                    HttpEntity entity = response.getEntity();
-
-                    if (entity != null) {
-                        String responseBody = EntityUtils.toString(entity);
+                    if (response.getEntity() != null) {
+                        String responseBody = EntityUtils.toString(response.getEntity());
                         if (contentType != null && contentType.getValue().contains("application/json")) {
                             JSONParser parser = new JSONParser();
                             json = (JSONObject) parser.parse(responseBody);
@@ -108,8 +106,6 @@ public abstract class AbstractHTTPFunction {
                             json.put("response", responseBody);
                         }
                     }
-
-                    outcome = Constants.OUTCOME_SUCCESS;
                 } else {
                     outcome = Constants.OUTCOME_FAIL;
                 }
