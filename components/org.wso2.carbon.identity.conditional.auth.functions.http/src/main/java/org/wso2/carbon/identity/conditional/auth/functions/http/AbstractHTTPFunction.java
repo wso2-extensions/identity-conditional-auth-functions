@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.conditional.auth.functions.http;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -49,6 +51,8 @@ public abstract class AbstractHTTPFunction {
 
     private static final Log LOG = LogFactory.getLog(AbstractHTTPFunction.class);
     protected static final String TYPE_APPLICATION_JSON = "application/json";
+    protected static final String TYPE_APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    protected static final String TYPE_APPLICATION_XML = "application/xml";
     private static final char DOMAIN_SEPARATOR = '.';
     private final List<String> allowedDomains;
 
@@ -88,11 +92,24 @@ public abstract class AbstractHTTPFunction {
 
             try (CloseableHttpResponse response = client.execute(request)) {
                 responseCode = response.getStatusLine().getStatusCode();
+                Header contentType = response.getEntity().getContentType();
                 if (responseCode >= 200 && responseCode < 300) {
                     outcome = Constants.OUTCOME_SUCCESS;
-                    String jsonString = EntityUtils.toString(response.getEntity());
-                    JSONParser parser = new JSONParser();
-                    json = (JSONObject) parser.parse(jsonString);
+                    HttpEntity entity = response.getEntity();
+
+                    if (entity != null) {
+                        String responseBody = EntityUtils.toString(entity);
+                        if (contentType != null && contentType.getValue().contains("application/json")) {
+                            JSONParser parser = new JSONParser();
+                            json = (JSONObject) parser.parse(responseBody);
+                        } else if (contentType != null && contentType.getValue().contains("text/plain")) {
+                            // For 'text/plain', put the response body into the JSON object as a single field.
+                            json = new JSONObject();
+                            json.put("response", responseBody);
+                        }
+                    }
+
+                    outcome = Constants.OUTCOME_SUCCESS;
                 } else {
                     outcome = Constants.OUTCOME_FAIL;
                 }

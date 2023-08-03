@@ -31,8 +31,10 @@ public interface HTTPPostFunction {
      *  POST data to the given endpoint.
      *
      * @param epUrl Endpoint url.
-     * @param payloadData payload data.
-     * @param eventHandlers event handlers.
+     * @param params parameters.
+     *      1. payloadData      payload data.
+     *      2. headers          headers (optional).
+     *      3. eventHandlers    event handlers.
      */
-    void httpPost(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers);
+    void httpPost(String epUrl, Object... params);
 }
