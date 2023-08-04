@@ -56,10 +56,10 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
         }
 
         HttpGet request = new HttpGet(epUrl);
-        for (Map.Entry<String, String> dataElements : headers.entrySet()) {
-            request.setHeader(dataElements.getKey(), dataElements.getValue());
-        }
+        // Set default ACCEPT header to application/json
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+        headers.forEach(request::setHeader);
+
         executeHttpMethod(request, eventHandlers);
     }
 }
