@@ -39,16 +39,18 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
+
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 
 @WithCarbonHome
@@ -59,12 +61,15 @@ import static org.testng.Assert.assertEquals;
 public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-post-test-sp.xml";
+    private static final String TEST_EVENT_HANDLERS = "http-post-test-event-handlers.xml";
+    private static final String TEST_HEADERS = "http-post-test-headers.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
     private static final String FAILED = "FAILED";
     private static final String EMAIL = "email";
     private static final String ALLOWED_DOMAIN = "abc";
+    private static final String AUTHORIZATION = "Authorization";
 
     @InjectMicroservicePort
     private int microServicePort;
@@ -80,6 +85,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(longWaitStatusStoreService);
         sequenceHandlerRunner.registerJsFunction("httpPost", new HTTPPostFunctionImpl());
+        initMocks(this);
     }
 
     @AfterClass
@@ -91,8 +97,8 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testHttpPostMethod() throws JsTestException {
 
-        String requestUrl = getRequestUrl();
-        String result = executeHttpPostFunction(requestUrl);
+        String requestUrl = getRequestUrl("dummy-post");
+        String result = executeHttpPostFunction(requestUrl, TEST_SP_CONFIG);
 
         assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: " + result);
     }
@@ -101,10 +107,28 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public void testHttpPostMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
         setAllowedDomain(ALLOWED_DOMAIN);
-        String requestUrl = getRequestUrl();
-        String result = executeHttpPostFunction(requestUrl);
+        String requestUrl = getRequestUrl("dummy-post");
+        String result = executeHttpPostFunction(requestUrl, TEST_SP_CONFIG);
 
         assertEquals(result, FAILED, "The http post request should fail but it was successful. Result from request: "
+                + result);
+    }
+
+    @Test
+    public void testHttpPostWithEventHandlersOnly() throws JsTestException {
+
+        String requestUrl = getRequestUrl("dummy-post-event-handlers");
+        String result = executeHttpPostFunction(requestUrl, TEST_EVENT_HANDLERS);
+        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
+                + result);
+    }
+
+    @Test
+    public void testHttpPostWithHeaders() throws JsTestException {
+
+        String requestUrl = getRequestUrl("dummy-post-headers");
+        String result = executeHttpPostFunction(requestUrl, TEST_HEADERS);
+        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
                 + result);
     }
 
@@ -118,14 +142,14 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions().clear();
     }
 
-    private String getRequestUrl() {
+    private String getRequestUrl(String path) {
 
-        return "http://localhost:" + microServicePort + "/dummy-post";
+        return "http://localhost:" + microServicePort + "/" + path;
     }
 
-    private String executeHttpPostFunction(String requestUrl) throws JsTestException {
+    private String executeHttpPostFunction(String requestUrl, String adaptiveAuthScript) throws JsTestException {
 
-        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(TEST_SP_CONFIG, this);
+        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(adaptiveAuthScript, this);
         updateSPAuthScriptRequestUrl(sp, requestUrl);
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
@@ -163,6 +187,32 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         Map<String, String> response = new HashMap<>();
         if (data.containsKey(EMAIL)) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    @POST
+    @Path("/dummy-post-event-handlers")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public Map<String, String> dummyPost() {
+
+        Map<String, String> response = new HashMap<>();
+        response.put(STATUS, SUCCESS);
+        return response;
+    }
+
+    @POST
+    @Path("/dummy-post-headers")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public Map<String, String> dummyPostWithHeaders(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
+
+        Map<String, String> response = new HashMap<>();
+        if (data.containsKey(EMAIL) && authorization != null) {
             response.put(STATUS, SUCCESS);
         } else {
             response.put(STATUS, FAILED);

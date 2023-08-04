@@ -44,9 +44,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 
 import static org.testng.Assert.assertEquals;
 
@@ -58,11 +57,13 @@ import static org.testng.Assert.assertEquals;
 public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-get-test-sp.xml";
+    private static final String TEST_HEADERS = "http-get-test-headers.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
     private static final String FAILED = "FAILED";
     private static final String ALLOWED_DOMAIN = "abc";
+    private static final String AUTHORIZATION = "Authorization";
 
     @InjectMicroservicePort
     private int microServicePort;
@@ -89,8 +90,8 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testHttpGetMethod() throws JsTestException {
 
-        String requestUrl = getRequestUrl();
-        String result = executeHttpGetFunction(requestUrl);
+        String requestUrl = getRequestUrl("dummy-get");
+        String result = executeHttpGetFunction(requestUrl, TEST_SP_CONFIG);
 
         assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
     }
@@ -100,11 +101,20 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
         setAllowedDomain(ALLOWED_DOMAIN);
-        String requestUrl = getRequestUrl();
-        String result = executeHttpGetFunction(requestUrl);
+        String requestUrl = getRequestUrl("dummy-get");
+        String result = executeHttpGetFunction(requestUrl, TEST_SP_CONFIG);
 
         assertEquals(result, FAILED, "The http get request should fail but it was successful. Result from request: "
                 + result);
+    }
+
+    @Test
+    public void testHttpGetMethodWithHeaders() throws JsTestException {
+
+        String requestUrl = getRequestUrl("dummy-get-with-headers");
+        String result = executeHttpGetFunction(requestUrl, TEST_HEADERS);
+
+        assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
     }
 
     private void setAllowedDomain(String domain) {
@@ -117,14 +127,14 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions().clear();
     }
 
-    private String getRequestUrl() {
+    private String getRequestUrl(String path) {
 
-        return "http://localhost:" + microServicePort + "/dummy-get";
+        return "http://localhost:" + microServicePort + "/" + path;
     }
 
-    private String executeHttpGetFunction(String requestUrl) throws JsTestException {
+    private String executeHttpGetFunction(String requestUrl, String adaptiveAuthScript) throws JsTestException {
 
-        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(TEST_SP_CONFIG, this);
+        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(adaptiveAuthScript, this);
         updateSPAuthScriptRequestUrl(sp, requestUrl);
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
@@ -161,6 +171,20 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         Map<String, String> response = new HashMap<>();
         response.put(STATUS, SUCCESS);
+        return response;
+    }
+
+    @GET
+    @Path("/dummy-get-with-headers")
+    @Produces("application/json")
+    public Map<String, String> dummyGetWithHeaders(@HeaderParam(AUTHORIZATION) String authorization) {
+
+        Map<String, String> response = new HashMap<>();
+        if (authorization != null) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
         return response;
     }
 }
