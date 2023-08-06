@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
@@ -45,14 +46,32 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
         Map<String, Object> eventHandlers = new HashMap<>();
         Map<String, String> headers = new HashMap<>();
 
-        if (params.length == 1 && params[0] instanceof  Map) {
-            eventHandlers = (Map<String, Object>) params[0];
-        } else if (params.length == 2 && params[0] instanceof  Map && params[1] instanceof Map) {
-            headers = (Map<String, String>) params[0];
-            eventHandlers = (Map<String, Object>) params[1];
-        } else {
-            LOG.error("Invalid number of parameters.");
+        if (StringUtils.isBlank(epUrl)) {
+            LOG.error("Endpoint URL cannot be empty.");
             return;
+        }
+
+        switch (params.length) {
+            case 1:
+                if (params[0] instanceof Map) {
+                    eventHandlers = (Map<String, Object>) params[0];
+                } else {
+                    LOG.error("Invalid parameter type.");
+                    return;
+                }
+                break;
+            case 2:
+                if (params[0] instanceof Map && params[1] instanceof Map ) {
+                    headers = (Map<String, String>) params[0];
+                    eventHandlers = (Map<String, Object>) params[1];
+                }  else {
+                    LOG.error("Invalid parameter type.");
+                    return;
+                }
+                break;
+            default:
+                LOG.error("Invalid number of parameters.");
+                return;
         }
 
         HttpGet request = new HttpGet(epUrl);

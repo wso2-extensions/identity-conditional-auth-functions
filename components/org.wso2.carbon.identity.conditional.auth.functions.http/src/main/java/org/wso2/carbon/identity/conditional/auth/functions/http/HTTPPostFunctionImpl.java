@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
@@ -57,16 +58,27 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
         Map<String, Object> payloadData = new HashMap<>();
         Map<String, String> headers = new HashMap<>();
 
+        if (StringUtils.isBlank(epUrl)) {
+            LOG.error("Endpoint URL cannot be empty.");
+            return;
+        }
+
         switch (params.length) {
             case 1:
                 if (params[0] instanceof Map) {
                     eventHandlers = (Map<String, Object>) params[0];
+                } else {
+                    LOG.error("Invalid parameter type.");
+                    return;
                 }
                 break;
             case 2:
                 if (params[0] instanceof Map && params[1] instanceof Map) {
                     payloadData = (Map<String, Object>) params[0];
                     eventHandlers = (Map<String, Object>) params[1];
+                }  else {
+                    LOG.error("Invalid parameter type.");
+                    return;
                 }
                 break;
             case 3:
@@ -74,6 +86,9 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                     payloadData = (Map<String, Object>) params[0];
                     headers = (Map<String, String>) params[1];
                     eventHandlers = (Map<String, Object>) params[2];
+                }  else {
+                    LOG.error("Invalid parameter type.");
+                    return;
                 }
                 break;
             default:
