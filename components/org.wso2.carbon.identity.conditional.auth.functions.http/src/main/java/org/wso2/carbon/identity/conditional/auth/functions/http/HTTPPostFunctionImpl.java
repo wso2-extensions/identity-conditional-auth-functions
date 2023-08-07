@@ -63,67 +63,78 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
             return;
         }
 
-        switch (params.length) {
-            case 1:
-                if (params[0] instanceof Map) {
-                    eventHandlers = (Map<String, Object>) params[0];
-                } else {
-                    LOG.error("Invalid parameter type.");
+        try {
+            switch (params.length) {
+                case 1:
+                    if (params[0] instanceof Map) {
+                        eventHandlers = (Map<String, Object>) params[0];
+                    } else {
+                        LOG.error("Invalid parameter type.");
+                        return;
+                    }
+                    break;
+                case 2:
+                    if (params[0] instanceof Map && params[1] instanceof Map) {
+                        payloadData = (Map<String, Object>) params[0];
+                        eventHandlers = (Map<String, Object>) params[1];
+                    }  else {
+                        LOG.error("Invalid parameter type.");
+                        return;
+                    }
+                    break;
+                case 3:
+                    if (params[0] instanceof Map && params[1] instanceof Map && params[2] instanceof Map) {
+                        payloadData = (Map<String, Object>) params[0];
+                        headers = (Map<String, String>) params[1];
+                        eventHandlers = (Map<String, Object>) params[2];
+                    }  else {
+                        LOG.error("Invalid parameter type.");
+                        return;
+                    }
+                    break;
+                default:
+                    LOG.error("Invalid number of parameters.");
                     return;
-                }
-                break;
-            case 2:
-                if (params[0] instanceof Map && params[1] instanceof Map) {
-                    payloadData = (Map<String, Object>) params[0];
-                    eventHandlers = (Map<String, Object>) params[1];
-                }  else {
-                    LOG.error("Invalid parameter type.");
-                    return;
-                }
-                break;
-            case 3:
-                if (params[0] instanceof Map && params[1] instanceof Map && params[2] instanceof Map) {
-                    payloadData = (Map<String, Object>) params[0];
-                    headers = (Map<String, String>) params[1];
-                    eventHandlers = (Map<String, Object>) params[2];
-                }  else {
-                    LOG.error("Invalid parameter type.");
-                    return;
-                }
-                break;
-            default:
-                LOG.error("Invalid number of parameters.");
-                return;
-        }
-
-        HttpPost request = new HttpPost(epUrl);
-        request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-
-        if (headers == null) {
-            headers = new HashMap<>();
-        }
-        headers.putIfAbsent(CONTENT_TYPE, TYPE_APPLICATION_JSON);
-        headers.forEach(request::setHeader);
-
-        /*
-          For the header "Content-Type : application/x-www-form-urlencoded"
-          request body data is set to UrlEncodedFormEntity format.
-         */
-        if (MapUtils.isNotEmpty(payloadData)) {
-            if (TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
-                List<NameValuePair> entities = new ArrayList<NameValuePair>();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                    entities.add(new BasicNameValuePair(dataElements.getKey(), dataElements.getValue().toString()));
-                }
-                request.setEntity(new UrlEncodedFormEntity(entities, StandardCharsets.UTF_8));
-            } else {
-                JSONObject jsonObject = new JSONObject();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                    jsonObject.put(dataElements.getKey(), dataElements.getValue());
-                }
-                request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
             }
+
+            HttpPost request = new HttpPost(epUrl);
+            request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+
+            headers.putIfAbsent(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+            headers.entrySet().stream()
+                    .filter(entry -> entry.getKey() != null)
+                    .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
+
+
+            //For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
+            // UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
+            if (MapUtils.isNotEmpty(payloadData)) {
+                if (TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
+                    List<NameValuePair> entities = new ArrayList<>();
+                    for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                        if (!StringUtils.isEmpty(dataElements.getKey())) {
+                            String value = (dataElements.getValue() != null) ? dataElements.getValue().toString() : null;
+                            entities.add(new BasicNameValuePair(dataElements.getKey(), value));
+                        }
+                    }
+                    request.setEntity(new UrlEncodedFormEntity(entities, StandardCharsets.UTF_8));
+                } else {
+                    JSONObject jsonObject = new JSONObject();
+                    for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                        if (!StringUtils.isEmpty(dataElements.getKey())) {
+                            Object value = (dataElements.getValue() != null) ? dataElements.getValue() : null;
+                            jsonObject.put(dataElements.getKey(), value);
+                        }
+                    }
+                    request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
+                }
+            }
+            executeHttpMethod(request, eventHandlers);
+
+        } catch (IllegalArgumentException e) {
+            LOG.error("Invalid parameter type.", e);
+        } catch (Exception e) {
+            LOG.error("Error while executing http post request.", e);
         }
-        executeHttpMethod(request, eventHandlers);
     }
 }

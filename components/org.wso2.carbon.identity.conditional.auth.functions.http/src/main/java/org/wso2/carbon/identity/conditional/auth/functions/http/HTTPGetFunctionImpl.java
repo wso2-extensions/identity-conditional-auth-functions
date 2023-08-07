@@ -51,34 +51,43 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
             return;
         }
 
-        switch (params.length) {
-            case 1:
-                if (params[0] instanceof Map) {
-                    eventHandlers = (Map<String, Object>) params[0];
-                } else {
-                    LOG.error("Invalid parameter type.");
+        try {
+            switch (params.length) {
+                case 1:
+                    if (params[0] instanceof Map) {
+                        eventHandlers = (Map<String, Object>) params[0];
+                    } else {
+                        LOG.error("Invalid parameter type.");
+                        return;
+                    }
+                    break;
+                case 2:
+                    if (params[0] instanceof Map && params[1] instanceof Map ) {
+                        headers = (Map<String, String>) params[0];
+                        eventHandlers = (Map<String, Object>) params[1];
+                    }  else {
+                        LOG.error("Invalid parameter type.");
+                        return;
+                    }
+                    break;
+                default:
+                    LOG.error("Invalid number of parameters.");
                     return;
-                }
-                break;
-            case 2:
-                if (params[0] instanceof Map && params[1] instanceof Map ) {
-                    headers = (Map<String, String>) params[0];
-                    eventHandlers = (Map<String, Object>) params[1];
-                }  else {
-                    LOG.error("Invalid parameter type.");
-                    return;
-                }
-                break;
-            default:
-                LOG.error("Invalid number of parameters.");
-                return;
+            }
+
+            HttpGet request = new HttpGet(epUrl);
+            // Set default ACCEPT header to application/json
+            request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+
+            headers.entrySet().stream()
+                    .filter(entry -> entry.getKey() != null)
+                    .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
+
+            executeHttpMethod(request, eventHandlers);
+        } catch (IllegalArgumentException e) {
+            LOG.error("Invalid parameter type.", e);
+        } catch (Exception e) {
+            LOG.error("Error while executing http get.", e);
         }
-
-        HttpGet request = new HttpGet(epUrl);
-        // Set default ACCEPT header to application/json
-        request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-        headers.forEach(request::setHeader);
-
-        executeHttpMethod(request, eventHandlers);
     }
 }
