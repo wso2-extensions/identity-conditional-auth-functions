@@ -122,8 +122,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                     JSONObject jsonObject = new JSONObject();
                     for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
                         if (!StringUtils.isEmpty(dataElements.getKey())) {
-                            Object value = (dataElements.getValue() != null) ? dataElements.getValue() : null;
-                            jsonObject.put(dataElements.getKey(), value);
+                            jsonObject.put(dataElements.getKey(), dataElements.getValue());
                         }
                     }
                     request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
