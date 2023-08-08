@@ -17,7 +17,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import org.apache.http.client.methods.HttpGet;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -49,6 +51,14 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doNothing;
 import static org.testng.Assert.assertEquals;
 
 @WithCarbonHome
@@ -66,6 +76,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String FAILED = "FAILED";
     private static final String ALLOWED_DOMAIN = "abc";
     private static final String AUTHORIZATION = "Authorization";
+    private HTTPGetFunctionImpl httpGetFunction;
 
     @InjectMicroservicePort
     private int microServicePort;
@@ -81,12 +92,22 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(longWaitStatusStoreService);
         sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
+
+        // Mocking the executeHttpMethod method to avoid actual http calls.
+        httpGetFunction = spy(new HTTPGetFunctionImpl());
+        doNothing().when(httpGetFunction).executeHttpMethod(any(), any());
     }
 
     @AfterClass
     protected void tearDown() {
 
         unsetAllowedDomains();
+    }
+
+    @AfterMethod
+    protected void tearDownMethod() {
+
+        reset(httpGetFunction);
     }
 
     @Test
@@ -110,6 +131,11 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 + result);
     }
 
+    /**
+     * Test http get method with headers.
+     * Check if the headers are sent with the request.
+     * @throws JsTestException
+     */
     @Test
     public void testHttpGetMethodWithHeaders() throws JsTestException {
 
@@ -117,6 +143,47 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String result = executeHttpGetFunction(requestUrl, TEST_HEADERS);
 
         assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
+    }
+
+    /**
+     * Tests the behavior of the httpPost function when provided with null headers.
+     * executeHttpMethod method should not be called.
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpGetWithNullHeaders() {
+        Map<String, String> headers = null;
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"), headers, eventHandlers);
+        verify(httpGetFunction, times(0)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+    }
+
+    /**
+     * Tests the behavior of the httpPost function when provided with null values in headers.
+     * executeHttpMethod method should be called.
+     */
+    @Test
+    public void testHttpGetWithNullValuesInHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(ACCEPT, "application/json");
+        headers.put("test", null);
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"), headers, eventHandlers);
+        verify(httpGetFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+    }
+
+    /**
+     * Tests the behavior of the httpPost function when provided with null keys in headers.
+     * executeHttpMethod method should be called and null keys should be ignored.
+     */
+    @Test
+    public void testHttpGetWithNullKeysInHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(ACCEPT, "application/json");
+        headers.put(null, null);
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"), headers, eventHandlers);
+        verify(httpGetFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
     }
 
     private void setAllowedDomain(String domain) {

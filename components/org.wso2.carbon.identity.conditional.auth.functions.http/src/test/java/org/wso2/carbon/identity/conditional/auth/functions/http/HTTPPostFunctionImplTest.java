@@ -17,7 +17,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import org.apache.http.client.methods.HttpGet;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -39,7 +41,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,8 +52,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 
-
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doNothing;
 import static org.testng.Assert.assertEquals;
 
 @WithCarbonHome
@@ -63,7 +70,6 @@ import static org.testng.Assert.assertEquals;
 public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-post-test-sp.xml";
-    private static final String TEST_EVENT_HANDLERS = "http-post-test-event-handlers.xml";
     private static final String TEST_HEADERS = "http-post-test-headers.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
@@ -72,6 +78,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String EMAIL = "email";
     private static final String ALLOWED_DOMAIN = "abc";
     private static final String AUTHORIZATION = "Authorization";
+    private HTTPPostFunctionImpl httpPostFunction;
 
     @InjectMicroservicePort
     private int microServicePort;
@@ -87,13 +94,22 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(longWaitStatusStoreService);
         sequenceHandlerRunner.registerJsFunction("httpPost", new HTTPPostFunctionImpl());
-        initMocks(this);
+
+        // Mocking the executeHttpMethod method to avoid actual http calls.
+        httpPostFunction = spy(new HTTPPostFunctionImpl());
+        doNothing().when(httpPostFunction).executeHttpMethod(any(), any());
     }
 
     @AfterClass
     protected void tearDown() {
 
         unsetAllowedDomains();
+    }
+
+    @AfterMethod
+    protected void tearDownTest() {
+
+        reset(httpPostFunction);
     }
 
     @Test
@@ -116,15 +132,11 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 + result);
     }
 
-    @Test
-    public void testHttpPostWithEventHandlersOnly() throws JsTestException {
-
-        String requestUrl = getRequestUrl("dummy-post-event-handlers");
-        String result = executeHttpPostFunction(requestUrl, TEST_EVENT_HANDLERS);
-        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
-                + result);
-    }
-
+    /**
+     * Test http post with headers.
+     * Check if the headers are sent with the request.
+     * @throws JsTestException
+     */
     @Test
     public void testHttpPostWithHeaders() throws JsTestException {
 
@@ -132,6 +144,72 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String result = executeHttpPostFunction(requestUrl, TEST_HEADERS);
         assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
                 + result);
+    }
+
+    /**
+     * Test http post only with event handlers.
+     * executeHttpMethod method should be called with event handlers.
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostWithEventHandlersOnly() throws JsTestException {
+
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpPostFunction.httpPost(getRequestUrl("dummy-get"), eventHandlers);
+        verify(httpPostFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+    }
+
+    /**
+     * Test http post without headers.
+     * executeHttpMethod method should be called without headers.
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostWithoutHeaders() throws JsTestException {
+
+        Map<String, Object> payload = new HashMap<>();
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpPostFunction.httpPost(getRequestUrl("dummy-get"), payload, eventHandlers);
+        verify(httpPostFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+    }
+
+    /**
+     * Tests the behavior of the httpPost function when provided with null headers and payload.
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostWithNullHeaderAndNullPayload() throws JsTestException {
+        Map<String, Object> payload = null;
+        Map<String, String> headers = null;
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpPostFunction.httpPost(getRequestUrl("dummy-get"), payload, headers, eventHandlers);
+        verify(httpPostFunction, times(0)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+    }
+
+    /**
+     * Tests the behavior of the httpPost function when provided with null values inside headers or payload data.
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostWithNullValuesInParams() throws JsTestException {
+        Map<String, Object> payload = new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
+        headers.put(ACCEPT, null);
+        payload.put(EMAIL, null);
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpPostFunction.httpPost(getRequestUrl("dummy-get"), payload, headers, eventHandlers);
+        verify(httpPostFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+    }
+
+    @Test
+    public void testHttpPostWithNullKeysInParams() throws JsTestException {
+        Map<String, Object> payload = new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
+        headers.put(null, "something");
+        payload.put(null, "something");
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpPostFunction.httpPost(getRequestUrl("dummy-get"), payload, headers, eventHandlers);
+        verify(httpPostFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
     }
 
     private void setAllowedDomain(String domain) {
@@ -196,17 +274,13 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return response;
     }
 
-    @POST
-    @Path("/dummy-post-event-handlers")
-    @Produces("application/json")
-    @Consumes("application/json")
-    public Map<String, String> dummyPost() {
-
-        Map<String, String> response = new HashMap<>();
-        response.put(STATUS, SUCCESS);
-        return response;
-    }
-
+    /**
+     * Dummy post method to test payload and headers.
+     * Check if the payload data and headers are sent with the request.
+     * @param authorization
+     * @param data
+     * @return
+     */
     @POST
     @Path("/dummy-post-headers")
     @Produces("application/json")
