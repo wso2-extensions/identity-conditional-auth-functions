@@ -96,14 +96,14 @@ public abstract class AbstractHTTPFunction {
                     outcome = Constants.OUTCOME_SUCCESS;
                     if (response.getEntity() != null) {
                         Header contentType = response.getEntity().getContentType();
-                        String responseBody = EntityUtils.toString(response.getEntity());
-                        if (contentType != null && contentType.getValue().contains("application/json")) {
-                            JSONParser parser = new JSONParser();
-                            json = (JSONObject) parser.parse(responseBody);
-                        } else if (contentType != null && contentType.getValue().contains("text/plain")) {
+                        String jsonString = EntityUtils.toString(response.getEntity());
+                        if (contentType != null && contentType.getValue().contains("text/plain")) {
                             // For 'text/plain', put the response body into the JSON object as a single field.
                             json = new JSONObject();
-                            json.put("response", responseBody);
+                            json.put("response", jsonString);
+                        } else {
+                            JSONParser parser = new JSONParser();
+                            json = (JSONObject) parser.parse(jsonString);
                         }
                     }
                 } else {

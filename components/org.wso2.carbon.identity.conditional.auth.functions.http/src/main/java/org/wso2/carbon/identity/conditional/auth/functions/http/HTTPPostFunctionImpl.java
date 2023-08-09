@@ -54,7 +54,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
     @Override
     public void httpPost(String epUrl, Object... params) {
 
-        Map<String, Object> eventHandlers = new HashMap<>();
+        Map<String, Object> eventHandlers;
         Map<String, Object> payloadData = new HashMap<>();
         Map<String, String> headers = new HashMap<>();
 
@@ -106,9 +106,9 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                     .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
 
 
-            //For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
-            // UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
             if (MapUtils.isNotEmpty(payloadData)) {
+                //For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
+                // UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
                 if (TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
                     List<NameValuePair> entities = new ArrayList<>();
                     for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {

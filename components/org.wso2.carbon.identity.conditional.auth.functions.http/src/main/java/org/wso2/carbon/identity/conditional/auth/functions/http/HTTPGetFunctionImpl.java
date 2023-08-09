@@ -43,7 +43,7 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
     @Override
     public void httpGet(String epUrl, Object... params) {
 
-        Map<String, Object> eventHandlers = new HashMap<>();
+        Map<String, Object> eventHandlers;
         Map<String, String> headers = new HashMap<>();
 
         if (StringUtils.isBlank(epUrl)) {
@@ -76,7 +76,6 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
             }
 
             HttpGet request = new HttpGet(epUrl);
-            // Set default ACCEPT header to application/json
             request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
 
             headers.entrySet().stream()
