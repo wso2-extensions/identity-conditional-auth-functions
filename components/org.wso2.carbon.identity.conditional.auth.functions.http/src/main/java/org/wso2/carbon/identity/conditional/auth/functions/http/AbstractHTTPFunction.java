@@ -92,10 +92,10 @@ public abstract class AbstractHTTPFunction {
 
             try (CloseableHttpResponse response = client.execute(request)) {
                 responseCode = response.getStatusLine().getStatusCode();
-                Header contentType = response.getEntity().getContentType();
                 if (responseCode >= 200 && responseCode < 300) {
                     outcome = Constants.OUTCOME_SUCCESS;
                     if (response.getEntity() != null) {
+                        Header contentType = response.getEntity().getContentType();
                         String responseBody = EntityUtils.toString(response.getEntity());
                         if (contentType != null && contentType.getValue().contains("application/json")) {
                             JSONParser parser = new JSONParser();
