@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -52,7 +51,6 @@ public abstract class AbstractHTTPFunction {
     private static final Log LOG = LogFactory.getLog(AbstractHTTPFunction.class);
     protected static final String TYPE_APPLICATION_JSON = "application/json";
     protected static final String TYPE_APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";
-    protected static final String TYPE_APPLICATION_XML = "application/xml";
     private static final char DOMAIN_SEPARATOR = '.';
     private final List<String> allowedDomains;
 

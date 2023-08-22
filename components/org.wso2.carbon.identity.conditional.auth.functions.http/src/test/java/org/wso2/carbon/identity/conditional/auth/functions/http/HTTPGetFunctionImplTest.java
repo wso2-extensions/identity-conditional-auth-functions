@@ -17,7 +17,6 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
-import org.apache.http.client.methods.HttpGet;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -51,13 +50,9 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doNothing;
 import static org.testng.Assert.assertEquals;
 
@@ -146,44 +141,23 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Tests the behavior of the httpPost function when provided with null headers.
-     * executeHttpMethod method should not be called.
-     * @throws JsTestException
+     * Tests the behavior of the httpGet function when provided with null headers.
+     * @throws IllegalArgumentException if the provided arguments are not valid.
      */
-    @Test
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testHttpGetWithNullHeaders() {
-        Map<String, String> headers = null;
         Map<String, Object> eventHandlers = new HashMap<>();
-        httpGetFunction.httpGet(getRequestUrl("dummy-get"), headers, eventHandlers);
-        verify(httpGetFunction, times(0)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"), null, eventHandlers);
     }
 
     /**
-     * Tests the behavior of the httpPost function when provided with null values in headers.
-     * executeHttpMethod method should be called.
+     * Tests the behavior of the httpGet function when invalid number of arguments are provided.
+     * @throws IllegalArgumentException if the provided arguments are not valid.
      */
-    @Test
-    public void testHttpGetWithNullValuesInHeaders() {
-        Map<String, String> headers = new HashMap<>();
-        headers.put(ACCEPT, "application/json");
-        headers.put("test", null);
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testHttpGetWithInvalidNumberOfArguments() {
         Map<String, Object> eventHandlers = new HashMap<>();
-        httpGetFunction.httpGet(getRequestUrl("dummy-get"), headers, eventHandlers);
-        verify(httpGetFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
-    }
-
-    /**
-     * Tests the behavior of the httpPost function when provided with null keys in headers.
-     * executeHttpMethod method should be called and null keys should be ignored.
-     */
-    @Test
-    public void testHttpGetWithNullKeysInHeaders() {
-        Map<String, String> headers = new HashMap<>();
-        headers.put(ACCEPT, "application/json");
-        headers.put(null, null);
-        Map<String, Object> eventHandlers = new HashMap<>();
-        httpGetFunction.httpGet(getRequestUrl("dummy-get"), headers, eventHandlers);
-        verify(httpGetFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"), eventHandlers, eventHandlers, eventHandlers);
     }
 
     private void setAllowedDomain(String domain) {

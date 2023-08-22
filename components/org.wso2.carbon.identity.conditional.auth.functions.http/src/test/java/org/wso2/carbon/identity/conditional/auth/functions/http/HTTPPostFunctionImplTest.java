@@ -17,7 +17,6 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
-import org.apache.http.client.methods.HttpGet;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -52,13 +51,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 
-import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doNothing;
 import static org.testng.Assert.assertEquals;
 
@@ -133,7 +128,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Test http post with headers.
+     * Test httpPost with headers.
      * Check if the headers are sent with the request.
      * @throws JsTestException
      */
@@ -147,69 +142,28 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Test http post only with event handlers.
-     * executeHttpMethod method should be called with event handlers.
-     * @throws JsTestException
+     * Tests the behavior of the httpPost function when provided with null headers.
+     * @throws IllegalArgumentException if the provided arguments are not valid.
      */
-    @Test
-    public void testHttpPostWithEventHandlersOnly() throws JsTestException {
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testHttpPostWithNullHeaders() {
 
+        Map<String, Object> payloadData = new HashMap<>();
         Map<String, Object> eventHandlers = new HashMap<>();
-        httpPostFunction.httpPost(getRequestUrl("dummy-get"), eventHandlers);
-        verify(httpPostFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+        httpPostFunction.httpPost(getRequestUrl("dummy-post"), payloadData, null, eventHandlers);
     }
 
     /**
-     * Test http post without headers.
-     * executeHttpMethod method should be called without headers.
-     * @throws JsTestException
+     * Tests the behavior of the httpPost function when provided with invalid number of arguments.
+     * @throws IllegalArgumentException if the provided arguments are not valid.
      */
-    @Test
-    public void testHttpPostWithoutHeaders() throws JsTestException {
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testHttpPostWithInvalidNumberOfArguments() {
 
-        Map<String, Object> payload = new HashMap<>();
+        Map<String, Object> payloadData = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>();
         Map<String, Object> eventHandlers = new HashMap<>();
-        httpPostFunction.httpPost(getRequestUrl("dummy-get"), payload, eventHandlers);
-        verify(httpPostFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
-    }
-
-    /**
-     * Tests the behavior of the httpPost function when provided with null headers and payload.
-     * @throws JsTestException
-     */
-    @Test
-    public void testHttpPostWithNullHeaderAndNullPayload() throws JsTestException {
-        Map<String, Object> payload = null;
-        Map<String, String> headers = null;
-        Map<String, Object> eventHandlers = new HashMap<>();
-        httpPostFunction.httpPost(getRequestUrl("dummy-get"), payload, headers, eventHandlers);
-        verify(httpPostFunction, times(0)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
-    }
-
-    /**
-     * Tests the behavior of the httpPost function when provided with null values inside headers or payload data.
-     * @throws JsTestException
-     */
-    @Test
-    public void testHttpPostWithNullValuesInParams() throws JsTestException {
-        Map<String, Object> payload = new HashMap<>();
-        Map<String, String> headers = new HashMap<>();
-        headers.put(ACCEPT, null);
-        payload.put(EMAIL, null);
-        Map<String, Object> eventHandlers = new HashMap<>();
-        httpPostFunction.httpPost(getRequestUrl("dummy-get"), payload, headers, eventHandlers);
-        verify(httpPostFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
-    }
-
-    @Test
-    public void testHttpPostWithNullKeysInParams() throws JsTestException {
-        Map<String, Object> payload = new HashMap<>();
-        Map<String, String> headers = new HashMap<>();
-        headers.put(null, "something");
-        payload.put(null, "something");
-        Map<String, Object> eventHandlers = new HashMap<>();
-        httpPostFunction.httpPost(getRequestUrl("dummy-get"), payload, headers, eventHandlers);
-        verify(httpPostFunction, times(1)).executeHttpMethod(any(HttpGet.class), eq(eventHandlers));
+        httpPostFunction.httpPost(getRequestUrl("dummy-post"), payloadData, headers, eventHandlers, eventHandlers);
     }
 
     private void setAllowedDomain(String domain) {

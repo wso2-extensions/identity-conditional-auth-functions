@@ -46,47 +46,33 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
         Map<String, Object> eventHandlers;
         Map<String, String> headers = new HashMap<>();
 
-        if (StringUtils.isBlank(epUrl)) {
-            LOG.error("Endpoint URL cannot be empty.");
-            return;
+        switch (params.length) {
+            case 1:
+                if (params[0] instanceof Map) {
+                    eventHandlers = (Map<String, Object>) params[0];
+                } else {
+                    throw new IllegalArgumentException("Invalid argument type.");
+                }
+                break;
+            case 2:
+                if (params[0] instanceof Map && params[1] instanceof Map ) {
+                    headers = (Map<String, String>) params[0];
+                    eventHandlers = (Map<String, Object>) params[1];
+                } else {
+                    throw new IllegalArgumentException("Invalid argument type.");
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid number of argument.");
         }
 
-        try {
-            switch (params.length) {
-                case 1:
-                    if (params[0] instanceof Map) {
-                        eventHandlers = (Map<String, Object>) params[0];
-                    } else {
-                        LOG.error("Invalid parameter type.");
-                        return;
-                    }
-                    break;
-                case 2:
-                    if (params[0] instanceof Map && params[1] instanceof Map ) {
-                        headers = (Map<String, String>) params[0];
-                        eventHandlers = (Map<String, Object>) params[1];
-                    }  else {
-                        LOG.error("Invalid parameter type.");
-                        return;
-                    }
-                    break;
-                default:
-                    LOG.error("Invalid number of parameters.");
-                    return;
-            }
+        HttpGet request = new HttpGet(epUrl);
 
-            HttpGet request = new HttpGet(epUrl);
-            request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
+        headers.putIfAbsent(ACCEPT, TYPE_APPLICATION_JSON);
+        headers.entrySet().stream()
+                .filter(entry -> !StringUtils.isBlank(entry.getKey()) && !entry.getKey().equals("null"))
+                .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
 
-            headers.entrySet().stream()
-                    .filter(entry -> entry.getKey() != null)
-                    .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
-
-            executeHttpMethod(request, eventHandlers);
-        } catch (IllegalArgumentException e) {
-            LOG.error("Invalid parameter type.", e);
-        } catch (Exception e) {
-            LOG.error("Error while executing http get.", e);
-        }
+        executeHttpMethod(request, eventHandlers);
     }
 }
