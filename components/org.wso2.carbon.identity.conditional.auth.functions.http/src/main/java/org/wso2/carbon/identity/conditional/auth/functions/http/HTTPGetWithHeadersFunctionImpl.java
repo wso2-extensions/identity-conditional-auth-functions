@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
 import org.wso2.carbon.identity.event.IdentityEventException;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
@@ -44,8 +45,11 @@ public class HTTPGetWithHeadersFunctionImpl extends AbstractHTTPFunction impleme
     public void httpGetWithHeaders(String epUrl, Map<String, String> headers, Map<String, Object> eventHandlers) {
 
         HttpGet request = new HttpGet(epUrl);
-        request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
 
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+        headers.putIfAbsent(ACCEPT, TYPE_APPLICATION_JSON);
         headers.entrySet().stream()
                 .filter(entry -> entry.getKey() != null)
                 .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
