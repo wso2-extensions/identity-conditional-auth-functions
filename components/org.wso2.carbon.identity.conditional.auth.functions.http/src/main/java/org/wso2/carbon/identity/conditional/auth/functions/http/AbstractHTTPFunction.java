@@ -51,6 +51,7 @@ public abstract class AbstractHTTPFunction {
     private static final Log LOG = LogFactory.getLog(AbstractHTTPFunction.class);
     protected static final String TYPE_APPLICATION_JSON = "application/json";
     protected static final String TYPE_APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    protected static final String TYPE_TEXT_PLAIN = "text/plain";
     private static final char DOMAIN_SEPARATOR = '.';
     private final List<String> allowedDomains;
 
@@ -95,7 +96,7 @@ public abstract class AbstractHTTPFunction {
                     if (response.getEntity() != null) {
                         Header contentType = response.getEntity().getContentType();
                         String jsonString = EntityUtils.toString(response.getEntity());
-                        if (contentType != null && contentType.getValue().contains("text/plain")) {
+                        if (contentType != null && contentType.getValue().contains(TYPE_TEXT_PLAIN)) {
                             // For 'text/plain', put the response body into the JSON object as a single field.
                             json = new JSONObject();
                             json.put("response", jsonString);
