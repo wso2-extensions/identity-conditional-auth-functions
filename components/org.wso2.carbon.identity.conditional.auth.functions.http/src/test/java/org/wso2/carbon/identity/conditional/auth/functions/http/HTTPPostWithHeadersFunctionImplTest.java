@@ -37,10 +37,12 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,10 +53,10 @@ import static org.testng.Assert.assertEquals;
 @WithH2Database(files = {"dbscripts/h2_http.sql"})
 @WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
 @Path("/")
-public class HTTPGetWithHeadersFunctionImplTest extends JsSequenceHandlerAbstractTest {
+public class HTTPPostWithHeadersFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
-    private static final String TEST_SP_CONFIG = "http-get-with-headers-test-sp.xml";
-    private static final String JS_FUNCTION_NAME = "httpGetWithHeaders";
+    private static final String TEST_SP_CONFIG = "http-post-with-headers-test-sp.xml";
+    private static final String JS_FUNCTION_NAME = "httpPostWithHeaders";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
@@ -62,6 +64,7 @@ public class HTTPGetWithHeadersFunctionImplTest extends JsSequenceHandlerAbstrac
     private static final String ALLOWED_DOMAIN = "abc";
     private static final String AUTHORIZATION = "Authorization";
     private static final String AUTHORIZATION_HEADER_VALUE = "Bearer your-token";
+    private static final String EMAIL = "email";
 
     @InjectMicroservicePort
     private int microServicePort;
@@ -76,7 +79,7 @@ public class HTTPGetWithHeadersFunctionImplTest extends JsSequenceHandlerAbstrac
         LongWaitStatusStoreService longWaitStatusStoreService =
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(longWaitStatusStoreService);
-        sequenceHandlerRunner.registerJsFunction(JS_FUNCTION_NAME, new HTTPGetWithHeadersFunctionImpl());
+        sequenceHandlerRunner.registerJsFunction(JS_FUNCTION_NAME, new HTTPPostWithHeadersFunctionImpl());
     }
 
     @AfterClass
@@ -90,22 +93,22 @@ public class HTTPGetWithHeadersFunctionImplTest extends JsSequenceHandlerAbstrac
      * @throws JsTestException
      */
     @Test
-    public void testHttpGetWithHeadersMethod() throws JsTestException {
+    public void testHttpPostWithHeadersMethod() throws JsTestException {
 
         String requestUrl = getRequestUrl();
-        String result = executeHttpGetFunction(requestUrl);
+        String result = executeHttpPostFunction(requestUrl);
 
-        assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
+        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: " + result);
     }
 
-    @Test(dependsOnMethods = {"testHttpGetWithHeadersMethod"})
-    public void testHttpGetWithHeadersMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
+    @Test(dependsOnMethods = {"testHttpPostWithHeadersMethod"})
+    public void testHttpPostWithHeadersMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
         setAllowedDomain(ALLOWED_DOMAIN);
         String requestUrl = getRequestUrl();
-        String result = executeHttpGetFunction(requestUrl);
+        String result = executeHttpPostFunction(requestUrl);
 
-        assertEquals(result, FAILED, "The http get request should fail but it was successful. Result from request: "
+        assertEquals(result, FAILED, "The http post request should fail but it was successful. Result from request: "
                 + result);
     }
 
@@ -121,10 +124,10 @@ public class HTTPGetWithHeadersFunctionImplTest extends JsSequenceHandlerAbstrac
 
     private String getRequestUrl() {
 
-        return "http://localhost:" + microServicePort + "/dummy-get-with-headers";
+        return "http://localhost:" + microServicePort + "/dummy-post-with-headers";
     }
 
-    private String executeHttpGetFunction(String requestUrl) throws JsTestException {
+    private String executeHttpPostFunction(String requestUrl) throws JsTestException {
 
         ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(TEST_SP_CONFIG, this);
         updateSPAuthScriptRequestUrl(sp, requestUrl);
@@ -156,13 +159,14 @@ public class HTTPGetWithHeadersFunctionImplTest extends JsSequenceHandlerAbstrac
         sp.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
     }
 
-    @GET
-    @Path("/dummy-get-with-headers")
+    @POST
+    @Path("/dummy-post-with-headers")
     @Produces("application/json")
-    public Map<String, String> dummyGetWithHeaders(@HeaderParam(AUTHORIZATION) String authorization) {
+    @Consumes("application/json")
+    public Map<String, String> dummyPostWithHeaders(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
 
         Map<String, String> response = new HashMap<>();
-        if (authorization != null && authorization.equals(AUTHORIZATION_HEADER_VALUE)) {
+        if (authorization != null && authorization.equals(AUTHORIZATION_HEADER_VALUE) && data.containsKey(EMAIL)) {
             response.put(STATUS, SUCCESS);
         } else {
             response.put(STATUS, FAILED);
