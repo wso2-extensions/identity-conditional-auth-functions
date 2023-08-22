@@ -24,6 +24,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.Header;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -49,6 +50,8 @@ public abstract class AbstractHTTPFunction {
 
     private static final Log LOG = LogFactory.getLog(AbstractHTTPFunction.class);
     protected static final String TYPE_APPLICATION_JSON = "application/json";
+    protected static final String TYPE_APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    protected static final String TYPE_TEXT_PLAIN = "text/plain";
     private static final char DOMAIN_SEPARATOR = '.';
     private final List<String> allowedDomains;
 
@@ -90,9 +93,18 @@ public abstract class AbstractHTTPFunction {
                 responseCode = response.getStatusLine().getStatusCode();
                 if (responseCode >= 200 && responseCode < 300) {
                     outcome = Constants.OUTCOME_SUCCESS;
-                    String jsonString = EntityUtils.toString(response.getEntity());
-                    JSONParser parser = new JSONParser();
-                    json = (JSONObject) parser.parse(jsonString);
+                    if (response.getEntity() != null) {
+                        Header contentType = response.getEntity().getContentType();
+                        String jsonString = EntityUtils.toString(response.getEntity());
+                        if (contentType != null && contentType.getValue().contains(TYPE_TEXT_PLAIN)) {
+                            // For 'text/plain', put the response body into the JSON object as a single field.
+                            json = new JSONObject();
+                            json.put("response", jsonString);
+                        } else {
+                            JSONParser parser = new JSONParser();
+                            json = (JSONObject) parser.parse(jsonString);
+                        }
+                    }
                 } else {
                     outcome = Constants.OUTCOME_FAIL;
                 }

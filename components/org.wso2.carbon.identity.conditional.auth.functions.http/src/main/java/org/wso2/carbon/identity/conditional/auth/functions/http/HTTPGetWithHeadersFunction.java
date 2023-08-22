@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import org.wso2.carbon.identity.event.IdentityEventException;
+
 import java.util.Map;
 
 /**

@@ -18,32 +18,22 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.methods.HttpGet;
-
 import java.util.Map;
 
-import static org.apache.http.HttpHeaders.ACCEPT;
-
 /**
- * Implementation of the {@link HTTPGetFunction}
+ * Function to call http endpoints. Function will post to the given endpoint reference with payload data as a json.
  */
-public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGetFunction {
+@FunctionalInterface
+public interface HTTPPostWithHeadersFunction {
 
-    private static final Log LOG = LogFactory.getLog(HTTPGetFunctionImpl.class);
-
-    public HTTPGetFunctionImpl() {
-
-        super();
-    }
-
-    @Override
-    public void httpGet(String epUrl, Map<String, Object> eventHandlers) {
-
-        HttpGet request = new HttpGet(epUrl);
-        LOG.error("httpGet: " + epUrl);
-        request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-        executeHttpMethod(request, eventHandlers);
-    }
+    /**
+     *  POST data to the given endpoint.
+     *
+     * @param epUrl Endpoint url.
+     * @param payloadData payload data.
+     * @param headers headers.
+     * @param eventHandlers event handlers.
+     */
+    void httpPostWithHeaders(String epUrl, Map<String, Object> payloadData, Map<String, String> headers,
+                  Map<String, Object> eventHandlers);
 }

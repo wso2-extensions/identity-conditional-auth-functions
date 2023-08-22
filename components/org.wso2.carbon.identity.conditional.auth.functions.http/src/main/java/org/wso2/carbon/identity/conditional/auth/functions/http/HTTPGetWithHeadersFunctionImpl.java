@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
+import org.wso2.carbon.identity.event.IdentityEventException;
 
 import java.util.Map;
 
@@ -51,5 +52,4 @@ public class HTTPGetWithHeadersFunctionImpl extends AbstractHTTPFunction impleme
 
         executeHttpMethod(request, eventHandlers);
     }
-
 }
