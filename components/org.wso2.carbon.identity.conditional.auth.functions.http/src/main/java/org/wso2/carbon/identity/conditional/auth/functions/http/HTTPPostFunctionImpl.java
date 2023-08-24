@@ -52,7 +52,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
     }
 
     @Override
-    public void httpPost(String epUrl, Object... params) {
+    public void httpPost(String endpointURL, Object... params) {
 
         Map<String, Object> eventHandlers;
         Map<String, Object> payloadData = new HashMap<>();
@@ -63,7 +63,8 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                 if (params[0] instanceof Map) {
                     eventHandlers = (Map<String, Object>) params[0];
                 } else {
-                    throw new IllegalArgumentException("Invalid argument type.");
+                    throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
+                            "(Map<String, Object>).");
                 }
                 break;
             case 2:
@@ -71,34 +72,35 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                     payloadData = (Map<String, Object>) params[0];
                     eventHandlers = (Map<String, Object>) params[1];
                 }  else {
-                    throw new IllegalArgumentException("Invalid argument type.");
+                    throw new IllegalArgumentException("Invalid argument types. Expected payloadData and eventHandlers " +
+                            "(both of type Map<String, Object>) respectively.");
                 }
                 break;
             case 3:
                 if (params[0] instanceof Map && params[1] instanceof Map && params[2] instanceof Map) {
                     payloadData = (Map<String, Object>) params[0];
-                    headers = (Map<String, String>) params[1];
+                    headers = validateHeaders((Map<String, ?>) params[1]);
                     eventHandlers = (Map<String, Object>) params[2];
                 }  else {
-                    throw new IllegalArgumentException("Invalid argument type.");
+                    throw new IllegalArgumentException("Invalid argument type. Expected payloadData " +
+                            "(Map<String, Object>), headers (Map<String, String>), and eventHandlers " +
+                            "(Map<String, Object>) respectively.");
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Invalid number of argument.");
+                throw new IllegalArgumentException("Invalid number of arguments. Expected 1, 2, or 3. Found: "
+                        + params.length + ".");
         }
 
-        HttpPost request = new HttpPost(epUrl);
-
+        HttpPost request = new HttpPost(endpointURL);
         headers.putIfAbsent(CONTENT_TYPE, TYPE_APPLICATION_JSON);
-        headers.putIfAbsent(ACCEPT, TYPE_APPLICATION_JSON);
-        headers.entrySet().stream()
-                .filter(entry -> !StringUtils.isBlank(entry.getKey()) && !entry.getKey().equals("null"))
-                .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
-
+        setHeaders(request, headers);
 
         if (MapUtils.isNotEmpty(payloadData)) {
-            //For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
-            // UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
+            /*
+                * For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
+                * UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
+             */
             if (TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
                 List<NameValuePair> entities = new ArrayList<>();
                 for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
@@ -108,9 +110,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                 request.setEntity(new UrlEncodedFormEntity(entities, StandardCharsets.UTF_8));
             } else {
                 JSONObject jsonObject = new JSONObject();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                    jsonObject.put(dataElements.getKey(), dataElements.getValue());
-                }
+                jsonObject.putAll(payloadData);
                 request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
             }
         }

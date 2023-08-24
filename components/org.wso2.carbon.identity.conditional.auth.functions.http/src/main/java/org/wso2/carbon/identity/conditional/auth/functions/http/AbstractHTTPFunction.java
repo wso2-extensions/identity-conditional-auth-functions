@@ -43,6 +43,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.http.HttpHeaders.ACCEPT;
+
 /**
  * Abstract class for handling http calls.
  */
@@ -76,15 +78,15 @@ public abstract class AbstractHTTPFunction {
             JSONObject json = null;
             int responseCode;
             String outcome;
-            String epUrl = null;
+            String endpointURL = null;
 
             if (request.getURI() != null) {
-                epUrl = request.getURI().toString();
+                endpointURL = request.getURI().toString();
             }
 
             if (!isValidRequestDomain(request.getURI())) {
                 outcome = Constants.OUTCOME_FAIL;
-                LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + epUrl);
+                LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + endpointURL);
                 asyncReturn.accept(context, Collections.emptyMap(), outcome);
                 return;
             }
@@ -110,13 +112,13 @@ public abstract class AbstractHTTPFunction {
                 }
 
             } catch (IllegalArgumentException e) {
-                LOG.error("Invalid Url: " + epUrl, e);
+                LOG.error("Invalid Url: " + endpointURL, e);
                 outcome = Constants.OUTCOME_FAIL;
             } catch (ConnectTimeoutException e) {
-                LOG.error("Error while waiting to connect to " + epUrl, e);
+                LOG.error("Error while waiting to connect to " + endpointURL, e);
                 outcome = Constants.OUTCOME_TIMEOUT;
             } catch (SocketTimeoutException e) {
-                LOG.error("Error while waiting for data from " + epUrl, e);
+                LOG.error("Error while waiting for data from " + endpointURL, e);
                 outcome = Constants.OUTCOME_TIMEOUT;
             } catch (IOException e) {
                 LOG.error("Error while calling endpoint. ", e);
@@ -183,5 +185,33 @@ public abstract class AbstractHTTPFunction {
             LOG.debug("Parent domain: " + parentDomain + " extracted from url: " + url.toString());
         }
         return parentDomain;
+    }
+
+    /**
+     * Validate the headers and return a Map<String, String> of headers.
+     * @param headers Map of headers.
+     */
+    protected Map<String, String> validateHeaders(Map<String, ?> headers) {
+
+        for (Map.Entry<String, ?> entry : headers.entrySet()) {
+            if (!(entry.getValue() instanceof String)) {
+                throw new IllegalArgumentException("Header values must be of type String");
+            }
+        }
+        return (Map<String, String>) headers;
+    }
+
+    /**
+     * Set headers to the request.
+     * Default Accept header is set to application/json.
+     * @param request HttpUriRequest.
+     * @param headers Map of headers.
+     */
+    protected void setHeaders(HttpUriRequest request, Map<String, String> headers) {
+
+        headers.putIfAbsent(ACCEPT, TYPE_APPLICATION_JSON);
+        headers.entrySet().stream()
+                .filter(entry -> StringUtils.isNotBlank(entry.getKey()) && !entry.getKey().equals("null"))
+                .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
     }
 }

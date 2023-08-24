@@ -41,7 +41,7 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
     }
 
     @Override
-    public void httpGet(String epUrl, Object... params) {
+    public void httpGet(String endpointURL, Object... params) {
 
         Map<String, Object> eventHandlers;
         Map<String, String> headers = new HashMap<>();
@@ -51,27 +51,26 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
                 if (params[0] instanceof Map) {
                     eventHandlers = (Map<String, Object>) params[0];
                 } else {
-                    throw new IllegalArgumentException("Invalid argument type.");
+                    throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
+                            "(Map<String, Object>).");
                 }
                 break;
             case 2:
                 if (params[0] instanceof Map && params[1] instanceof Map ) {
-                    headers = (Map<String, String>) params[0];
+                    headers = validateHeaders((Map<String, ?>) params[0]);
                     eventHandlers = (Map<String, Object>) params[1];
                 } else {
-                    throw new IllegalArgumentException("Invalid argument type.");
+                    throw new IllegalArgumentException("Invalid argument types. Expected headers (Map<String, String>) " +
+                            "and eventHandlers (Map<String, Object>) respectively.");
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Invalid number of argument.");
+                throw new IllegalArgumentException("Invalid number of arguments. Expected 1 or 2, but got: " +
+                        params.length + ".");
         }
 
-        HttpGet request = new HttpGet(epUrl);
-
-        headers.putIfAbsent(ACCEPT, TYPE_APPLICATION_JSON);
-        headers.entrySet().stream()
-                .filter(entry -> !StringUtils.isBlank(entry.getKey()) && !entry.getKey().equals("null"))
-                .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
+        HttpGet request = new HttpGet(endpointURL);
+        setHeaders(request, headers);
 
         executeHttpMethod(request, eventHandlers);
     }

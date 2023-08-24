@@ -29,10 +29,10 @@ public interface HTTPGetFunction {
     /**
      *  POST data to the given endpoint.
      *
-     * @param epUrl Endpoint url.
+     * @param endpointURL Endpoint url.
      * @param params Parameters.
      *      1. headers          headers (optional).
      *      2. eventHandlers    event handlers.
      */
-    void httpGet(String epUrl, Object... params);
+    void httpGet(String endpointURL, Object... params);
 }
