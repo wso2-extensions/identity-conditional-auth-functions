@@ -414,7 +414,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 CloseableHttpAsyncClient client = ChoreoFunctionServiceHolder.getInstance().getClientManager()
                         .getClient(this.authenticationContext.getTenantDomain());
                 LOG.info("Calling Choreo endpoint for session data key: " +
-                        authenticationContext.getContextIdentifier() + " with payload: " + jsonObject.toJSONString());
+                        authenticationContext.getContextIdentifier());
                 client.execute(request, new FutureCallback<HttpResponse>() {
 
                     @Override
