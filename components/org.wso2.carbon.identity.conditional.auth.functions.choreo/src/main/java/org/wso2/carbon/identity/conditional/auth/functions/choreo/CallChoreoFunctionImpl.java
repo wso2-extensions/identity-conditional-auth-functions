@@ -553,12 +553,12 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
             if (tokenRequestAttemptCount.get() < MAX_TOKEN_REQUEST_ATTEMPTS) {
                 LOG.info("Retrying token request for session data key: " +
-                                 this.authenticationContext.getContextIdentifier());
+                        this.authenticationContext.getContextIdentifier());
                 requestAccessToken(this.authenticationContext.getTenantDomain(), this);
                 tokenRequestAttemptCount.incrementAndGet();
             } else {
                 LOG.warn("Maximum token request attempt count exceeded for session data key: " +
-                                 this.authenticationContext.getContextIdentifier());
+                        this.authenticationContext.getContextIdentifier());
                 tokenRequestAttemptCount.set(0);
                 this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
             }
