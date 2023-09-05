@@ -287,6 +287,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         private final Map<String, Object> payloadData;
         private final Gson gson;
         private final AtomicInteger tokenRequestAttemptCount;
+        private final AtomicInteger tokenRequestAttemptCountForTimeOut;
         private String consumerKey;
         private String consumerSecret;
         private String asgardeoTokenEndpoint;
@@ -302,6 +303,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             this.payloadData = payloadData;
             this.gson = new GsonBuilder().create();
             this.tokenRequestAttemptCount = new AtomicInteger(0);
+            this.tokenRequestAttemptCountForTimeOut = new AtomicInteger(0);
             resolveConsumerKeySecrete();
         }
 
@@ -371,7 +373,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 if ((e instanceof SocketTimeoutException) || (e instanceof ConnectTimeoutException)) {
                     outcome = OUTCOME_TIMEOUT;
                 }
-                asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
+                handleRetryTokenRequest(tokenRequestAttemptCountForTimeOut, outcome);
             } catch (Exception ex) {
                 LOG.error("Error while proceeding after failing to request access token for the session data key: " +
                         authenticationContext.getContextIdentifier(), e);
@@ -516,7 +518,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     if (ERROR_CODE_ACCESS_TOKEN_INACTIVE.equals(responseBody.get(CODE))) {
                         LOG.info("Access token inactive for session data key: " +
                                 authenticationContext.getContextIdentifier());
-                        handleExpiredToken();
+                        handleRetryTokenRequest(tokenRequestAttemptCount, OUTCOME_FAIL);
                     } else {
                         LOG.warn("Received 401 response from Choreo. Session data key: " +
                                 authenticationContext.getContextIdentifier());
@@ -540,13 +542,14 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
         /**
          * Handles the scenario where the response from the Choreo API call is 401 Unauthorized due to an expired
-         * token. The program will retry the token request flow until it exceeds the specified max request attempt
-         * count.
+         * token or if it's a time-out. The program will retry the token request flow until it exceeds the specified
+         * max request attempt count.
          *
          * @throws IOException {@link IOException}
          * @throws FrameworkException {@link FrameworkException}
          */
-        private void handleExpiredToken() throws IOException, FrameworkException {
+        private void handleRetryTokenRequest(AtomicInteger tokenRequestAttemptCount, String outcome)
+                throws IOException, FrameworkException {
 
             if (tokenRequestAttemptCount.get() < MAX_TOKEN_REQUEST_ATTEMPTS) {
                 LOG.info("Retrying token request for session data key: " +
@@ -557,7 +560,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 LOG.warn("Maximum token request attempt count exceeded for session data key: " +
                         this.authenticationContext.getContextIdentifier());
                 tokenRequestAttemptCount.set(0);
-                this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+                this.asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
             }
         }
 
