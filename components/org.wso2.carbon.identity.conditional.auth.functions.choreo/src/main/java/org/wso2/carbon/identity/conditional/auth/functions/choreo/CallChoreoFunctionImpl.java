@@ -373,6 +373,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 if ((e instanceof SocketTimeoutException) || (e instanceof ConnectTimeoutException)) {
                     outcome = OUTCOME_TIMEOUT;
                 }
+                // Retry if the access token request failed due to a timeout or failed scenario.
                 handleRetryTokenRequest(tokenRequestAttemptCountForTimeOut, outcome);
             } catch (Exception ex) {
                 LOG.error("Error while proceeding after failing to request access token for the session data key: " +
