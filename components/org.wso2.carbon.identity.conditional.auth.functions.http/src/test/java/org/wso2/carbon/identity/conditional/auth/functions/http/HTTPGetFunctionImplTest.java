@@ -129,6 +129,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     /**
      * Test http get method with headers.
      * Check if the headers are sent with the request.
+     *
      * @throws JsTestException
      */
     @Test
@@ -142,6 +143,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     /**
      * Tests the behavior of the httpGet function when provided with null headers.
+     *
      * @throws IllegalArgumentException if the provided arguments are not valid.
      */
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -152,6 +154,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     /**
      * Tests the behavior of the httpGet function when invalid number of arguments are provided.
+     *
      * @throws IllegalArgumentException if the provided arguments are not valid.
      */
     @Test(expectedExceptions = IllegalArgumentException.class)

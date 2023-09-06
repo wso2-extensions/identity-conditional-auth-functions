@@ -55,6 +55,7 @@ public abstract class AbstractHTTPFunction {
     protected static final String TYPE_APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";
     protected static final String TYPE_TEXT_PLAIN = "text/plain";
     private static final char DOMAIN_SEPARATOR = '.';
+    private static final String RESPONSE = "response";
     private final List<String> allowedDomains;
 
     private CloseableHttpClient client;
@@ -101,7 +102,7 @@ public abstract class AbstractHTTPFunction {
                         if (contentType != null && contentType.getValue().contains(TYPE_TEXT_PLAIN)) {
                             // For 'text/plain', put the response body into the JSON object as a single field.
                             json = new JSONObject();
-                            json.put("response", jsonString);
+                            json.put(RESPONSE, jsonString);
                         } else {
                             JSONParser parser = new JSONParser();
                             json = (JSONObject) parser.parse(jsonString);
@@ -188,8 +189,10 @@ public abstract class AbstractHTTPFunction {
     }
 
     /**
-     * Validate the headers and return a Map<String, String> of headers.
+     * Validate the headers.
+     *
      * @param headers Map of headers.
+     * @return Map of headers.
      */
     protected Map<String, String> validateHeaders(Map<String, ?> headers) {
 
@@ -204,6 +207,7 @@ public abstract class AbstractHTTPFunction {
     /**
      * Set headers to the request.
      * Default Accept header is set to application/json.
+     *
      * @param request HttpUriRequest.
      * @param headers Map of headers.
      */

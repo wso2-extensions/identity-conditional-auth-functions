@@ -130,6 +130,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     /**
      * Test httpPost with headers.
      * Check if the headers are sent with the request.
+     *
      * @throws JsTestException
      */
     @Test
@@ -143,6 +144,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     /**
      * Tests the behavior of the httpPost function when provided with null headers.
+     *
      * @throws IllegalArgumentException if the provided arguments are not valid.
      */
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -155,6 +157,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     /**
      * Tests the behavior of the httpPost function when provided with invalid number of arguments.
+     *
      * @throws IllegalArgumentException if the provided arguments are not valid.
      */
     @Test(expectedExceptions = IllegalArgumentException.class)

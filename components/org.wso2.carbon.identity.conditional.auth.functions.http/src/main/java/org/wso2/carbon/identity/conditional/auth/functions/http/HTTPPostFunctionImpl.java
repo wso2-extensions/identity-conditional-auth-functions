@@ -98,8 +98,8 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
 
         if (MapUtils.isNotEmpty(payloadData)) {
             /*
-                * For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
-                * UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
+            For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
+            UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
              */
             if (TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
                 List<NameValuePair> entities = new ArrayList<>();
