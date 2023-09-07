@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,8 +29,10 @@ public interface HTTPGetFunction {
     /**
      *  POST data to the given endpoint.
      *
-     * @param epUrl Endpoint url.
-     * @param eventHandlers event handlers.
+     * @param endpointURL Endpoint url.
+     * @param params Parameters.
+     *      1. headers          headers (optional).
+     *      2. eventHandlers    event handlers.
      */
-    void httpGet(String epUrl, Map<String, Object> eventHandlers);
+    void httpGet(String endpointURL, Object... params);
 }

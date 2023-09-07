@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, WSO2 Inc. (http://www.wso2.com).
+ *  Copyright (c) 2021, WSO2 LLC. (http://www.wso2.com).
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -45,10 +46,15 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
+import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.doNothing;
 import static org.testng.Assert.assertEquals;
 
 @WithCarbonHome
@@ -59,12 +65,15 @@ import static org.testng.Assert.assertEquals;
 public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-post-test-sp.xml";
+    private static final String TEST_HEADERS = "http-post-test-headers.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
     private static final String FAILED = "FAILED";
     private static final String EMAIL = "email";
     private static final String ALLOWED_DOMAIN = "abc";
+    private static final String AUTHORIZATION = "Authorization";
+    private HTTPPostFunctionImpl httpPostFunction;
 
     @InjectMicroservicePort
     private int microServicePort;
@@ -80,6 +89,10 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(longWaitStatusStoreService);
         sequenceHandlerRunner.registerJsFunction("httpPost", new HTTPPostFunctionImpl());
+
+        // Mocking the executeHttpMethod method to avoid actual http calls.
+        httpPostFunction = spy(new HTTPPostFunctionImpl());
+        doNothing().when(httpPostFunction).executeHttpMethod(any(), any());
     }
 
     @AfterClass
@@ -88,11 +101,17 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         unsetAllowedDomains();
     }
 
+    @AfterMethod
+    protected void tearDownTest() {
+
+        reset(httpPostFunction);
+    }
+
     @Test
     public void testHttpPostMethod() throws JsTestException {
 
-        String requestUrl = getRequestUrl();
-        String result = executeHttpPostFunction(requestUrl);
+        String requestUrl = getRequestUrl("dummy-post");
+        String result = executeHttpPostFunction(requestUrl, TEST_SP_CONFIG);
 
         assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: " + result);
     }
@@ -101,11 +120,53 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public void testHttpPostMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
         setAllowedDomain(ALLOWED_DOMAIN);
-        String requestUrl = getRequestUrl();
-        String result = executeHttpPostFunction(requestUrl);
+        String requestUrl = getRequestUrl("dummy-post");
+        String result = executeHttpPostFunction(requestUrl, TEST_SP_CONFIG);
 
         assertEquals(result, FAILED, "The http post request should fail but it was successful. Result from request: "
                 + result);
+    }
+
+    /**
+     * Test httpPost with headers.
+     * Check if the headers are sent with the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostWithHeaders() throws JsTestException {
+
+        String requestUrl = getRequestUrl("dummy-post-headers");
+        String result = executeHttpPostFunction(requestUrl, TEST_HEADERS);
+        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
+                + result);
+    }
+
+    /**
+     * Tests the behavior of the httpPost function when provided with null headers.
+     *
+     * @throws IllegalArgumentException if the provided arguments are not valid.
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testHttpPostWithNullHeaders() {
+
+        Map<String, Object> payloadData = new HashMap<>();
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpPostFunction.httpPost(getRequestUrl("dummy-post"), payloadData, null, eventHandlers);
+    }
+
+    /**
+     * Tests the behavior of the httpPost function when provided with invalid number of arguments.
+     *
+     * @throws IllegalArgumentException if the provided arguments are not valid.
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testHttpPostWithInvalidNumberOfArguments() {
+
+        Map<String, Object> payloadData = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>();
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpPostFunction.httpPost(getRequestUrl("dummy-post"), payloadData, headers, eventHandlers, eventHandlers);
     }
 
     private void setAllowedDomain(String domain) {
@@ -118,14 +179,14 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions().clear();
     }
 
-    private String getRequestUrl() {
+    private String getRequestUrl(String path) {
 
-        return "http://localhost:" + microServicePort + "/dummy-post";
+        return "http://localhost:" + microServicePort + "/" + path;
     }
 
-    private String executeHttpPostFunction(String requestUrl) throws JsTestException {
+    private String executeHttpPostFunction(String requestUrl, String adaptiveAuthScript) throws JsTestException {
 
-        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(TEST_SP_CONFIG, this);
+        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(adaptiveAuthScript, this);
         updateSPAuthScriptRequestUrl(sp, requestUrl);
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
@@ -163,6 +224,28 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         Map<String, String> response = new HashMap<>();
         if (data.containsKey(EMAIL)) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy post method to test payload and headers.
+     * Check if the payload data and headers are sent with the request.
+     * @param authorization
+     * @param data
+     * @return
+     */
+    @POST
+    @Path("/dummy-post-headers")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public Map<String, String> dummyPostWithHeaders(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
+
+        Map<String, String> response = new HashMap<>();
+        if (data.containsKey(EMAIL) && authorization != null) {
             response.put(STATUS, SUCCESS);
         } else {
             response.put(STATUS, FAILED);

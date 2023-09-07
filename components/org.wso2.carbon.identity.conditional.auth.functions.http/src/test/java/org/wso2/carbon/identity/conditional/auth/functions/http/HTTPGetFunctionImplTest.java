@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, WSO2 Inc. (http://www.wso2.com).
+ *  Copyright (c) 2021, WSO2 LLC. (http://www.wso2.com).
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -45,9 +46,14 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.doNothing;
 import static org.testng.Assert.assertEquals;
 
 @WithCarbonHome
@@ -58,11 +64,14 @@ import static org.testng.Assert.assertEquals;
 public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-get-test-sp.xml";
+    private static final String TEST_HEADERS = "http-get-test-headers.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
     private static final String FAILED = "FAILED";
     private static final String ALLOWED_DOMAIN = "abc";
+    private static final String AUTHORIZATION = "Authorization";
+    private HTTPGetFunctionImpl httpGetFunction;
 
     @InjectMicroservicePort
     private int microServicePort;
@@ -78,6 +87,10 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(longWaitStatusStoreService);
         sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
+
+        // Mocking the executeHttpMethod method to avoid actual http calls.
+        httpGetFunction = spy(new HTTPGetFunctionImpl());
+        doNothing().when(httpGetFunction).executeHttpMethod(any(), any());
     }
 
     @AfterClass
@@ -86,11 +99,17 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         unsetAllowedDomains();
     }
 
+    @AfterMethod
+    protected void tearDownMethod() {
+
+        reset(httpGetFunction);
+    }
+
     @Test
     public void testHttpGetMethod() throws JsTestException {
 
-        String requestUrl = getRequestUrl();
-        String result = executeHttpGetFunction(requestUrl);
+        String requestUrl = getRequestUrl("dummy-get");
+        String result = executeHttpGetFunction(requestUrl, TEST_SP_CONFIG);
 
         assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
     }
@@ -100,11 +119,48 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         sequenceHandlerRunner.registerJsFunction("httpGet", new HTTPGetFunctionImpl());
         setAllowedDomain(ALLOWED_DOMAIN);
-        String requestUrl = getRequestUrl();
-        String result = executeHttpGetFunction(requestUrl);
+        String requestUrl = getRequestUrl("dummy-get");
+        String result = executeHttpGetFunction(requestUrl, TEST_SP_CONFIG);
 
         assertEquals(result, FAILED, "The http get request should fail but it was successful. Result from request: "
                 + result);
+    }
+
+    /**
+     * Test http get method with headers.
+     * Check if the headers are sent with the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpGetMethodWithHeaders() throws JsTestException {
+
+        String requestUrl = getRequestUrl("dummy-get-with-headers");
+        String result = executeHttpGetFunction(requestUrl, TEST_HEADERS);
+
+        assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
+    }
+
+    /**
+     * Tests the behavior of the httpGet function when provided with null headers.
+     *
+     * @throws IllegalArgumentException if the provided arguments are not valid.
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testHttpGetWithNullHeaders() {
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"), null, eventHandlers);
+    }
+
+    /**
+     * Tests the behavior of the httpGet function when invalid number of arguments are provided.
+     *
+     * @throws IllegalArgumentException if the provided arguments are not valid.
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testHttpGetWithInvalidNumberOfArguments() {
+        Map<String, Object> eventHandlers = new HashMap<>();
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"), eventHandlers, eventHandlers, eventHandlers);
     }
 
     private void setAllowedDomain(String domain) {
@@ -117,14 +173,14 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions().clear();
     }
 
-    private String getRequestUrl() {
+    private String getRequestUrl(String path) {
 
-        return "http://localhost:" + microServicePort + "/dummy-get";
+        return "http://localhost:" + microServicePort + "/" + path;
     }
 
-    private String executeHttpGetFunction(String requestUrl) throws JsTestException {
+    private String executeHttpGetFunction(String requestUrl, String adaptiveAuthScript) throws JsTestException {
 
-        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(TEST_SP_CONFIG, this);
+        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(adaptiveAuthScript, this);
         updateSPAuthScriptRequestUrl(sp, requestUrl);
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
@@ -161,6 +217,20 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         Map<String, String> response = new HashMap<>();
         response.put(STATUS, SUCCESS);
+        return response;
+    }
+
+    @GET
+    @Path("/dummy-get-with-headers")
+    @Produces("application/json")
+    public Map<String, String> dummyGetWithHeaders(@HeaderParam(AUTHORIZATION) String authorization) {
+
+        Map<String, String> response = new HashMap<>();
+        if (authorization != null) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
         return response;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,13 +18,21 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.simple.JSONObject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
@@ -44,17 +52,68 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
     }
 
     @Override
-    public void httpPost(String epUrl, Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
+    public void httpPost(String endpointURL, Object... params) {
 
-            HttpPost request = new HttpPost(epUrl);
-            request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
-            request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+        Map<String, Object> eventHandlers;
+        Map<String, Object> payloadData = new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
 
-            JSONObject jsonObject = new JSONObject();
-            for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
-                jsonObject.put(dataElements.getKey(), dataElements.getValue());
+        switch (params.length) {
+            case 1:
+                if (params[0] instanceof Map) {
+                    eventHandlers = (Map<String, Object>) params[0];
+                } else {
+                    throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
+                            "(Map<String, Object>).");
+                }
+                break;
+            case 2:
+                if (params[0] instanceof Map && params[1] instanceof Map) {
+                    payloadData = (Map<String, Object>) params[0];
+                    eventHandlers = (Map<String, Object>) params[1];
+                }  else {
+                    throw new IllegalArgumentException("Invalid argument types. Expected payloadData and eventHandlers " +
+                            "(both of type Map<String, Object>) respectively.");
+                }
+                break;
+            case 3:
+                if (params[0] instanceof Map && params[1] instanceof Map && params[2] instanceof Map) {
+                    payloadData = (Map<String, Object>) params[0];
+                    headers = validateHeaders((Map<String, ?>) params[1]);
+                    eventHandlers = (Map<String, Object>) params[2];
+                }  else {
+                    throw new IllegalArgumentException("Invalid argument type. Expected payloadData " +
+                            "(Map<String, Object>), headers (Map<String, String>), and eventHandlers " +
+                            "(Map<String, Object>) respectively.");
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid number of arguments. Expected 1, 2, or 3. Found: "
+                        + params.length + ".");
+        }
+
+        HttpPost request = new HttpPost(endpointURL);
+        headers.putIfAbsent(CONTENT_TYPE, TYPE_APPLICATION_JSON);
+        setHeaders(request, headers);
+
+        if (MapUtils.isNotEmpty(payloadData)) {
+            /*
+            For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
+            UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
+             */
+            if (TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
+                List<NameValuePair> entities = new ArrayList<>();
+                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                    String value = (dataElements.getValue() != null) ? dataElements.getValue().toString() : null;
+                    entities.add(new BasicNameValuePair(dataElements.getKey(), value));
+                }
+                request.setEntity(new UrlEncodedFormEntity(entities, StandardCharsets.UTF_8));
+            } else {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.putAll(payloadData);
+                request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
             }
-            request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
-            executeHttpMethod(request, eventHandlers);
+        }
+        executeHttpMethod(request, eventHandlers);
     }
 }
