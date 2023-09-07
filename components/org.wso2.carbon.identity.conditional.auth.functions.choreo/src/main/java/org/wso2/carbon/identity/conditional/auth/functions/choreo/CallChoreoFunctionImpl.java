@@ -100,6 +100,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
     private static final int MAX_TOKEN_REQUEST_ATTEMPTS = 2;
+    private static final int MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT = 1;
 
     private final ChoreoAccessTokenCache choreoAccessTokenCache;
 
@@ -366,7 +367,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         @Override
         public void failed(Exception e) {
 
-            LOG.error("Failed to request access token from Choreo for the session data key: " +
+            LOG.warn("Failed to request access token from Choreo for the session data key: " +
                     authenticationContext.getContextIdentifier(), e);
             try {
                 String outcome = OUTCOME_FAIL;
@@ -374,7 +375,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     outcome = OUTCOME_TIMEOUT;
                 }
                 // Retry if the access token request failed due to a timeout or failed scenario.
-                handleRetryTokenRequest(tokenRequestAttemptCountForTimeOut, outcome);
+                handleRetryTokenRequest(tokenRequestAttemptCountForTimeOut, outcome,
+                        MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT);
             } catch (Exception ex) {
                 LOG.error("Error while proceeding after failing to request access token for the session data key: " +
                         authenticationContext.getContextIdentifier(), e);
@@ -519,7 +521,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     if (ERROR_CODE_ACCESS_TOKEN_INACTIVE.equals(responseBody.get(CODE))) {
                         LOG.info("Access token inactive for session data key: " +
                                 authenticationContext.getContextIdentifier());
-                        handleRetryTokenRequest(tokenRequestAttemptCount, OUTCOME_FAIL);
+                        handleRetryTokenRequest(tokenRequestAttemptCount, OUTCOME_FAIL, MAX_TOKEN_REQUEST_ATTEMPTS);
                     } else {
                         LOG.warn("Received 401 response from Choreo. Session data key: " +
                                 authenticationContext.getContextIdentifier());
@@ -546,13 +548,16 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
          * token or if it's a time-out. The program will retry the token request flow until it exceeds the specified
          * max request attempt count.
          *
+         * @param tokenRequestAttemptCount {@link AtomicInteger}
+         * @param outcome {@link String}
+         * @param maxTokenRequestAttempts {@link Integer}
          * @throws IOException {@link IOException}
          * @throws FrameworkException {@link FrameworkException}
          */
-        private void handleRetryTokenRequest(AtomicInteger tokenRequestAttemptCount, String outcome)
-                throws IOException, FrameworkException {
+        private void handleRetryTokenRequest(AtomicInteger tokenRequestAttemptCount, String outcome,
+                                             int maxTokenRequestAttempts) throws IOException, FrameworkException {
 
-            if (tokenRequestAttemptCount.get() < MAX_TOKEN_REQUEST_ATTEMPTS) {
+            if (tokenRequestAttemptCount.get() < maxTokenRequestAttempts) {
                 LOG.info("Retrying token request for session data key: " +
                         this.authenticationContext.getContextIdentifier());
                 requestAccessToken(this.authenticationContext.getTenantDomain(), this);
