@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.choreo.cache.ChoreoAc
 import org.wso2.carbon.identity.conditional.auth.functions.choreo.internal.ChoreoFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
@@ -100,6 +101,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
     private static final int MAX_TOKEN_REQUEST_ATTEMPTS = 2;
+    private int maxTokenRequestAttemptsForTimeOut = 2;
+    private int maxRequestAttemptsForChoreoAPIEndpointTimeout = 2;
 
     private final ChoreoAccessTokenCache choreoAccessTokenCache;
 
@@ -107,6 +110,15 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
         this.choreoDomains = ConfigProvider.getInstance().getChoreoDomains();
         this.choreoAccessTokenCache = ChoreoAccessTokenCache.getInstance();
+
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(Constants.CALL_CHOREO_TOKEN_REQUEST_RETRY_COUNT))) {
+            maxTokenRequestAttemptsForTimeOut = Integer.parseInt
+                    (IdentityUtil.getProperty(Constants.CALL_CHOREO_TOKEN_REQUEST_RETRY_COUNT));
+        }
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(Constants.CALL_CHOREO_API_REQUEST_RETRY_COUNT))) {
+            maxRequestAttemptsForChoreoAPIEndpointTimeout = Integer.parseInt
+                    (IdentityUtil.getProperty(Constants.CALL_CHOREO_API_REQUEST_RETRY_COUNT));
+        }
     }
 
     @Override
@@ -252,7 +264,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
      * @throws FrameworkException        {@link FrameworkException}
      */
     private void requestAccessToken(String tenantDomain, AccessTokenRequestHelper accessTokenRequestHelper)
-                                    throws IOException, FrameworkException {
+            throws IOException, FrameworkException {
 
         String tokenEndpoint;
         if (StringUtils.isNotEmpty(accessTokenRequestHelper.getAsgardeoTokenEndpoint())) {
@@ -288,6 +300,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         private final Gson gson;
         private final AtomicInteger tokenRequestAttemptCount;
         private final AtomicInteger tokenRequestAttemptCountForTimeOut;
+        private final AtomicInteger requestAttemptCountForChoreoAPIEndpointTimeOut;
         private String consumerKey;
         private String consumerSecret;
         private String asgardeoTokenEndpoint;
@@ -304,6 +317,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             this.gson = new GsonBuilder().create();
             this.tokenRequestAttemptCount = new AtomicInteger(0);
             this.tokenRequestAttemptCountForTimeOut = new AtomicInteger(0);
+            this.requestAttemptCountForChoreoAPIEndpointTimeOut = new AtomicInteger(0);
             resolveConsumerKeySecrete();
         }
 
@@ -366,7 +380,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
         @Override
         public void failed(Exception e) {
 
-            LOG.error("Failed to request access token from Choreo for the session data key: " +
+            LOG.warn("Failed to request access token from Choreo for the session data key: " +
                     authenticationContext.getContextIdentifier(), e);
             try {
                 String outcome = OUTCOME_FAIL;
@@ -374,7 +388,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     outcome = OUTCOME_TIMEOUT;
                 }
                 // Retry if the access token request failed due to a timeout or failed scenario.
-                handleRetryTokenRequest(tokenRequestAttemptCountForTimeOut, outcome);
+                handleRetryTokenRequest(tokenRequestAttemptCountForTimeOut, outcome,
+                        maxTokenRequestAttemptsForTimeOut);
             } catch (Exception ex) {
                 LOG.error("Error while proceeding after failing to request access token for the session data key: " +
                         authenticationContext.getContextIdentifier(), e);
@@ -418,7 +433,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                         .getClient(this.authenticationContext.getTenantDomain());
                 LOG.info("Calling Choreo endpoint for session data key: " +
                         authenticationContext.getContextIdentifier());
-                client.execute(request, new FutureCallback<HttpResponse>() {
+                FutureCallback<HttpResponse> callChoreoEndpointCallback = new FutureCallback<HttpResponse>() {
 
                     @Override
                     public void completed(final HttpResponse response) {
@@ -436,14 +451,26 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     @Override
                     public void failed(final Exception ex) {
 
-                        LOG.error("Failed to invoke Choreo for session data key: " +
+                        LOG.warn("Failed to invoke Choreo for session data key: " +
                                 authenticationContext.getContextIdentifier(), ex);
                         try {
                             String outcome = Constants.OUTCOME_FAIL;
                             if ((ex instanceof SocketTimeoutException) || (ex instanceof ConnectTimeoutException)) {
                                 outcome = Constants.OUTCOME_TIMEOUT;
                             }
-                            asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
+
+                            if (requestAttemptCountForChoreoAPIEndpointTimeOut
+                                    .get() < maxRequestAttemptsForChoreoAPIEndpointTimeout) {
+                                LOG.info("Retrying request for session data key: " +
+                                        authenticationContext.getContextIdentifier());
+                                client.execute(request, this);
+                                requestAttemptCountForChoreoAPIEndpointTimeOut.incrementAndGet();
+                            } else {
+                                LOG.warn("Maximum request attempt count exceeded for session data key: " +
+                                        authenticationContext.getContextIdentifier());
+                                requestAttemptCountForChoreoAPIEndpointTimeOut.set(0);
+                                asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
+                            }
                         } catch (Exception e) {
                             LOG.error("Error while proceeding after failed response from Choreo " +
                                     "call for session data key: " + authenticationContext.getContextIdentifier(), e);
@@ -462,7 +489,9 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                                     "data key: " + authenticationContext.getContextIdentifier(), e);
                         }
                     }
-                });
+                };
+
+                client.execute(request, callChoreoEndpointCallback);
             } catch (UnsupportedEncodingException e) {
                 LOG.error("Error while constructing request payload for calling choreo endpoint. session data key: " +
                         authenticationContext.getContextIdentifier(), e);
@@ -519,7 +548,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                     if (ERROR_CODE_ACCESS_TOKEN_INACTIVE.equals(responseBody.get(CODE))) {
                         LOG.info("Access token inactive for session data key: " +
                                 authenticationContext.getContextIdentifier());
-                        handleRetryTokenRequest(tokenRequestAttemptCount, OUTCOME_FAIL);
+                        handleRetryTokenRequest(tokenRequestAttemptCount, OUTCOME_FAIL, MAX_TOKEN_REQUEST_ATTEMPTS);
                     } else {
                         LOG.warn("Received 401 response from Choreo. Session data key: " +
                                 authenticationContext.getContextIdentifier());
@@ -546,13 +575,16 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
          * token or if it's a time-out. The program will retry the token request flow until it exceeds the specified
          * max request attempt count.
          *
+         * @param tokenRequestAttemptCount {@link AtomicInteger}
+         * @param outcome {@link String}
+         * @param maxTokenRequestAttempts {@link Integer}
          * @throws IOException {@link IOException}
          * @throws FrameworkException {@link FrameworkException}
          */
-        private void handleRetryTokenRequest(AtomicInteger tokenRequestAttemptCount, String outcome)
-                throws IOException, FrameworkException {
+        private void handleRetryTokenRequest(AtomicInteger tokenRequestAttemptCount, String outcome,
+                                             int maxTokenRequestAttempts) throws IOException, FrameworkException {
 
-            if (tokenRequestAttemptCount.get() < MAX_TOKEN_REQUEST_ATTEMPTS) {
+            if (tokenRequestAttemptCount.get() < maxTokenRequestAttempts) {
                 LOG.info("Retrying token request for session data key: " +
                         this.authenticationContext.getContextIdentifier());
                 requestAccessToken(this.authenticationContext.getTenantDomain(), this);

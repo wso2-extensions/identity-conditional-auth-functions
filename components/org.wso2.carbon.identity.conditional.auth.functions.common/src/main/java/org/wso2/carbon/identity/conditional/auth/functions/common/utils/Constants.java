@@ -40,6 +40,8 @@ public class Constants {
 
     public static final String CALL_CHOREO_HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.CallChoreo.HTTPConnectionRequestTimeout";
     public static final String CALL_CHOREO_HTTP_READ_TIMEOUT = "AdaptiveAuth.CallChoreo.HTTPReadTimeout";
+    public static final String CALL_CHOREO_TOKEN_REQUEST_RETRY_COUNT = "AdaptiveAuth.CallChoreo.TokenRequestRetryCount";
+    public static final String CALL_CHOREO_API_REQUEST_RETRY_COUNT = "AdaptiveAuth.CallChoreo.ChoreoAPIRequestRetryCount";
 
     public static final String HTTP_FUNCTION_ALLOWED_DOMAINS = "AdaptiveAuth.HTTPFunctionAllowedDomains.Domain";
     public static final String CHOREO_DOMAINS = "AdaptiveAuth.ChoreoDomains.Domain";
