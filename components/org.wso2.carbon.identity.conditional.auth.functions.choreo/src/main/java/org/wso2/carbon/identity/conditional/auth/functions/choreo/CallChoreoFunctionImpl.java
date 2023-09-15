@@ -278,7 +278,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
         request.setHeader(AUTHORIZATION, BASIC + Base64.getEncoder()
                 .encodeToString((accessTokenRequestHelper.consumerKey + ":" + accessTokenRequestHelper.consumerSecret)
-                        .getBytes(StandardCharsets.UTF_8)));
+                .getBytes(StandardCharsets.UTF_8)));
 
         List<BasicNameValuePair> bodyParams = new ArrayList<>();
         bodyParams.add(new BasicNameValuePair(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS));
