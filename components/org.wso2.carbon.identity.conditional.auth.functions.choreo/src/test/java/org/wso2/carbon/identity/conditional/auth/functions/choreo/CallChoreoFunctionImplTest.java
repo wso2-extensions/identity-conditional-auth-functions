@@ -35,6 +35,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
@@ -110,6 +111,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         super.setUp();
 
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("callChoreo", new CallChoreoFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);
         userRealm.getUserStoreManager().addRole("admin", new String[]{"admin", "test_user"}, null);

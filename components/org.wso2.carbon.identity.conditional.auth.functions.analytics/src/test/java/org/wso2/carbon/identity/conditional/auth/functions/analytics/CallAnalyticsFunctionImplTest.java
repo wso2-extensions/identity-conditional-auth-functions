@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.analytics;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
@@ -75,6 +76,7 @@ public class CallAnalyticsFunctionImplTest extends JsSequenceHandlerAbstractTest
 
         super.setUp();
 
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("callAnalytics", new CallAnalyticsFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);
         userRealm.getUserStoreManager().addRole("admin", new String[]{"admin", "test_user"}, null);

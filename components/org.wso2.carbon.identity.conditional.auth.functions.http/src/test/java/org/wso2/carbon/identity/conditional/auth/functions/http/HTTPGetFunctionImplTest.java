@@ -21,6 +21,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
@@ -80,6 +81,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     protected void initClass() throws Exception {
 
         super.setUp();
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
         CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);
         int connectionTimeout = 5000;
