@@ -52,6 +52,7 @@
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.session</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</module>
         <module>features/org.wso2.carbon.identity.conditional.auth.functions.server.feature</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.utils</module>
 
     </modules>
 
