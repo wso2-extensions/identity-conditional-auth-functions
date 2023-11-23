@@ -69,6 +69,10 @@
             <artifactId>org.wso2.carbon.identity.conditional.auth.functions.choreo</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.utils</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
         </dependency>
@@ -106,6 +110,7 @@
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user.store</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.choreo</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.utils</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpasyncclient</bundleDef>
                             </bundles>
                         </configuration>
