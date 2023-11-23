@@ -35,6 +35,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
         </dependency>
@@ -62,6 +66,7 @@
                             org.wso2.carbon.identity.conditional.auth.functions.utils.*
                         </Export-Package>
                         <Import-Package>
+                            org.apache.commons.lang,
                             org.osgi.framework; version="${org.osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${org.osgi.service.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework; version="${carbon.identity.package.import.version.range}",

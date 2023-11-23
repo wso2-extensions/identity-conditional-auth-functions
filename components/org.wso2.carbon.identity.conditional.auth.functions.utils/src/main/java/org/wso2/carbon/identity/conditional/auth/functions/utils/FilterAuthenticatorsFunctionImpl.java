@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import java.util.HashMap;
 import java.util.List;
@@ -34,18 +35,20 @@ public class FilterAuthenticatorsFunctionImpl implements FilterAuthenticatorsFun
         Map<String, Map<String, String>> result = new HashMap<>();
         int index = 0;
 
-        for (Map<String, String> option : authenticatorOptions) {
-            String idp = option.get(FrameworkConstants.JSAttributes.IDP);
-            String authenticator = option.get(FrameworkConstants.JSAttributes.AUTHENTICATOR);
+        if (authenticatorOptions != null) {
+            for (Map<String, String> option : authenticatorOptions) {
+                String idp = option.get(FrameworkConstants.JSAttributes.IDP);
+                String authenticator = option.get(FrameworkConstants.JSAttributes.AUTHENTICATOR);
 
-            if (!excludeAuthenticator.equals(authenticator)) {
-                Map<String, String> idpMap = new HashMap<>();
-                if (FrameworkConstants.LOCAL_IDP_NAME.equals(idp)) {
-                    idpMap.put(FrameworkConstants.JSAttributes.AUTHENTICATOR, authenticator);
-                } else {
-                    idpMap.put(FrameworkConstants.JSAttributes.IDP, idp);
+                if (!StringUtils.equals(excludeAuthenticator, authenticator)) {
+                    Map<String, String> idpMap = new HashMap<>();
+                    if (FrameworkConstants.LOCAL_IDP_NAME.equals(idp)) {
+                        idpMap.put(FrameworkConstants.JSAttributes.AUTHENTICATOR, authenticator);
+                    } else {
+                        idpMap.put(FrameworkConstants.JSAttributes.IDP, idp);
+                    }
+                    result.put(String.valueOf(index++), idpMap);
                 }
-                result.put(String.valueOf(index++), idpMap);
             }
         }
         return result;
