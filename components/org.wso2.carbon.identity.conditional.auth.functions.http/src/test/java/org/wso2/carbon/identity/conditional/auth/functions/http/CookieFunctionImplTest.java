@@ -27,6 +27,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.crypto.impl.DefaultCryptoService;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -68,6 +69,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
     protected void setUp() throws Exception {
 
         super.setUp();
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("setCookie", (SetCookieFunction) new CookieFunctionImpl()::setCookie);
         sequenceHandlerRunner.registerJsFunction("getCookieValue", (GetCookieFunction) new CookieFunctionImpl()
                 ::getCookieValue);

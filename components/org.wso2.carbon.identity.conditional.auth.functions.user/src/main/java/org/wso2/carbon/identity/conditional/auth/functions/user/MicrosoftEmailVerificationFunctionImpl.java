@@ -78,7 +78,7 @@ public class MicrosoftEmailVerificationFunctionImpl implements MicrosoftEmailVer
         byte[] decoded = Base64.decodeBase64(base64Body.getBytes());
         Set<Map.Entry<String, Object>> jwtAttributeSet = new HashSet<>();
         try {
-            jwtAttributeSet = JSONObjectUtils.parseJSONObject(new String(decoded)).entrySet();
+            jwtAttributeSet = JSONObjectUtils.parse(new String(decoded)).entrySet();
         } catch (ParseException e) {
             LOG.error("Error occurred while parsing JWT provided by federated IDP: ", e);
         }

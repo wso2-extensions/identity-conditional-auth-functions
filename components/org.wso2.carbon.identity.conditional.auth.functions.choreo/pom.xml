@@ -132,6 +132,11 @@
             <artifactId>jsr311-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
