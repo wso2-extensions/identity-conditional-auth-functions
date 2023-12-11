@@ -29,9 +29,14 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesV2Function;
+import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesV2FunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExistenceFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesV2Function;
+import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesV2FunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.MicrosoftEmailVerificationFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.MicrosoftEmailVerificationFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
@@ -49,9 +54,12 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.IsAnyOfTheRolesA
 import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesV2Function;
+import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesV2FunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.TerminateUserSessionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUserImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUser;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -74,6 +82,9 @@ public class UserFunctionsServiceComponent {
             HasRoleFunction hasRoleFunctionImpl = new HasRoleFunctionImpl();
             IsMemberOfAnyOfGroupsFunction isMemberOfAnyOfGroupsFunctionImpl = new IsMemberOfAnyOfGroupsFunctionImpl();
             HasAnyOfTheRolesFunction hasAnyOfTheRolesFunctionImpl = new HasAnyOfTheRolesFunctionImpl();
+            AssignUserRolesV2Function assignUserRolesV2FunctionImpl = new AssignUserRolesV2FunctionImpl();
+            HasAnyOfTheRolesV2Function hasAnyOfTheRolesV2FunctionImpl = new HasAnyOfTheRolesV2FunctionImpl();
+            RemoveUserRolesV2Function removeUserRolesV2FunctionImpl = new RemoveUserRolesV2FunctionImpl();
             AssignUserRolesFunction assignUserRolesFunctionImpl = new AssignUserRolesFunctionImpl();
             RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
             GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
@@ -84,12 +95,18 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
                     hasAnyOfTheRolesFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRolesV2",
+                    hasAnyOfTheRolesV2FunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isMemberOfAnyOfGroups",
                     isMemberOfAnyOfGroupsFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRoles",
                     assignUserRolesFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "assignUserRolesV2",
+                    assignUserRolesV2FunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRoles",
                     removeUserRolesFunctionImpl);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeUserRolesV2",
+                    removeUserRolesV2FunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "promptIdentifierForStep",
                     new PromptIdentifierFunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSessionExistence",
@@ -120,6 +137,7 @@ public class UserFunctionsServiceComponent {
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRolesV2");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isMemberOfAnyOfGroups");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "promptIdentifierForStep");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkSessionExistence");
@@ -219,4 +237,47 @@ public class UserFunctionsServiceComponent {
         UserFunctionsServiceHolder.getInstance().setIdentityProviderManagementService(null);
     }
 
+    @Reference(name = "application.mgt.service",
+            service = ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationManagementService")
+    protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        UserFunctionsServiceHolder.getInstance().setApplicationManagementService(applicationManagementService);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Application management service is set in the conditional authentication user functions bundle.");
+        }
+    }
+
+    protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        UserFunctionsServiceHolder.getInstance().setApplicationManagementService(null);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Application management service is unset in the conditional authentication user functions " +
+                    "bundle");
+        }
+    }
+
+    @Reference(
+            name = "role.management.service.v2",
+            service = RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementService")
+    protected void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        UserFunctionsServiceHolder.getInstance().setRoleManagementService(roleManagementService);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Role management service is set in the conditional authentication user functions bundle.");
+        }
+    }
+
+    protected void unsetRoleManagementService(RoleManagementService roleManagementService) {
+
+        UserFunctionsServiceHolder.getInstance().setRoleManagementService(null);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Role management service is unset in the conditional authentication user functions bundle");
+        }
+    }
 }
