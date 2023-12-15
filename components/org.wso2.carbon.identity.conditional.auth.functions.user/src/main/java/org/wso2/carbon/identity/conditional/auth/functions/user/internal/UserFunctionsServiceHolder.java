@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.conditional.auth.functions.user.internal;
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -30,6 +32,8 @@ public class UserFunctionsServiceHolder {
     private RealmService realmService;
     private UserSessionManagementService userSessionManagementService;
     private IdpManager identityProviderManagementService;
+    private ApplicationManagementService applicationManagementService;
+    private RoleManagementService roleManagementService;
     private JsFunctionRegistry jsFunctionRegistry;
 
     private UserFunctionsServiceHolder() {
@@ -71,6 +75,26 @@ public class UserFunctionsServiceHolder {
     public void setIdentityProviderManagementService(IdpManager identityProviderManagementService) {
 
         this.identityProviderManagementService = identityProviderManagementService;
+    }
+
+    public ApplicationManagementService getApplicationManagementService() {
+
+        return applicationManagementService;
+    }
+
+    public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        this.applicationManagementService = applicationManagementService;
+    }
+
+    public RoleManagementService getRoleManagementService() {
+
+        return roleManagementService;
+    }
+
+    public void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        this.roleManagementService = roleManagementService;
     }
 
     public JsFunctionRegistry getJsFunctionRegistry() {
