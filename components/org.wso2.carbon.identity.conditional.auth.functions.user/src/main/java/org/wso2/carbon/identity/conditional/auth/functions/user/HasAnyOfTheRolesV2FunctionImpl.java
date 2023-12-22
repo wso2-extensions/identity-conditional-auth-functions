@@ -28,12 +28,24 @@ import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import static org.wso2.carbon.user.core.UserCoreConstants.APPLICATION_DOMAIN;
+import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 
 /**
  * Implementation of the function to check if the given user has at least one of the given roles(v2).
@@ -94,15 +106,69 @@ public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Functio
 
             if (roleOptional.isPresent()) {
                 // Check if the user has the role from role id.
-                Optional<RoleBasicInfo> role2 = roleListOfUser.stream()
+                Optional<RoleBasicInfo> role = roleListOfUser.stream()
                         .filter(roleBasicInfo -> roleBasicInfo.getId().equals(roleOptional.get().getId()))
                         .findFirst();
-                if (role2.isPresent()) {
+                if (role.isPresent()) {
                     return true;
                 }
             }
         }
 
+        try {
+            List<String> roleIdsFromUserGroups = getRoleIdsFromUserGroups(subject.getUserId(),
+                    IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
+            for (String roleName : roleNames) {
+                // Check if the provided role name is associated with the application.
+                Optional<RoleV2> roleOptional =
+                        associatedRoles.stream().filter(role -> role.getName().equals(roleName)).findFirst();
+
+                if (roleOptional.isPresent()) {
+                    // Check if the user has the role from role id.
+                    Optional<String> role = roleIdsFromUserGroups.stream()
+                            .filter(roleId -> roleId.equals(roleOptional.get().getId()))
+                            .findFirst();
+                    if (role.isPresent()) {
+                        return true;
+                    }
+                }
+            }
+        } catch (UserStoreException | IdentityRoleManagementException | UserIdNotFoundException e) {
+            LOG.error("Error occurred while retrieving roles of user's groups", e);
+            return false;
+        }
+
         return false;
     }
+
+    /**
+     * Get the role ids of the roles associated to user's groups.
+     *
+     * @param userId       User id.
+     * @param tenantId     Tenant Id.
+     * @param tenantDomain Tenant domain.
+     * @return - Roles ids.
+     */
+    private static List<String> getRoleIdsFromUserGroups(String userId, int tenantId, String tenantDomain)
+            throws UserStoreException, IdentityRoleManagementException {
+
+        List<String> userGroups = new ArrayList<>();
+        RealmService realmService = UserCoreUtil.getRealmService();
+        UserStoreManager userStoreManager = realmService.getTenantUserRealm(tenantId).getUserStoreManager();
+        List<Group> groups = ((AbstractUserStoreManager) userStoreManager).getGroupListOfUser(userId, null, null);
+        for (Group group : groups) {
+            String groupDomainName = UserCoreUtil.extractDomainFromName(group.getGroupName());
+            if (!INTERNAL_DOMAIN.equalsIgnoreCase(groupDomainName) &&
+                    !APPLICATION_DOMAIN.equalsIgnoreCase(groupDomainName)) {
+                userGroups.add(group.getGroupID());
+            }
+        }
+        if (userGroups.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return UserFunctionsServiceHolder.getInstance().getRoleManagementService()
+                .getRoleIdListOfGroups(userGroups, tenantDomain);
+    }
+
 }
