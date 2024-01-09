@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -32,8 +34,11 @@ public class JsWrapperFactoryProvider {
 
     private JsWrapperFactoryProvider() {
 
-        if (FrameworkUtils.createJsGraphBuilderFactoryFromConfig() instanceof JsOpenJdkNashornGraphBuilderFactory) {
+        JsBaseGraphBuilderFactory jsGraphBuilderFactory = FrameworkUtils.createJsGraphBuilderFactoryFromConfig();
+        if (jsGraphBuilderFactory instanceof JsOpenJdkNashornGraphBuilderFactory) {
             jsWrapperBaseFactory = new JsOpenJdkNashornWrapperFactory();
+        } else if (jsGraphBuilderFactory instanceof JsGraalWrapperFactory) {
+            jsWrapperBaseFactory = new JsGraalWrapperFactory();
         } else {
             jsWrapperBaseFactory = new JsWrapperFactory();
         }
