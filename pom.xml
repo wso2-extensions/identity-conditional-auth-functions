@@ -300,6 +300,12 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>jsr311-api</artifactId>
                 <version>1.1.1</version>
@@ -493,7 +499,7 @@
         <carbon.kernel.version>4.9.17</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.user.package.import.version.range>[1.0.1, 2.0.0)</carbon.user.package.import.version.range>
-        <carbon.identity.framework.version>5.25.509</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.25.643-SNAPSHOT</carbon.identity.framework.version>
         <identity.organization.management.core.version>1.0.89</identity.organization.management.core.version>
         <carbon.identity.framework.testutils.version>5.20.447</carbon.identity.framework.testutils.version>
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
@@ -543,6 +549,7 @@
         <org.osgi.framework.imp.pkg.version.range>[1.9.0,2.0.0)</org.osgi.framework.imp.pkg.version.range>
         <xml.apis.version>1.4.01</xml.apis.version>
         <nashorn.core.version>15.3</nashorn.core.version>
+        <graalvm.version>20.2.0</graalvm.version>
         <sonar.coverage.exclusions>
             **/*Exception.java,
             **/*Constants*.java,
