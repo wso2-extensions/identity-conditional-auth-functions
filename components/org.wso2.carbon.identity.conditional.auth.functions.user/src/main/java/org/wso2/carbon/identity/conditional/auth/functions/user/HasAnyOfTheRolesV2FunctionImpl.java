@@ -53,6 +53,7 @@ import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Function {
 
     private static final Log LOG = LogFactory.getLog(HasAnyOfTheRolesV2FunctionImpl.class);
+    private static final String INTERNAL_DOMAIN_PREFIX = "internal/";
 
     @Override
     public boolean hasAnyOfTheRolesV2(JsAuthenticationContext context, List<String> roleNames) {
@@ -100,9 +101,14 @@ public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Functio
 
         List<RoleV2> associatedRoles = Arrays.asList(associatedRolesConfig.getRoles());
         for (String roleName : roleNames) {
-            // Check if the provided role name is associated with the application.
+            // Remove the 'Internal/' prefix if it exists.
+            String processedRoleName = roleName.toLowerCase().startsWith(INTERNAL_DOMAIN_PREFIX)
+                    ? roleName.substring(9)
+                    : roleName;
+
+            // Check if the processed role name is associated with the application.
             Optional<RoleV2> roleOptional =
-                    associatedRoles.stream().filter(role -> role.getName().equals(roleName)).findFirst();
+                    associatedRoles.stream().filter(role -> role.getName().equals(processedRoleName)).findFirst();
 
             if (roleOptional.isPresent()) {
                 // Check if the user has the role from role id.
@@ -119,9 +125,14 @@ public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Functio
             List<String> roleIdsFromUserGroups = getRoleIdsFromUserGroups(subject.getUserId(),
                     IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
             for (String roleName : roleNames) {
-                // Check if the provided role name is associated with the application.
+                // Remove the 'Internal/' prefix if it exists.
+                String processedRoleName = roleName.toLowerCase().startsWith(INTERNAL_DOMAIN_PREFIX)
+                        ? roleName.substring(9)
+                        : roleName;
+
+                // Check if the processed role name is associated with the application.
                 Optional<RoleV2> roleOptional =
-                        associatedRoles.stream().filter(role -> role.getName().equals(roleName)).findFirst();
+                        associatedRoles.stream().filter(role -> role.getName().equals(processedRoleName)).findFirst();
 
                 if (roleOptional.isPresent()) {
                     // Check if the user has the role from role id.

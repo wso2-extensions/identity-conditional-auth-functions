@@ -42,6 +42,7 @@ import java.util.Optional;
 public class AssignUserRolesV2FunctionImpl implements AssignUserRolesV2Function {
 
     private static final Log LOG = LogFactory.getLog(AssignUserRolesV2FunctionImpl.class);
+    private static final String INTERNAL_DOMAIN_PREFIX = "internal/";
 
     @Override
     public boolean assignUserRolesV2(JsAuthenticationContext context, List<String> roleListToAssign) {
@@ -76,10 +77,23 @@ public class AssignUserRolesV2FunctionImpl implements AssignUserRolesV2Function 
 
         List<RoleV2> associatedRoles = Arrays.asList(associatedRolesConfig.getRoles());
         List<RoleV2> allowedRoleListToAssign = new ArrayList<>();
+
         for (String roleName : roleListToAssign) {
-            // Check if the provided role name is associated with the application.
+            // Remove the 'Internal/' prefix if it exists.
+            String processedRoleName = roleName.toLowerCase().startsWith(INTERNAL_DOMAIN_PREFIX)
+                    ? roleName.substring(9)
+                    : roleName;
+
+            // Check if the processed role name is associated with the application.
             Optional<RoleV2> roleOptional =
-                    associatedRoles.stream().filter(role -> role.getName().equals(roleName)).findFirst();
+                    associatedRoles.stream().filter(role -> {
+                        String roleNameFromStream = role.getName();
+                        String processedRoleNameFromStream =
+                                roleNameFromStream.toLowerCase().startsWith(INTERNAL_DOMAIN_PREFIX)
+                                        ? roleNameFromStream.substring(9)
+                                        : roleNameFromStream;
+                        return processedRoleNameFromStream.equals(processedRoleName);
+                    }).findFirst();
             roleOptional.ifPresent(allowedRoleListToAssign::add);
         }
 
