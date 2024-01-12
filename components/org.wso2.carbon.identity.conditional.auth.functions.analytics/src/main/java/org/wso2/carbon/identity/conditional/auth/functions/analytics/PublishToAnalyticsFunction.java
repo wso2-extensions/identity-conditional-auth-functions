@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.analytics;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 
 import java.util.Map;
 
@@ -35,5 +35,5 @@ public interface PublishToAnalyticsFunction {
      * @param payloadData payload data.
      */
     void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData,
-                            JsAuthenticationContext context);
+                            JsBaseAuthenticationContext context);
 }

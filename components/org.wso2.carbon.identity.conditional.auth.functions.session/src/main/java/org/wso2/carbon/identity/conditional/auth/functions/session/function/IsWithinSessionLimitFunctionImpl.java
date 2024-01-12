@@ -28,7 +28,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
@@ -61,7 +61,7 @@ public class IsWithinSessionLimitFunctionImpl implements IsWithinSessionLimitFun
      * @throws FrameworkException when exception occurred in session retrieving method
      */
     @Override
-    public boolean validate(JsAuthenticationContext context, Map<String, String> map)
+    public boolean validate(JsBaseAuthenticationContext context, Map<String, String> map)
             throws FrameworkException {
 
         boolean state = false;

@@ -68,6 +68,7 @@ public class CallElasticFunctionImpl extends AbstractElasticHelper implements Ca
     @Override
     public void callElastic(Map<String, String> params, Map<String, Object> eventHandlers) {
 
+        Map<String, String> paramsMap = new HashMap<>(params);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
 
             try {
@@ -78,13 +79,13 @@ public class CallElasticFunctionImpl extends AbstractElasticHelper implements Ca
                     throw new FrameworkException("Elasticsearch host cannot be found.");
                 }
 
-                HttpPost request = new HttpPost(elasticConfigProvider.getElasticSearchUrl(targetHostUrl,params));
+                HttpPost request = new HttpPost(elasticConfigProvider.getElasticSearchUrl(targetHostUrl,paramsMap));
 
                 request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
                 request.setHeader(CONTENT_TYPE, TYPE_APPLICATION_JSON);
                 handleAuthentication(request, authenticationContext.getTenantDomain());
 
-                String query = elasticConfigProvider.getQuery(params);
+                String query = elasticConfigProvider.getQuery(paramsMap);
                 request.setEntity(new StringEntity(query, StandardCharsets.UTF_8));
 
                 String[] targetHostUrls = targetHostUrl.split(";");

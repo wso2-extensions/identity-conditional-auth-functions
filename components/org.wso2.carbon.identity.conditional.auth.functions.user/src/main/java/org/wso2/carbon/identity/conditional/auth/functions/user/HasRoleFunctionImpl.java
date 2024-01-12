@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -39,7 +39,7 @@ public class HasRoleFunctionImpl implements HasRoleFunction {
     private static final Log LOG = LogFactory.getLog(HasRoleFunctionImpl.class);
 
     @Override
-    public boolean hasRole(JsAuthenticatedUser user, String roleName) {
+    public boolean hasRole(JsBaseAuthenticatedUser user, String roleName) {
 
         boolean result = false;
 

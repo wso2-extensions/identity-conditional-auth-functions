@@ -18,7 +18,7 @@
  */
 package org.wso2.carbon.identity.conditional.auth.functions.session.function;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 
 import java.util.Map;
 
@@ -35,5 +35,5 @@ public interface ExecuteActionFunction {
      * @param map     parameter map
      * @return boolean value indicating the success or failure state of process
      */
-    boolean execute(JsAuthenticationContext context, Map<String, String> map);
+    boolean execute(JsBaseAuthenticationContext context, Map<String, String> map);
 }

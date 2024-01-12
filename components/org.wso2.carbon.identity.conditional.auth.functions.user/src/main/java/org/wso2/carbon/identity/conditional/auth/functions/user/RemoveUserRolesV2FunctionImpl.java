@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -46,7 +46,7 @@ public class RemoveUserRolesV2FunctionImpl implements RemoveUserRolesV2Function 
     private static final Log LOG = LogFactory.getLog(RemoveUserRolesV2FunctionImpl.class);
 
     @Override
-    public boolean removeUserRolesV2(JsAuthenticationContext context, List<String> roleListToRemove) {
+    public boolean removeUserRolesV2(JsBaseAuthenticationContext context, List<String> roleListToRemove) {
 
         if (roleListToRemove == null || roleListToRemove.isEmpty()) {
             return false;

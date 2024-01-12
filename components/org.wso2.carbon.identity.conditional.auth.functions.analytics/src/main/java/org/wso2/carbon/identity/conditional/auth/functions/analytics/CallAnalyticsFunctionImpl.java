@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -63,11 +64,13 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
     public void callAnalytics(Map<String, String> metadata,
                               Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
+        Map<String, String> metadataMap = new HashMap<>(metadata);
+        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
 
-            String appName = metadata.get(PARAM_APP_NAME);
-            String inputStream = metadata.get(PARAM_INPUT_STREAM);
-            String receiverUrl = metadata.get(PARAM_EP_URL);
+            String appName = metadataMap.get(PARAM_APP_NAME);
+            String inputStream = metadataMap.get(PARAM_INPUT_STREAM);
+            String receiverUrl = metadataMap.get(PARAM_EP_URL);
             String targetPath;
             try {
                 if (appName != null && inputStream != null) {
@@ -92,7 +95,7 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
 
                 JSONObject jsonObject = new JSONObject();
                 JSONObject event = new JSONObject();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                for (Map.Entry<String, Object> dataElements : payloadDataMap.entrySet()) {
                     event.put(dataElements.getKey(), dataElements.getValue());
                 }
                 jsonObject.put("event", event);

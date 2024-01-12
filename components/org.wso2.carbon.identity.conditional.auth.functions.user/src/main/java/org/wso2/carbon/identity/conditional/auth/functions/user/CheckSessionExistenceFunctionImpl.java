@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -30,7 +30,7 @@ import java.util.Map;
 public class CheckSessionExistenceFunctionImpl implements CheckSessionExistenceFunction {
 
     @Override
-    public boolean checkSessionExistence(int step, JsAuthenticationContext context) {
+    public boolean checkSessionExistence(int step, JsBaseAuthenticationContext context) {
 
         StepConfig stepConfig = context.getWrapped()
                 .getSequenceConfig().getAuthenticationGraph().getStepMap().get(step);

@@ -19,7 +19,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
 
 import java.util.Map;
 
@@ -36,6 +36,6 @@ public interface GetCookieFunction {
      * @param params  value mandatory and properties optional
      * @return cookieValue
      */
-    String getCookieValue(JsServletRequest request, Object... params);
+    String getCookieValue(JsBaseServletRequest request, Object... params);
 
 }

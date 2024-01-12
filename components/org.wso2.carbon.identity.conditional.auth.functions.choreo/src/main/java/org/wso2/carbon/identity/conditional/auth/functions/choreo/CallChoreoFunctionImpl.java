@@ -63,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -125,10 +126,12 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     public void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
                            Map<String, Object> eventHandlers) {
 
+        Map<String, String> connectionMetaDataMap = new HashMap<>(connectionMetaData);
+        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
             LOG.info("Starting the callChoreo function for session data key: " +
                     authenticationContext.getContextIdentifier());
-            String epUrl = connectionMetaData.get(URL_VARIABLE_NAME);
+            String epUrl = connectionMetaDataMap.get(URL_VARIABLE_NAME);
             try {
                 if (!isValidChoreoDomain(epUrl)) {
                     LOG.error("Provided Url does not contain a configured choreo domain. Invalid Url: " + epUrl);
@@ -138,7 +141,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
                 String tenantDomain = authenticationContext.getTenantDomain();
                 AccessTokenRequestHelper accessTokenRequestHelper = new AccessTokenRequestHelper(
-                        connectionMetaData, asyncReturn, authenticationContext, payloadData);
+                        connectionMetaDataMap, asyncReturn, authenticationContext, payloadDataMap);
                 String accessToken = choreoAccessTokenCache.getValueFromCache(accessTokenRequestHelper.getConsumerKey(),
                         tenantDomain);
                 if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {
