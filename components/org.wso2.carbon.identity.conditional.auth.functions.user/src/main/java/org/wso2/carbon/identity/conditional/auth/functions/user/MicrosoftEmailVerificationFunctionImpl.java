@@ -22,7 +22,7 @@ import com.nimbusds.jose.util.JSONObjectUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 
 import java.text.ParseException;
 import java.util.HashMap;
@@ -45,7 +45,7 @@ public class MicrosoftEmailVerificationFunctionImpl implements MicrosoftEmailVer
             "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0";
 
     @Override
-    public boolean checkMicrosoftEmailVerification(JsAuthenticationContext context) {
+    public boolean checkMicrosoftEmailVerification(JsBaseAuthenticationContext context) {
 
         if (context.getWrapped().getParameter(ID_TOKEN) == null) {
             return false;

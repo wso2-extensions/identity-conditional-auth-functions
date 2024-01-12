@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
@@ -38,7 +39,7 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
     private static final Log LOG = LogFactory.getLog(GetAssociatedLocalUserFunctionImpl.class);
 
     @Override
-    public JsAuthenticatedUser getAssociatedLocalUser(JsAuthenticatedUser federatedUser) {
+    public JsAuthenticatedUser getAssociatedLocalUser(JsBaseAuthenticatedUser federatedUser) {
 
         if (!federatedUser.getWrapped().isFederatedUser()) {
             if (LOG.isDebugEnabled()) {

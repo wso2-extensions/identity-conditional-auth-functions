@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
@@ -37,7 +37,7 @@ public class TerminateUserSessionImpl implements TerminateUserSession {
     private static final Log LOG = LogFactory.getLog(TerminateUserSession.class);
 
     @Override
-    public boolean terminateUserSession(JsAuthenticatedUser user, String sessionId) {
+    public boolean terminateUserSession(JsBaseAuthenticatedUser user, String sessionId) {
 
         try {
             return terminateUserSession(user.getWrapped(), sessionId);

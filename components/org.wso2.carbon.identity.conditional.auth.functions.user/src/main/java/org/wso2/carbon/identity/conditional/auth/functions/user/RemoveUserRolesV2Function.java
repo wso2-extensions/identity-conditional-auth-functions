@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 
 import java.util.List;
 
@@ -36,5 +36,5 @@ public interface RemoveUserRolesV2Function {
      * @param roleListToRemove Roles to be removed.
      * @return <code>true</code> If the role removal is successfully completed. <code>false</code> for any other case.
      */
-    boolean removeUserRolesV2(JsAuthenticationContext context, List<String> roleListToRemove);
+    boolean removeUserRolesV2(JsBaseAuthenticationContext context, List<String> roleListToRemove);
 }

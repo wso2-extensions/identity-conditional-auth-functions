@@ -23,7 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -52,7 +52,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private static final String GROUPS_LOCAL_CLAIM = "http://wso2.org/claims/groups";
 
     @Override
-    public boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames) {
+    public boolean isMemberOfAnyOfGroups(JsBaseAuthenticatedUser user, List<String> groupNames) {
 
         boolean result = false;
         String tenantDomain = user.getWrapped().getTenantDomain();
@@ -90,7 +90,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      * @param groupNames A list of group names.
      * @return true if the federated user is a member of any of the specified groups, false otherwise.
      */
-    private boolean isFederatedUserMemberOfAnyGroup(JsAuthenticatedUser user, List<String> groupNames) {
+    private boolean isFederatedUserMemberOfAnyGroup(JsBaseAuthenticatedUser user, List<String> groupNames) {
 
         // Get the claim URI for groups claim from the claim mappings for federated idp.
         String groupsClaimURI = getGroupsClaimURI(user);
@@ -104,7 +104,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
         return groupNames.stream().anyMatch(groupsOfFederatedUser::contains);
     }
 
-    private String getGroupsClaimURI(JsAuthenticatedUser user) {
+    private String getGroupsClaimURI(JsBaseAuthenticatedUser user) {
 
         String groupsClaimURI = getGroupsClaimURIByClaimMappings(user);
         if (groupsClaimURI == null && user.getContext().getCurrentAuthenticator() != null &&
@@ -121,7 +121,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      * @param groupsClaimURI URI of the groups claim.
      * @return groups of the federated user .
      */
-    private Set<String> getGroupsOfFederatedUser(JsAuthenticatedUser user, String groupsClaimURI) {
+    private Set<String> getGroupsOfFederatedUser(JsBaseAuthenticatedUser user, String groupsClaimURI) {
 
         String groups = null;
         Set<String> groupsOfFederatedUser = new HashSet<>();
@@ -173,7 +173,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      * @param user Authenticated user.
      * @return  groups claim configured for the IDP.
      */
-    private static String getGroupsClaimURIByClaimMappings(JsAuthenticatedUser user){
+    private static String getGroupsClaimURIByClaimMappings(JsBaseAuthenticatedUser user){
 
         ClaimMapping[] claimMappings = getClaimMappings(user);
         if (claimMappings == null || claimMappings.length == 0) {
@@ -197,7 +197,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
      * @return  groups claim configured for the IDP.
      * @throws IdentityProviderManagementException
      */
-    private static ClaimMapping[] getClaimMappings(JsAuthenticatedUser user) {
+    private static ClaimMapping[] getClaimMappings(JsBaseAuthenticatedUser user) {
 
         ExternalIdPConfig idp = user.getContext().getExternalIdP();
         return (idp != null) ? idp.getClaimMappings() : null;

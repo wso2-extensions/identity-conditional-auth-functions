@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 
 import java.util.List;
 
@@ -36,5 +36,5 @@ public interface AssignUserRolesV2Function {
      * @param roleListToAssign Roles to be assigned.
      * @return <code>true</code> If the role assigning is successfully completed. <code>false</code> for any other case.
      */
-    boolean assignUserRolesV2(JsAuthenticationContext context, List<String> roleListToAssign);
+    boolean assignUserRolesV2(JsBaseAuthenticationContext context, List<String> roleListToAssign);
 }

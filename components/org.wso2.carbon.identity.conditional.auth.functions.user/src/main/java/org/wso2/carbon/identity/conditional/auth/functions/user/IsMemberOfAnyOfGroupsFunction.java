@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 
 import java.util.List;
 
@@ -36,5 +36,5 @@ public interface IsMemberOfAnyOfGroupsFunction {
      * @param groupNames Groups to be checked.
      * @return True if the user is a member in at least one of the given groups.
      */
-    boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames);
+    boolean isMemberOfAnyOfGroups(JsBaseAuthenticatedUser user, List<String> groupNames);
 }

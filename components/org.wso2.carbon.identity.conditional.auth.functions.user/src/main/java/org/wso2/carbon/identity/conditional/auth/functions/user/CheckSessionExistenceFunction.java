@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 
 /**
  * Function to check if the user in the authentication context has at least one authenticator authenticated for the
@@ -34,5 +34,5 @@ public interface CheckSessionExistenceFunction {
      * @param context authentication context
      * @return if the user is already authenticated for the step.
      */
-    boolean checkSessionExistence(int step, JsAuthenticationContext context);
+    boolean checkSessionExistence(int step, JsBaseAuthenticationContext context);
 }

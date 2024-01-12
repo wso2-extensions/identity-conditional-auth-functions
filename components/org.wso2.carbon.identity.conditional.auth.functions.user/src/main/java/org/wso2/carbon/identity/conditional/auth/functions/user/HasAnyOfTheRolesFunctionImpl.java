@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -37,7 +37,7 @@ public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
     private static final Log LOG = LogFactory.getLog(HasAnyOfTheRolesFunctionImpl.class);
 
     @Override
-    public boolean hasAnyOfTheRoles(JsAuthenticatedUser user, List<String> roleNames) {
+    public boolean hasAnyOfTheRoles(JsBaseAuthenticatedUser user, List<String> roleNames) {
 
         boolean result = false;
 
