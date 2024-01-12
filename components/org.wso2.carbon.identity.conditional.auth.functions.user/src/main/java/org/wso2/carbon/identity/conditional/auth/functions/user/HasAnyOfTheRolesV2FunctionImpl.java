@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -53,7 +54,6 @@ import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Function {
 
     private static final Log LOG = LogFactory.getLog(HasAnyOfTheRolesV2FunctionImpl.class);
-    private static final String INTERNAL_DOMAIN_PREFIX = "internal/";
 
     @Override
     public boolean hasAnyOfTheRolesV2(JsAuthenticationContext context, List<String> roleNames) {
@@ -101,10 +101,10 @@ public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Functio
 
         List<RoleV2> associatedRoles = Arrays.asList(associatedRolesConfig.getRoles());
         for (String roleName : roleNames) {
-            // Remove the 'Internal/' prefix if it exists.
-            String processedRoleName = roleName.toLowerCase().startsWith(INTERNAL_DOMAIN_PREFIX)
-                    ? roleName.substring(9)
-                    : roleName;
+            String processedRoleName =
+                    UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(UserCoreUtil.extractDomainFromName(roleName))
+                            ? UserCoreUtil.removeDomainFromName(roleName)
+                            : roleName;
 
             // Check if the processed role name is associated with the application.
             Optional<RoleV2> roleOptional =
@@ -125,10 +125,10 @@ public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Functio
             List<String> roleIdsFromUserGroups = getRoleIdsFromUserGroups(subject.getUserId(),
                     IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
             for (String roleName : roleNames) {
-                // Remove the 'Internal/' prefix if it exists.
-                String processedRoleName = roleName.toLowerCase().startsWith(INTERNAL_DOMAIN_PREFIX)
-                        ? roleName.substring(9)
-                        : roleName;
+                String processedRoleName =
+                        UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(UserCoreUtil.extractDomainFromName(roleName))
+                                ? UserCoreUtil.removeDomainFromName(roleName)
+                                : roleName;
 
                 // Check if the processed role name is associated with the application.
                 Optional<RoleV2> roleOptional =

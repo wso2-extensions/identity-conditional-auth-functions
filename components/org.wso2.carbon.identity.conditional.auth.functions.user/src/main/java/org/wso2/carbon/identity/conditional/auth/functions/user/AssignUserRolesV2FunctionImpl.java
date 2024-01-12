@@ -29,6 +29,8 @@ import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +44,6 @@ import java.util.Optional;
 public class AssignUserRolesV2FunctionImpl implements AssignUserRolesV2Function {
 
     private static final Log LOG = LogFactory.getLog(AssignUserRolesV2FunctionImpl.class);
-    private static final String INTERNAL_DOMAIN_PREFIX = "internal/";
 
     @Override
     public boolean assignUserRolesV2(JsAuthenticationContext context, List<String> roleListToAssign) {
@@ -79,18 +80,19 @@ public class AssignUserRolesV2FunctionImpl implements AssignUserRolesV2Function 
         List<RoleV2> allowedRoleListToAssign = new ArrayList<>();
 
         for (String roleName : roleListToAssign) {
-            // Remove the 'Internal/' prefix if it exists.
-            String processedRoleName = roleName.toLowerCase().startsWith(INTERNAL_DOMAIN_PREFIX)
-                    ? roleName.substring(9)
-                    : roleName;
+            String processedRoleName =
+                    UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(UserCoreUtil.extractDomainFromName(roleName))
+                            ? UserCoreUtil.removeDomainFromName(roleName)
+                            : roleName;
 
             // Check if the processed role name is associated with the application.
             Optional<RoleV2> roleOptional =
                     associatedRoles.stream().filter(role -> {
                         String roleNameFromStream = role.getName();
                         String processedRoleNameFromStream =
-                                roleNameFromStream.toLowerCase().startsWith(INTERNAL_DOMAIN_PREFIX)
-                                        ? roleNameFromStream.substring(9)
+                                UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(
+                                        UserCoreUtil.extractDomainFromName(roleNameFromStream))
+                                        ? UserCoreUtil.removeDomainFromName(roleNameFromStream)
                                         : roleNameFromStream;
                         return processedRoleNameFromStream.equals(processedRoleName);
                     }).findFirst();

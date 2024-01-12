@@ -29,6 +29,8 @@ import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,9 +79,22 @@ public class RemoveUserRolesV2FunctionImpl implements RemoveUserRolesV2Function 
         List<RoleV2> associatedRoles = Arrays.asList(associatedRolesConfig.getRoles());
         List<RoleV2> allowedRoleListToRemove = new ArrayList<>();
         for (String roleName : roleListToRemove) {
-            // Check if the provided role name is associated with the application.
+            String processedRoleName =
+                    UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(UserCoreUtil.extractDomainFromName(roleName))
+                            ? UserCoreUtil.removeDomainFromName(roleName)
+                            : roleName;
+
+            // Check if the processed role name is associated with the application.
             Optional<RoleV2> roleOptional =
-                    associatedRoles.stream().filter(role -> role.getName().equals(roleName)).findFirst();
+                    associatedRoles.stream().filter(role -> {
+                        String roleNameFromStream = role.getName();
+                        String processedRoleNameFromStream =
+                                UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(
+                                        UserCoreUtil.extractDomainFromName(roleNameFromStream))
+                                        ? UserCoreUtil.removeDomainFromName(roleNameFromStream)
+                                        : roleNameFromStream;
+                        return processedRoleNameFromStream.equals(processedRoleName);
+                    }).findFirst();
             roleOptional.ifPresent(allowedRoleListToRemove::add);
         }
 
