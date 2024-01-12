@@ -86,15 +86,7 @@ public class RemoveUserRolesV2FunctionImpl implements RemoveUserRolesV2Function 
 
             // Check if the processed role name is associated with the application.
             Optional<RoleV2> roleOptional =
-                    associatedRoles.stream().filter(role -> {
-                        String roleNameFromStream = role.getName();
-                        String processedRoleNameFromStream =
-                                UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(
-                                        UserCoreUtil.extractDomainFromName(roleNameFromStream))
-                                        ? UserCoreUtil.removeDomainFromName(roleNameFromStream)
-                                        : roleNameFromStream;
-                        return processedRoleNameFromStream.equals(processedRoleName);
-                    }).findFirst();
+                    associatedRoles.stream().filter(role -> role.getName().equals(processedRoleName)).findFirst();
             roleOptional.ifPresent(allowedRoleListToRemove::add);
         }
 
