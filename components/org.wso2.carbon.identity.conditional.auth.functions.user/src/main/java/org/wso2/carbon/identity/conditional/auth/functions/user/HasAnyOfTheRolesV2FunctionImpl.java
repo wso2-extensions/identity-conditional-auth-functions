@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -100,9 +101,14 @@ public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Functio
 
         List<RoleV2> associatedRoles = Arrays.asList(associatedRolesConfig.getRoles());
         for (String roleName : roleNames) {
-            // Check if the provided role name is associated with the application.
+            String processedRoleName =
+                    UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(UserCoreUtil.extractDomainFromName(roleName))
+                            ? UserCoreUtil.removeDomainFromName(roleName)
+                            : roleName;
+
+            // Check if the processed role name is associated with the application.
             Optional<RoleV2> roleOptional =
-                    associatedRoles.stream().filter(role -> role.getName().equals(roleName)).findFirst();
+                    associatedRoles.stream().filter(role -> role.getName().equals(processedRoleName)).findFirst();
 
             if (roleOptional.isPresent()) {
                 // Check if the user has the role from role id.
@@ -119,9 +125,14 @@ public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Functio
             List<String> roleIdsFromUserGroups = getRoleIdsFromUserGroups(subject.getUserId(),
                     IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
             for (String roleName : roleNames) {
-                // Check if the provided role name is associated with the application.
+                String processedRoleName =
+                        UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(UserCoreUtil.extractDomainFromName(roleName))
+                                ? UserCoreUtil.removeDomainFromName(roleName)
+                                : roleName;
+
+                // Check if the processed role name is associated with the application.
                 Optional<RoleV2> roleOptional =
-                        associatedRoles.stream().filter(role -> role.getName().equals(roleName)).findFirst();
+                        associatedRoles.stream().filter(role -> role.getName().equals(processedRoleName)).findFirst();
 
                 if (roleOptional.isPresent()) {
                     // Check if the user has the role from role id.
