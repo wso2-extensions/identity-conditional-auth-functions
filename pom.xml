@@ -486,7 +486,7 @@
         <carbon.identity.framework.version>5.25.509</carbon.identity.framework.version>
         <identity.organization.management.core.version>1.0.89</identity.organization.management.core.version>
         <carbon.identity.framework.testutils.version>5.20.447</carbon.identity.framework.testutils.version>
-        <carbon.identity.package.import.version.range>[5.14.0, 7.0.0)</carbon.identity.package.import.version.range>
+        <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
         <identity.governance.version>1.1.17</identity.governance.version>
         <identity.governance.import.version.range>[1.5.70,3.0)</identity.governance.import.version.range>
         <identity.event.handler.notification.version>[1.0.23,2.0.0)</identity.event.handler.notification.version>
