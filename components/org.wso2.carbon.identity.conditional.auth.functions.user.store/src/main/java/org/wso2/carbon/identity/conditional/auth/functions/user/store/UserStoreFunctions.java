@@ -24,6 +24,8 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.user.store.internal.UserStoreFunctionsServiceHolder;
@@ -45,11 +47,12 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
 
     private static final Log LOG = LogFactory.getLog(UserStoreFunctions.class);
 
-    public JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap, Object... parameters)
+    public JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap,
+                                                            JsBaseAuthenticationContext context, String... parameters)
             throws FrameworkException {
 
-        JsAuthenticationContext authenticationContext = null;
-        String tenantDomain = null;
+        AuthenticationContext authenticationContext =  context.getWrapped();
+        String tenantDomain = authenticationContext.getTenantDomain();
         String profile = "default";
         if (claimMap == null || parameters == null) {
             if (LOG.isDebugEnabled()) {
@@ -57,18 +60,9 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
             }
             return null;
         }
-        if (parameters.length == 2) {
-            if ( parameters[0] instanceof JsAuthenticationContext) {
-                authenticationContext = (JsAuthenticationContext) parameters[0];
-                tenantDomain = authenticationContext.getContext().getTenantDomain();
-            }
-            if ( parameters[1] instanceof String) {
-                profile = (String) parameters[1];
-            }
-        }
-        if (parameters.length == 1 && parameters[0] instanceof JsAuthenticationContext) {
-            authenticationContext = (JsAuthenticationContext) parameters[0];
-            tenantDomain = authenticationContext.getContext().getTenantDomain();
+
+        if (parameters.length == 1) {
+            profile = parameters[0];
         }
 
         if (tenantDomain != null) {
@@ -119,12 +113,8 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
                     }
                     authenticatedUser.setUserName(username);
                     authenticatedUser.setTenantDomain(tenantDomain);
-                    if (authenticationContext != null) {
-                        return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
-                                createJsAuthenticatedUser(authenticationContext.getContext(), authenticatedUser);
-                    }
                     return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
-                            createJsAuthenticatedUser(authenticatedUser);
+                            createJsAuthenticatedUser(authenticationContext, authenticatedUser);
                 } else {
                     LOG.error("Cannot find the user realm for the given tenant: " + tenantId);
                 }

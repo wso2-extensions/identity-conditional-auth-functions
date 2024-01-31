@@ -45,6 +45,12 @@ public class JsGraalUserAgent extends JsUserAgent implements ProxyObject {
     }
 
     @Override
+    public boolean hasMember(String key) {
+
+        return "rawString".equals(key) || "browser".equals(key) || "platform".equals(key) || "device".equals(key);
+    }
+
+    @Override
     public void putMember(String key, Value value) {
 
             // read-only object.

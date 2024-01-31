@@ -46,6 +46,12 @@ public class JsGraalApplication extends JsApplication implements ProxyObject {
     }
 
     @Override
+    public boolean hasMember(String key) {
+
+        return "subject".equals(key) || "appName".equals(key) || "appId".equals(key);
+    }
+
+    @Override
     public Object getMember(String name) {
 
         switch (name) {
