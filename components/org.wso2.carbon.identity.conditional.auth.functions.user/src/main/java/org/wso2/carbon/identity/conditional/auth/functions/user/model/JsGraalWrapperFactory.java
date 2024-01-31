@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.graaljs.JsGraalApplication;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.graaljs.JsGraalUserSession;
 
 /**
@@ -31,5 +33,11 @@ public class JsGraalWrapperFactory implements JsWrapperBaseFactory {
     public JsUserSession createJsUserSession(UserSession userSession) {
 
         return new JsGraalUserSession(userSession);
+    }
+
+    @Override
+    public JsApplication createJsApplication(Application application) {
+
+        return new JsGraalApplication(application);
     }
 }

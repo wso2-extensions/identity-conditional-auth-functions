@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.openjdk.nashorn.JsOpenJdkNashornApplication;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.openjdk.nashorn.JsOpenJdkNashornUserSession;
 
 /**
@@ -31,5 +33,10 @@ public class JsOpenJdkNashornWrapperFactory implements JsWrapperBaseFactory {
     public JsUserSession createJsUserSession(UserSession userSession) {
 
         return new JsOpenJdkNashornUserSession(userSession);
+    }
+
+    @Override
+    public JsApplication createJsApplication(Application application) {
+        return new JsOpenJdkNashornApplication(application);
     }
 }

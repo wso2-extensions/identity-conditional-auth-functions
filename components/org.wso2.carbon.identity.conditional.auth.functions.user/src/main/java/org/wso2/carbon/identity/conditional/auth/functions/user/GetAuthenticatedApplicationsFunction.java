@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsApplication;
 
 import java.util.List;
 
@@ -35,5 +36,5 @@ public interface GetAuthenticatedApplicationsFunction {
      * @param context context object.
      * @return List of already authenticated applications of the given session.
      */
-    List<Application> getAuthenticatedApplications(JsBaseAuthenticationContext context);
+    List<JsApplication> getAuthenticatedApplications(JsBaseAuthenticationContext context);
 }
