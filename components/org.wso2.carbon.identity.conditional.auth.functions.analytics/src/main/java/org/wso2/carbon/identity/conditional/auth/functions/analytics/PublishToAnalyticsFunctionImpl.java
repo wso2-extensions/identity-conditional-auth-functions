@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -51,9 +52,13 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
     public void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData,
                                    JsBaseAuthenticationContext context) {
 
-        String appName = metadata.get(PARAM_APP_NAME);
-        String inputStream = metadata.get(PARAM_INPUT_STREAM);
-        String targetPath = metadata.get(PARAM_EP_URL);
+        Map<String, String> metadataMap = new HashMap<>(metadata);
+        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
+        String contextIdentifier = context.getWrapped().getContextIdentifier();
+
+        String appName = metadataMap.get(PARAM_APP_NAME);
+        String inputStream = metadataMap.get(PARAM_INPUT_STREAM);
+        String targetPath = metadataMap.get(PARAM_EP_URL);
         String epUrl = null;
         try {
             if (appName != null && inputStream != null) {
@@ -78,7 +83,7 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
 
             JSONObject jsonObject = new JSONObject();
             JSONObject event = new JSONObject();
-            for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+            for (Map.Entry<String, Object> dataElements : payloadDataMap.entrySet()) {
                 event.put(dataElements.getKey(), dataElements.getValue());
             }
             jsonObject.put("event", event);
@@ -105,11 +110,11 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
                         if (responseCode == 200) {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("Successfully published data to the analytics for session data key: " +
-                                        context.getWrapped().getContextIdentifier());
+                                        contextIdentifier);
                             }
                         } else {
                             LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                    context.getWrapped().getContextIdentifier() + ". Request completed successfully. " +
+                                    contextIdentifier + ". Request completed successfully. " +
                                     "But response code was not 200");
                         }
                     }
@@ -118,14 +123,14 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
                     public void failed(final Exception ex) {
 
                         LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                context.getWrapped().getContextIdentifier() + ". Request failed with: " + ex);
+                                contextIdentifier + ". Request failed with: " + ex);
                     }
 
                     @Override
                     public void cancelled() {
 
                         LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                context.getWrapped().getContextIdentifier() + ". Request canceled.");
+                                contextIdentifier + ". Request canceled.");
                     }
                 });
             }
