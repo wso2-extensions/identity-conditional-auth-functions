@@ -18,8 +18,18 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.conditional.auth.functions.user.test">
-    <test name="org.wso2.carbon.identity.conditional.auth.functions.user.test" parallel="false">
+<suite name="Identity-connector-user-functions-validation-test-suite">
+    <test name="user-functions-nashorn" parallel="false">
+        <parameter name="scriptEngine" value="nashorn"/>
+        <classes>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunctionImplTest"/>
+        </classes>
+    </test>
+    <test name="user-functions-graaljs" parallel="false">
+        <parameter name="scriptEngine" value="graaljs"/>
         <classes>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImplTest"/>

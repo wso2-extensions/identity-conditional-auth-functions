@@ -55,7 +55,6 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
     @BeforeMethod
     protected void setUp() throws Exception {
 
-        super.setUp();
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("isMemberOfAnyOfGroups",
                 new IsMemberOfAnyOfGroupsFunctionImpl());

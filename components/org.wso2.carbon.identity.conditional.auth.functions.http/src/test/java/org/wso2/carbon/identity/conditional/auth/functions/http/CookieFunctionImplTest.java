@@ -68,7 +68,6 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @BeforeMethod
     protected void setUp() throws Exception {
 
-        super.setUp();
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("setCookie", (SetCookieFunction) new CookieFunctionImpl()::setCookie);
         sequenceHandlerRunner.registerJsFunction("getCookieValue", (GetCookieFunction) new CookieFunctionImpl()

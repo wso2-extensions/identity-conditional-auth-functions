@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.http;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -79,9 +80,10 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private int microServicePort;
 
     @BeforeClass
-    protected void initClass() throws Exception {
+    @Parameters({"scriptEngine"})
+    protected void initClass(String scriptEngine) throws Exception {
 
-        super.setUp();
+        super.setUp(scriptEngine);
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
         CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);

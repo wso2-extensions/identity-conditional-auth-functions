@@ -180,9 +180,9 @@
                 <version>${json.wso2.version}</version>
             </dependency>
             <dependency>
-            <groupId>net.minidev</groupId>
-            <artifactId>json-smart</artifactId>
-            <version>${json-smart.version}</version>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json-smart.version}</version>
             </dependency>
 
             <!-- Test related dependencies -->
@@ -549,7 +549,7 @@
         <org.osgi.framework.imp.pkg.version.range>[1.9.0,2.0.0)</org.osgi.framework.imp.pkg.version.range>
         <xml.apis.version>1.4.01</xml.apis.version>
         <nashorn.core.version>15.3</nashorn.core.version>
-        <graalvm.version>20.2.0</graalvm.version>
+        <graalvm.version>22.3.4</graalvm.version>
         <sonar.coverage.exclusions>
             **/*Exception.java,
             **/*Constants*.java,

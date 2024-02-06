@@ -18,22 +18,17 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.conditional.auth.functions.http.test">
-    <test name="http-functions-nashorn" parallel="false">
+<suite name="Identity-connector-elk-analytics-functions-validation-test-suite">
+    <test name="call-elk-analytics-nashorn" parallel="false">
         <parameter name="scriptEngine" value="nashorn"/>
         <classes>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImplTest"/>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImplTest"/>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImplTest"/>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.SimpleCryptoProviderTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.elk.CallElasticFunctionImplTest"/>
         </classes>
     </test>
-    <test name="http-functions-graaljs" parallel="false">
+    <test name="call-elk-analytics-graaljs" parallel="false">
         <parameter name="scriptEngine" value="graaljs"/>
         <classes>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImplTest"/>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImplTest"/>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.elk.CallElasticFunctionImplTest"/>
         </classes>
     </test>
 </suite>
