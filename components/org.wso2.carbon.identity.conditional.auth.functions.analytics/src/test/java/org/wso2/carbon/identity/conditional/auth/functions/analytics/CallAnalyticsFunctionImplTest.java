@@ -74,7 +74,7 @@ public class CallAnalyticsFunctionImplTest extends JsSequenceHandlerAbstractTest
     @BeforeMethod
     protected void setUp() throws Exception {
 
-        super.setUp();
+//        super.setUp();
 
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("callAnalytics", new CallAnalyticsFunctionImpl());

@@ -109,8 +109,6 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @BeforeMethod
     protected void setUp() throws Exception {
 
-        super.setUp();
-
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("callChoreo", new CallChoreoFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);

@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
@@ -80,7 +81,8 @@ public class JsSequenceHandlerAbstractTest {
     }
 
     @BeforeMethod
-    protected void setUp() throws Exception {
+    @Parameters({"scriptEngine"})
+    protected void setUp(String scriptEngine) throws Exception {
 
         if (sequenceHandlerRunner == null) {
             sequenceHandlerRunner = new JsSequenceHandlerRunner();
@@ -89,7 +91,7 @@ public class JsSequenceHandlerAbstractTest {
             if (applicationAuthenticatorFileName != null) {
                 url = this.getClass().getClassLoader().getResource(applicationAuthenticatorFileName);
             }
-            sequenceHandlerRunner.init(url);
+            sequenceHandlerRunner.init(url, scriptEngine);
         }
         FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
     }

@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import org.json.JSONObject;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -74,9 +75,10 @@ public class CallElasticFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private int microServicePort;
 
     @BeforeClass
-    protected void initClass() throws Exception {
+    @Parameters({"scriptEngine"})
+    protected void initClass(String scriptEngine) throws Exception {
 
-        super.setUp();
+        super.setUp(scriptEngine);
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("callElastic", new CallElasticFunctionImpl());
     }
