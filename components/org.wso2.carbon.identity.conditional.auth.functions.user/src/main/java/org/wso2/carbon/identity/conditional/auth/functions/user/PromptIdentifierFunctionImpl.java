@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
@@ -33,6 +34,7 @@ public class PromptIdentifierFunctionImpl implements PromptIdentifierFunction {
     public static final String STEP_PARAM = "step";
 
     @Override
+    @HostAccess.Export
     public void promptIdentifier(int step, Object... parameters) {
 
         Map<String, Object> validators;

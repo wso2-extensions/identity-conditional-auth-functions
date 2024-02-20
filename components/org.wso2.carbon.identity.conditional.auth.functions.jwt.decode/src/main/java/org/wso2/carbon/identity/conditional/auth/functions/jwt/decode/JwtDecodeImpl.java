@@ -22,6 +22,7 @@ import com.nimbusds.jose.JWSObject;
 import net.minidev.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.text.ParseException;
@@ -42,6 +43,7 @@ public class JwtDecodeImpl implements JwtDecode {
      * @throws FrameworkException
      */
     @Override
+    @HostAccess.Export
     public String getValueFromDecodedAssertion(String clientAssertion, String parameterName,
                                                boolean isParameterInPayload) throws FrameworkException {
 

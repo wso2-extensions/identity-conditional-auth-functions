@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user.store;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
@@ -47,6 +48,7 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
 
     private static final Log LOG = LogFactory.getLog(UserStoreFunctions.class);
 
+    @HostAccess.Export
     public JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap,
                                                             JsBaseAuthenticationContext context, String... parameters)
             throws FrameworkException {
