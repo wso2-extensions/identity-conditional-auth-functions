@@ -28,6 +28,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.util.EntityUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
@@ -66,6 +67,7 @@ public class CallElasticFunctionImpl extends AbstractElasticHelper implements Ca
     }
 
     @Override
+    @HostAccess.Export
     public void callElastic(Map<String, String> params, Map<String, Object> eventHandlers) {
 
         Map<String, String> paramsMap = new HashMap<>(params);

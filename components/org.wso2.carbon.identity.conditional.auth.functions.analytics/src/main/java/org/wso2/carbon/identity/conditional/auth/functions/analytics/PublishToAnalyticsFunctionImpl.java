@@ -26,6 +26,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -49,6 +50,7 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
     private static final String PARAM_INPUT_STREAM = "InputStream";
 
     @Override
+    @HostAccess.Export
     public void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData,
                                    JsBaseAuthenticationContext context) {
 

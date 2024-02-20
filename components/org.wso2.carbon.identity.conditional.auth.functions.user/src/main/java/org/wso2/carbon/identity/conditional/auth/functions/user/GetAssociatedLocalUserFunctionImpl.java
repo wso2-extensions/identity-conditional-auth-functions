@@ -22,6 +22,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
@@ -39,6 +40,7 @@ public class GetAssociatedLocalUserFunctionImpl implements GetAssociatedLocalUse
     private static final Log LOG = LogFactory.getLog(GetAssociatedLocalUserFunctionImpl.class);
 
     @Override
+    @HostAccess.Export
     public JsAuthenticatedUser getAssociatedLocalUser(JsBaseAuthenticatedUser federatedUser) {
 
         if (!federatedUser.getWrapped().isFederatedUser()) {

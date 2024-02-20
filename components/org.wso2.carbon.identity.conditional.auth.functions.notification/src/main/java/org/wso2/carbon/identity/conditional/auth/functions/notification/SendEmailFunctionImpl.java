@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.notification;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.internal.NotificationFunctionServiceHolder;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
@@ -40,6 +41,7 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
     private static final Log LOG = LogFactory.getLog(SendEmailFunctionImpl.class);
 
     @Override
+    @HostAccess.Export
     public boolean sendMail(JsBaseAuthenticatedUser user, String templateId, Map<String, String> paramMap) {
 
         String eventName = IdentityEventConstants.Event.TRIGGER_NOTIFICATION;

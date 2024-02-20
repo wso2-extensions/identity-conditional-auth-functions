@@ -28,6 +28,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.util.EntityUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -61,6 +62,7 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
     private static final String PARAM_INPUT_STREAM = "InputStream";
 
     @Override
+    @HostAccess.Export
     public void callAnalytics(Map<String, String> metadata,
                               Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 

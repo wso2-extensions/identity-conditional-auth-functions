@@ -34,6 +34,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
@@ -123,6 +124,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     }
 
     @Override
+    @HostAccess.Export
     public void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
                            Map<String, Object> eventHandlers) {
 
