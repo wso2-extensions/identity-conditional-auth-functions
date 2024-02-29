@@ -66,6 +66,12 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
     public void callAnalytics(Map<String, String> metadata,
                               Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
+        /*
+         * Here, we need to clone the parameters since, even though we're accessing the parameters as Map objects,
+         * these may be instances of child classes of Map class (Script Engine specific implementations).
+         * When the AsyncProcess is executed, the objects will not be available if the relevant Script Engine is closed.
+         * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
+         */
         Map<String, String> metadataMap = new HashMap<>(metadata);
         Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {

@@ -104,7 +104,7 @@ public class JsSequenceHandlerRunner {
     private URL applicationAuthenticatorConfigFileLocation;
 
     public static final int THREAD_COUNT = 1;
-    public static final long SUPERVISOR_TIMEOUT = 500L;
+    public static final long SUPERVISOR_TIMEOUT = 500000L;
 
     private static final String DEFAULT_APPLICATION_AUTHENTICATION_XML_FILE_NAME = "application-authentication-test.xml";
 

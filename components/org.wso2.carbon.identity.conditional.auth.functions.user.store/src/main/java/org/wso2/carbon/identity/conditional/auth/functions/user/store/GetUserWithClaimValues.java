@@ -27,6 +27,6 @@ import java.util.Map;
 @FunctionalInterface
 public interface GetUserWithClaimValues {
 
-    JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap, JsBaseAuthenticationContext context,
-                                                     String... parameters) throws FrameworkException;
+    JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap, Object... parameters) throws
+            FrameworkException;
 }

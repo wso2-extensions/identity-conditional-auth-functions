@@ -49,12 +49,11 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
     private static final Log LOG = LogFactory.getLog(UserStoreFunctions.class);
 
     @HostAccess.Export
-    public JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap,
-                                                            JsBaseAuthenticationContext context, String... parameters)
+    public JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap, Object... parameters)
             throws FrameworkException {
 
-        AuthenticationContext authenticationContext =  context.getWrapped();
-        String tenantDomain = authenticationContext.getTenantDomain();
+        JsBaseAuthenticationContext authenticationContext =  null;
+        String tenantDomain = null;
         String profile = "default";
         if (claimMap == null || parameters == null) {
             if (LOG.isDebugEnabled()) {
@@ -63,10 +62,19 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
             return null;
         }
 
-        if (parameters.length == 1) {
-            profile = parameters[0];
+        if (parameters.length == 2) {
+            if ( parameters[0] instanceof JsAuthenticationContext) {
+                authenticationContext = (JsAuthenticationContext) parameters[0];
+                tenantDomain = authenticationContext.getWrapped().getTenantDomain();
+            }
+            if ( parameters[1] instanceof String) {
+                profile = (String) parameters[1];
+            }
         }
-
+        if (parameters.length == 1 && parameters[0] instanceof JsAuthenticationContext) {
+            authenticationContext = (JsAuthenticationContext) parameters[0];
+            tenantDomain = authenticationContext.getWrapped().getTenantDomain();
+        }
         if (tenantDomain != null) {
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             try {
@@ -116,7 +124,7 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
                     authenticatedUser.setUserName(username);
                     authenticatedUser.setTenantDomain(tenantDomain);
                     return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
-                            createJsAuthenticatedUser(authenticationContext, authenticatedUser);
+                            createJsAuthenticatedUser(authenticationContext.getWrapped(), authenticatedUser);
                 } else {
                     LOG.error("Cannot find the user realm for the given tenant: " + tenantId);
                 }
