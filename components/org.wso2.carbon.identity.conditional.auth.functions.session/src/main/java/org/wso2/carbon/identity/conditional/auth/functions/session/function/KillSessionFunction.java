@@ -20,8 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.session.function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.graalvm.polyglot.HostAccess;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
 import org.wso2.carbon.utils.xml.StringUtils;
@@ -42,7 +41,7 @@ public class KillSessionFunction implements ExecuteActionFunction {
      * @return boolean value indicating the success or failure state of process
      */
     @Override
-    public boolean execute(JsBaseAuthenticationContext context, Map<String, String> map) {
+    public boolean execute(JsAuthenticationContext context, Map<String, String> map) {
 
         String sessionId = map.get(SessionValidationConstants.TERMINATION_SESSION_ID);
         SessionManagementService sessionManagementService = new SessionManagementService();

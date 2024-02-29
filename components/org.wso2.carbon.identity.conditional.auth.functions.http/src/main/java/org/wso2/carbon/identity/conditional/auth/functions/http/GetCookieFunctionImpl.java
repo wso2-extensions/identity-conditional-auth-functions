@@ -29,7 +29,7 @@ import org.json.simple.parser.ParseException;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.SignatureUtil;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 
 import java.nio.charset.StandardCharsets;
@@ -48,7 +48,7 @@ public class GetCookieFunctionImpl implements GetCookieFunction {
 
     @Override
     @HostAccess.Export
-    public String getCookieValue(JsBaseServletRequest request, Object... params) {
+    public String getCookieValue(JsServletRequest request, Object... params) {
 
         Map<String, Object> properties = null;
         if (params.length == 0 || params.length > 2) {

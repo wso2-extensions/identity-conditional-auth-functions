@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
 /**
  * Function to terminate a session of user.
@@ -33,5 +33,5 @@ public interface TerminateUserSession {
      * @param sessionId SessionId of the session that needs to be killed.
      * @return <code>true</code> if the terminate operation was successful. <code>false</code> if the operation failed.
      */
-    boolean terminateUserSession(JsBaseAuthenticatedUser user, String sessionId);
+    boolean terminateUserSession(JsAuthenticatedUser user, String sessionId);
 }

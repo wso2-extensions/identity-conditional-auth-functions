@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 
 /**
  * Function to get associated local user of the federated user.
@@ -32,5 +31,5 @@ public interface GetAssociatedLocalUserFunction {
      *
      * @param federatedUser federated user
      */
-    JsAuthenticatedUser getAssociatedLocalUser(JsBaseAuthenticatedUser federatedUser);
+    JsAuthenticatedUser getAssociatedLocalUser(JsAuthenticatedUser federatedUser);
 }

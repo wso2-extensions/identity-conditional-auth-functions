@@ -25,8 +25,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.user.store.internal.UserStoreFunctionsServiceHolder;
@@ -52,7 +50,7 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
     public JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap, Object... parameters)
             throws FrameworkException {
 
-        JsBaseAuthenticationContext authenticationContext =  null;
+        JsAuthenticationContext authenticationContext =  null;
         String tenantDomain = null;
         String profile = "default";
         if (claimMap == null || parameters == null) {

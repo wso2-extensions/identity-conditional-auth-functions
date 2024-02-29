@@ -29,7 +29,7 @@ import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.SignatureUtil;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 
@@ -47,7 +47,7 @@ public class SetCookieFunctionImpl implements SetCookieFunction {
 
     @Override
     @HostAccess.Export
-    public void setCookie(JsBaseServletResponse response, String name, Object... params) {
+    public void setCookie(JsServletResponse response, String name, Object... params) {
 
         Map<String, Object> properties = null;
         if (params.length == 0 || params.length > 2) {
