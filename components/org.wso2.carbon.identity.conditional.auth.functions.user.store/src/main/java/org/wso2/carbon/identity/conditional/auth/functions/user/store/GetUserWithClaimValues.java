@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user.store;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.util.Map;

@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -58,7 +58,7 @@ public class HasAnyOfTheRolesV2FunctionImpl implements HasAnyOfTheRolesV2Functio
 
     @Override
     @HostAccess.Export
-    public boolean hasAnyOfTheRolesV2(JsBaseAuthenticationContext context, List<String> roleNames) {
+    public boolean hasAnyOfTheRolesV2(JsAuthenticationContext context, List<String> roleNames) {
 
         if (roleNames == null || roleNames.isEmpty()) {
             return false;

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
 import java.util.List;
 
@@ -37,6 +37,6 @@ public interface HasAnyOfTheRolesFunction {
      * @return <code>true</code> if the user has at least one of the  given roles. <code>false</code> for any other
      * case.
      */
-    boolean hasAnyOfTheRoles(JsBaseAuthenticatedUser user, List<String> roleNames);
+    boolean hasAnyOfTheRoles(JsAuthenticatedUser user, List<String> roleNames);
 
 }

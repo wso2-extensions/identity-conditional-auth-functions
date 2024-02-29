@@ -31,8 +31,8 @@ import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.SignatureUtil;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 
@@ -53,7 +53,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
 
     @Override
     @Deprecated
-    public void setCookie(JsBaseServletResponse response, String name, Object... params) {
+    public void setCookie(JsServletResponse response, String name, Object... params) {
 
         Map<String, Object> properties = null;
         if (params.length == 0 || params.length > 2) {
@@ -124,7 +124,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
 
     @Override
     @Deprecated
-    public String getCookieValue(JsBaseServletRequest request, Object... params) {
+    public String getCookieValue(JsServletRequest request, Object... params) {
 
         Map<String, Object> properties = null;
         if (params.length == 0 || params.length > 2) {

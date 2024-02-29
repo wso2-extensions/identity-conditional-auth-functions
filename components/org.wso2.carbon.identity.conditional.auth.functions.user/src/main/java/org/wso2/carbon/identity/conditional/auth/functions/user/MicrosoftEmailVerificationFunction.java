@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
 @FunctionalInterface
 public interface MicrosoftEmailVerificationFunction {
@@ -29,5 +29,5 @@ public interface MicrosoftEmailVerificationFunction {
      * @param context   Authentication context.
      * @return True if the email is verified.
      */
-    boolean checkMicrosoftEmailVerification(JsBaseAuthenticationContext context);
+    boolean checkMicrosoftEmailVerification(JsAuthenticationContext context);
 }

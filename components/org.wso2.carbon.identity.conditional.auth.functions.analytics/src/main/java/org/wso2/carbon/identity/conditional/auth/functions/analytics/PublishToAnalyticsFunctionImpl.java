@@ -28,7 +28,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -52,7 +52,7 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
     @Override
     @HostAccess.Export
     public void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData,
-                                   JsBaseAuthenticationContext context) {
+                                   JsAuthenticationContext context) {
 
         /*
          * Here, we need to clone the parameters since, even though we're accessing the parameters as Map objects,

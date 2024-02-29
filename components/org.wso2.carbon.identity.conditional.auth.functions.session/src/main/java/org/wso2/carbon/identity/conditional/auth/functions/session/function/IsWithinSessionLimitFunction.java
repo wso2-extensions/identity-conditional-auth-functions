@@ -18,7 +18,7 @@
  */
 package org.wso2.carbon.identity.conditional.auth.functions.session.function;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.util.Map;
@@ -37,6 +37,6 @@ public interface IsWithinSessionLimitFunction {
      * @return boolean value indicating the validation success/failure
      * @throws FrameworkException when exception occurred in session retrieving method
      */
-    boolean validate(JsBaseAuthenticationContext context, Map<String, String> map)
+    boolean validate(JsAuthenticationContext context, Map<String, String> map)
             throws FrameworkException;
 }

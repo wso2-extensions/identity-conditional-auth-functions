@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.notification;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
 import java.util.Map;
 
@@ -33,6 +33,6 @@ public interface SendEmailFunction {
      * @return <code>true</code> if the email is successfully queued to be sent. <code>false</code> If the mail
      * couldn't be queued due to any error.
      */
-    boolean sendMail(JsBaseAuthenticatedUser user, String templateId, Map<String, String> paramMap);
+    boolean sendMail(JsAuthenticatedUser user, String templateId, Map<String, String> paramMap);
 
 }

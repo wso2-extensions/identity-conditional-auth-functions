@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -46,7 +46,7 @@ public class AssignUserRolesFunctionImpl implements AssignUserRolesFunction {
      */
     @Override
     @HostAccess.Export
-    public boolean assignUserRoles(JsBaseAuthenticatedUser user, List<String> assigningRoles) {
+    public boolean assignUserRoles(JsAuthenticatedUser user, List<String> assigningRoles) {
 
         if (user == null) {
             LOG.error("User is not defined");

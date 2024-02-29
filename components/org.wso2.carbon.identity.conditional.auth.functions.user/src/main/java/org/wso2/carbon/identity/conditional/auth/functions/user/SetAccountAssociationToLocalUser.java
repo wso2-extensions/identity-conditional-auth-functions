@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 
 /**
  * Function to set associate local user to federated user.
@@ -34,6 +34,6 @@ public interface SetAccountAssociationToLocalUser {
      * @param userStoreDomainName Userstore domain of the local user.
      * @return Whether the association is successful or not.
      */
-    boolean doAssociationWithLocalUser(JsBaseAuthenticatedUser federatedUser, String username, String tenantDomain,
+    boolean doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
                                        String userStoreDomainName);
 }

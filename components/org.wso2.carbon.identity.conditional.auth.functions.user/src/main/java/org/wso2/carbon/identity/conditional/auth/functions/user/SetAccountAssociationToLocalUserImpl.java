@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.dao.UserProfileMgtDAO;
@@ -36,7 +36,7 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
 
     @Override
     @HostAccess.Export
-    public boolean doAssociationWithLocalUser(JsBaseAuthenticatedUser federatedUser, String username, String tenantDomain,
+    public boolean doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
                                               String userStoreDomainName) {
 
         String federatedIdpName = null;

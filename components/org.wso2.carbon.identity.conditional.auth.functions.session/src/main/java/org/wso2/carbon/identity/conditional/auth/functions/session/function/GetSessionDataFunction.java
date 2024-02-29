@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.session.function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.session.exception.SessionValidationException;
@@ -48,7 +48,7 @@ public class GetSessionDataFunction implements GetUserSessionDataFunction {
      * @throws FrameworkException
      */
     @Override
-    public Map<String, Session> getData(JsBaseAuthenticationContext context, Map<String, String> map) throws
+    public Map<String, Session> getData(JsAuthenticationContext context, Map<String, String> map) throws
             FrameworkException {
 
         Map<String, Session> sessionMap = new HashMap<>();
