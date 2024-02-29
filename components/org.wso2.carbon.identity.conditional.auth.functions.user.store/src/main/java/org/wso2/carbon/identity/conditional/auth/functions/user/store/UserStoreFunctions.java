@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.user.store;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
@@ -46,11 +45,15 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
 
     private static final Log LOG = LogFactory.getLog(UserStoreFunctions.class);
 
-    @HostAccess.Export
     public JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap, Object... parameters)
             throws FrameworkException {
+        return getUniqueUserWithClaimValuesInternal(claimMap, parameters);
+    }
 
-        JsAuthenticationContext authenticationContext =  null;
+    private JsAuthenticatedUser getUniqueUserWithClaimValuesInternal(Map<String, String> claimMap, Object... parameters)
+            throws FrameworkException {
+
+        JsAuthenticationContext authenticationContext = null;
         String tenantDomain = null;
         String profile = "default";
         if (claimMap == null || parameters == null) {
@@ -63,7 +66,7 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
         if (parameters.length == 2) {
             if ( parameters[0] instanceof JsAuthenticationContext) {
                 authenticationContext = (JsAuthenticationContext) parameters[0];
-                tenantDomain = authenticationContext.getWrapped().getTenantDomain();
+                tenantDomain = authenticationContext.getContext().getTenantDomain();
             }
             if ( parameters[1] instanceof String) {
                 profile = (String) parameters[1];
@@ -71,7 +74,7 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
         }
         if (parameters.length == 1 && parameters[0] instanceof JsAuthenticationContext) {
             authenticationContext = (JsAuthenticationContext) parameters[0];
-            tenantDomain = authenticationContext.getWrapped().getTenantDomain();
+            tenantDomain = authenticationContext.getContext().getTenantDomain();
         }
         if (tenantDomain != null) {
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -121,6 +124,10 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
                     }
                     authenticatedUser.setUserName(username);
                     authenticatedUser.setTenantDomain(tenantDomain);
+                    if (authenticationContext != null) {
+                        return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                                createJsAuthenticatedUser(authenticatedUser);
+                    }
                     return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
                             createJsAuthenticatedUser(authenticationContext.getWrapped(), authenticatedUser);
                 } else {
@@ -136,4 +143,5 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
         }
         return null;
     }
+
 }
