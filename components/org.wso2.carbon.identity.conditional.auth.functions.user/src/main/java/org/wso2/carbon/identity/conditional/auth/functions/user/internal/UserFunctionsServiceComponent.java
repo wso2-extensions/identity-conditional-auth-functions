@@ -35,14 +35,13 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesF
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesV2Function;
 import org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesV2FunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.CheckSessionExistenceFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.GetAuthenticatedApplicationsV2FunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesV2Function;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasAnyOfTheRolesV2FunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.MicrosoftEmailVerificationFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.MicrosoftEmailVerificationFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetAssociatedLocalUserFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.user.GetAuthenticatedApplicationsFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.user.GetAuthenticatedAppsFuncImp;
 import org.wso2.carbon.identity.conditional.auth.functions.user.GetUserSessionsFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsMemberOfAnyOfGroupsFunctionImpl;
@@ -91,7 +90,6 @@ public class UserFunctionsServiceComponent {
             RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
             GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
             SetAccountAssociationToLocalUser setAccountAssociationToLocalUserImpl = new SetAccountAssociationToLocalUserImpl();
-            GetAuthenticatedApplicationsFunction getAuthenticatedApplicationsFunctionImp = new GetAuthenticatedAppsFuncImp();
             MicrosoftEmailVerificationFunction microsoftEmailVerificationFunction = new MicrosoftEmailVerificationFunctionImpl();
             UpdateUserPasswordFunction updateUserPasswordFunction = new UpdateUserPasswordFunctionImpl();
 
@@ -126,7 +124,7 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isAnyOfTheRolesAssignedToUser",
                     new IsAnyOfTheRolesAssignedToUserFunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getAuthenticatedApplications",
-                    getAuthenticatedApplicationsFunctionImp);
+                    new GetAuthenticatedApplicationsV2FunctionImpl());
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkMicrosoftEmailVerification",
                     microsoftEmailVerificationFunction);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "updateUserPassword",

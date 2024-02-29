@@ -106,7 +106,6 @@
                             org.osgi.service.component,
                             org.wso2.carbon.identity.application.authentication.framework,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
                             org.wso2.carbon.identity.application.authentication.framework.context,
                             org.wso2.carbon.identity.application.authentication.framework.exception,
                             org.wso2.carbon.identity.application.authentication.framework.model,

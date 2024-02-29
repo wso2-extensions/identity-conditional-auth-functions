@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsApplication;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ import java.util.List;
  * Function definition for retrieving authenticated applications.
  */
 @FunctionalInterface
-public interface GetAuthenticatedApplicationsFunction {
+public interface GetAuthenticatedApplicationsV2Function {
 
     /**
      * Retrieve the already authenticated applications for a given session.
@@ -35,5 +35,5 @@ public interface GetAuthenticatedApplicationsFunction {
      * @param context context object.
      * @return List of already authenticated applications of the given session.
      */
-    List<Application> getAuthenticatedApplications(JsAuthenticationContext context);
+    List<JsApplication> getAuthenticatedApplications(JsAuthenticationContext context);
 }

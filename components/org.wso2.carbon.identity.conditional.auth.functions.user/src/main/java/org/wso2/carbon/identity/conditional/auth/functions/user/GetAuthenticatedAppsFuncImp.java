@@ -24,6 +24,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsApplication;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsWrapperFactoryProvider;
@@ -47,7 +48,7 @@ public class GetAuthenticatedAppsFuncImp implements GetAuthenticatedApplications
      */
     @Override
     @HostAccess.Export
-    public List<JsApplication> getAuthenticatedApplications(JsAuthenticationContext context) {
+    public List<Application> getAuthenticatedApplications(JsAuthenticationContext context) {
 
         String sessionContextKey = context.getWrapped().getSessionIdentifier();
         try {
@@ -55,9 +56,7 @@ public class GetAuthenticatedAppsFuncImp implements GetAuthenticatedApplications
                 UserSession userSession = UserFunctionsServiceHolder.getInstance().getUserSessionManagementService()
                         .getUserSessionBySessionId(sessionContextKey).get();
 
-                return userSession.getApplications().stream()
-                        .map(app -> JsWrapperFactoryProvider.getInstance().getWrapperFactory().createJsApplication(app))
-                        .collect(Collectors.toList());
+                return userSession.getApplications();
             }
         } catch (SessionManagementException e) {
             log.debug("Error occurred while retrieving the user session.");

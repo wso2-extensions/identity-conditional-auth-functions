@@ -28,8 +28,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
-import org.wso2.carbon.identity.conditional.auth.functions.user.store.GetUserWithClaimValues;
-import org.wso2.carbon.identity.conditional.auth.functions.user.store.UserStoreFunctions;
+import org.wso2.carbon.identity.conditional.auth.functions.user.store.GetUserWithClaimValuesV2FunctionImpl;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -48,12 +47,12 @@ public class UserStoreFunctionsServiceComponent {
     protected void activate(ComponentContext ctxt) {
 
         try {
-            UserStoreFunctions storeFunctions = new UserStoreFunctions();
+            GetUserWithClaimValuesV2FunctionImpl storeFunctions = new GetUserWithClaimValuesV2FunctionImpl();
             JsFunctionRegistry jsFunctionRegistry = UserStoreFunctionsServiceHolder.getInstance()
                     .getJsFunctionRegistry();
 
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getUniqueUserWithClaimValues",
-                    (GetUserWithClaimValues) storeFunctions::getUniqueUserWithClaimValues);
+                    new GetUserWithClaimValuesV2FunctionImpl());
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
 
