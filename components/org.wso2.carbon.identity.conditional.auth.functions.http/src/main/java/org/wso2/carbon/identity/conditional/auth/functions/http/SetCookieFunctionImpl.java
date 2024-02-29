@@ -37,6 +37,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Implementation of SetCookieFunction.
+ */
 public class SetCookieFunctionImpl implements SetCookieFunction {
 
     private static final Log log = LogFactory.getLog(SetCookieFunctionImpl.class);

@@ -54,6 +54,12 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
     public void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData,
                                    JsBaseAuthenticationContext context) {
 
+        /*
+         * Here, we need to clone the parameters since, even though we're accessing the parameters as Map objects,
+         * these may be instances of child classes of Map class (Script Engine specific implementations).
+         * When the AsyncProcess is executed, the objects will not be available if the relevant Script Engine is closed.
+         * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
+         */
         Map<String, String> metadataMap = new HashMap<>(metadata);
         Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
         String contextIdentifier = context.getWrapped().getContextIdentifier();

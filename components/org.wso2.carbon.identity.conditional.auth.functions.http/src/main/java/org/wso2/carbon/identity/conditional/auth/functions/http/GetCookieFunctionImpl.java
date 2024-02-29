@@ -38,6 +38,9 @@ import java.util.Optional;
 
 import javax.servlet.http.Cookie;
 
+/**
+ * Implementation of GetCookieFunction.
+ */
 public class GetCookieFunctionImpl implements GetCookieFunction {
 
     private static final Log log = LogFactory.getLog(GetCookieFunctionImpl.class);

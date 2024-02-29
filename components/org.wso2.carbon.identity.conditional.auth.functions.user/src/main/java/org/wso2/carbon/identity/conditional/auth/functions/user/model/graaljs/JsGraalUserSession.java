@@ -64,6 +64,7 @@ public class JsGraalUserSession extends JsUserSession implements ProxyObject {
     @Override
     public void putMember(String key, Value value) {
 
+        // read-only object.
     }
 
     @Override
@@ -87,5 +88,4 @@ public class JsGraalUserSession extends JsUserSession implements ProxyObject {
                 return super.getMember(name);
         }
     }
-
 }

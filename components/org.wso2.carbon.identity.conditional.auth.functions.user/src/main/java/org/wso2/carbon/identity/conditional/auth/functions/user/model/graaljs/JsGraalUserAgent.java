@@ -72,5 +72,4 @@ public class JsGraalUserAgent extends JsUserAgent implements ProxyObject {
                 return super.getMember(name);
         }
     }
-
 }
