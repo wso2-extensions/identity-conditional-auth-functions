@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.graaljs.JsGraalApplication;
@@ -39,5 +40,10 @@ public class JsGraalWrapperFactory implements JsWrapperBaseFactory {
     public JsApplication createJsApplication(Application application) {
 
         return new JsGraalApplication(application);
+    }
+
+    public GraalSerializableJsFunction createJsSerializableFunction(String source, boolean isFunction) {
+
+        return new GraalSerializableJsFunction(source, isFunction);
     }
 }

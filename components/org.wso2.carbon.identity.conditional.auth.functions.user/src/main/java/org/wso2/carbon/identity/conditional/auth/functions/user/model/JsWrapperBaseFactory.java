@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GenericSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 
@@ -39,4 +40,13 @@ public interface JsWrapperBaseFactory {
      * @return Proxy for Application
      */
     JsApplication createJsApplication(Application application);
+
+    /**
+     * Creates a Serializable Javascript function.
+     *
+     * @param source     - Source of the function
+     * @param isFunction - Is the source a function
+     * @return Serializable Javascript function
+     */
+    GenericSerializableJsFunction createJsSerializableFunction(String source, boolean isFunction);
 }
