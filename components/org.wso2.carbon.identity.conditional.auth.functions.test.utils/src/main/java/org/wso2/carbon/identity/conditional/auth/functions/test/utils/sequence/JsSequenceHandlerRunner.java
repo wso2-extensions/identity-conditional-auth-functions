@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
@@ -97,7 +98,7 @@ public class JsSequenceHandlerRunner {
 
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
-    protected JsBaseGraphBuilderFactory graphBuilderFactory;
+    protected JsGenericGraphBuilderFactory graphBuilderFactory;
     protected  JSExecutionSupervisor jsExecutionSupervisor;
 
     private JsFunctionRegistryImpl jsFunctionRegistry;
@@ -126,7 +127,7 @@ public class JsSequenceHandlerRunner {
         FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
 
         graphBuilderFactory.init();
-        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
+        FrameworkServiceDataHolder.getInstance().setJsGenericGraphBuilderFactory(graphBuilderFactory);
 
         Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
         wrapperFactory.setAccessible(true);

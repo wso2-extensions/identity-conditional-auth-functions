@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.nashorn.JsNashornApplication;
@@ -35,5 +36,10 @@ public class JsWrapperFactory implements JsWrapperBaseFactory {
 
     public JsApplication createJsApplication(Application application) {
         return new JsNashornApplication(application);
+    }
+
+    public SerializableJsFunction createJsSerializableFunction(String source, boolean isFunction) {
+
+        return new SerializableJsFunction(source, isFunction);
     }
 }
