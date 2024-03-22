@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.user.core.UserRealm;
@@ -44,6 +45,7 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
      * @return <code>true</code> If the role assigning is successfully completed. <code>false</code> for any other case.
      */
     @Override
+    @HostAccess.Export
     public boolean removeUserRoles(JsAuthenticatedUser user, List<String> removingRoles) {
 
         if (user == null) {

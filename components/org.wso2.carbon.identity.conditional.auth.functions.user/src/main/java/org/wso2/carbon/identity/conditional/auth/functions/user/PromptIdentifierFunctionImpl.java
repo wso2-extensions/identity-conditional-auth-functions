@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsWrapperFactoryProvider;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +35,7 @@ public class PromptIdentifierFunctionImpl implements PromptIdentifierFunction {
     public static final String STEP_PARAM = "step";
 
     @Override
+    @HostAccess.Export
     public void promptIdentifier(int step, Object... parameters) {
 
         Map<String, Object> validators;
@@ -48,7 +51,8 @@ public class PromptIdentifierFunctionImpl implements PromptIdentifierFunction {
         }
 
         if (validators.get(ShowPromptNode.PRE_HANDLER) == null) {
-            validators.put(ShowPromptNode.PRE_HANDLER, new SerializableJsFunction(DEFAULT_PRE_HANDLER_FUNC, true));
+            validators.put(ShowPromptNode.PRE_HANDLER, JsWrapperFactoryProvider.getInstance()
+                    .getWrapperFactory().createJsSerializableFunction(DEFAULT_PRE_HANDLER_FUNC, true));
         }
         Map<String, Object> promptParameters = new HashMap<>();
         promptParameters.put(STEP_PARAM, step);

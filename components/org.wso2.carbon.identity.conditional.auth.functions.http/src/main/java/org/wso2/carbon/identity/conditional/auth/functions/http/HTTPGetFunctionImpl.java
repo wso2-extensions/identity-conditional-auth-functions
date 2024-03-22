@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
+import org.graalvm.polyglot.HostAccess;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
     }
 
     @Override
+    @HostAccess.Export
     public void httpGet(String endpointURL, Object... params) {
 
         Map<String, Object> eventHandlers;

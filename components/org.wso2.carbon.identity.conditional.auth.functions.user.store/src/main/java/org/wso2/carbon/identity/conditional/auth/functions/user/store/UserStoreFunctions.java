@@ -47,6 +47,11 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
 
     public JsAuthenticatedUser getUniqueUserWithClaimValues(Map<String, String> claimMap, Object... parameters)
             throws FrameworkException {
+        return getUniqueUserWithClaimValuesInternal(claimMap, parameters);
+    }
+
+    private JsAuthenticatedUser getUniqueUserWithClaimValuesInternal(Map<String, String> claimMap, Object... parameters)
+            throws FrameworkException {
 
         JsAuthenticationContext authenticationContext = null;
         String tenantDomain = null;
@@ -57,6 +62,7 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
             }
             return null;
         }
+
         if (parameters.length == 2) {
             if ( parameters[0] instanceof JsAuthenticationContext) {
                 authenticationContext = (JsAuthenticationContext) parameters[0];
@@ -70,7 +76,6 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
             authenticationContext = (JsAuthenticationContext) parameters[0];
             tenantDomain = authenticationContext.getContext().getTenantDomain();
         }
-
         if (tenantDomain != null) {
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             try {
@@ -121,10 +126,10 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
                     authenticatedUser.setTenantDomain(tenantDomain);
                     if (authenticationContext != null) {
                         return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
-                                createJsAuthenticatedUser(authenticationContext.getContext(), authenticatedUser);
+                                createJsAuthenticatedUser(authenticatedUser);
                     }
                     return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
-                            createJsAuthenticatedUser(authenticatedUser);
+                            createJsAuthenticatedUser(authenticationContext.getWrapped(), authenticatedUser);
                 } else {
                     LOG.error("Cannot find the user realm for the given tenant: " + tenantId);
                 }
@@ -138,4 +143,5 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
         }
         return null;
     }
+
 }
