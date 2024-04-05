@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -35,6 +36,11 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncProces
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfig;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigFactory;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -56,12 +62,18 @@ public abstract class AbstractHTTPFunction {
     protected static final String TYPE_TEXT_PLAIN = "text/plain";
     private static final char DOMAIN_SEPARATOR = '.';
     private static final String RESPONSE = "response";
+    private static final int HTTP_STATUS_UNAUTHORIZED = 401;
+    private int maxRequestAttemptsForAPIEndpointTimeout = 2;
     private final List<String> allowedDomains;
 
     private CloseableHttpClient client;
 
     public AbstractHTTPFunction() {
 
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(Constants.HTTP_REQUEST_RETRY_COUNT))) {
+            maxRequestAttemptsForAPIEndpointTimeout = Integer.parseInt
+                    (IdentityUtil.getProperty(Constants.HTTP_REQUEST_RETRY_COUNT));
+        }
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
                 .setConnectionRequestTimeout(ConfigProvider.getInstance().getConnectionRequestTimeout())
@@ -73,34 +85,70 @@ public abstract class AbstractHTTPFunction {
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
 
-    protected void executeHttpMethod(HttpUriRequest request, Map<String, Object> eventHandlers) {
+    protected void executeHttpMethod(HttpUriRequest clientRequest, Map<String, Object> eventHandlers,
+                                     AuthConfigModel authConfigModel) {
 
         AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
-            JSONObject json = null;
-            int responseCode;
             String outcome;
             String endpointURL = null;
 
-            if (request.getURI() != null) {
-                endpointURL = request.getURI().toString();
-            }
+            HttpUriRequest request;
+            try {
+                if (authConfigModel != null) {
+                    AuthConfig authConfig = AuthConfigFactory.getAuthConfig(authConfigModel, context, asyncReturn);
+                    request = authConfig.applyAuth(clientRequest, authConfigModel);
+                } else {
+                    request = clientRequest;
+                }
 
-            if (!isValidRequestDomain(request.getURI())) {
-                outcome = Constants.OUTCOME_FAIL;
-                LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + endpointURL);
-                asyncReturn.accept(context, Collections.emptyMap(), outcome);
-                return;
-            }
+                if (request.getURI() != null) {
+                    endpointURL = request.getURI().toString();
+                }
 
+                if (!isValidRequestDomain(request.getURI())) {
+                    LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + endpointURL);
+                    asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
+                } else {
+                    Pair<String, JSONObject> result = executeRequestWithRetries(request, endpointURL, maxRequestAttemptsForAPIEndpointTimeout); // Assuming 3 retries
+                    outcome = result.getLeft();
+                    JSONObject json = result.getRight();
+
+                    asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
+                }
+            } catch (SecretManagementException e) {
+                LOG.error("Error while resolving secrets.", e);
+                asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
+            } catch (Exception e) {
+                LOG.error("Error while applying authentication to the request.", e);
+                asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
+            }
+        });
+        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+    }
+
+    /**
+     * Execute the request with retries.
+     *
+     * @param request     HttpUriRequest.
+     * @param endpointURL Endpoint URL.
+     * @param maxRetries  Maximum number of retries.
+     * @return Pair of outcome and json.
+     */
+    private Pair<String, JSONObject> executeRequestWithRetries(HttpUriRequest request, String endpointURL, int maxRetries) {
+        JSONObject json = null;
+        String outcome = Constants.OUTCOME_FAIL;
+        int attempts = 0;
+
+        while (attempts < maxRetries) {
+            attempts++;
             try (CloseableHttpResponse response = client.execute(request)) {
-                responseCode = response.getStatusLine().getStatusCode();
+                int responseCode = response.getStatusLine().getStatusCode();
                 if (responseCode >= 200 && responseCode < 300) {
                     outcome = Constants.OUTCOME_SUCCESS;
                     if (response.getEntity() != null) {
                         Header contentType = response.getEntity().getContentType();
                         String jsonString = EntityUtils.toString(response.getEntity());
                         if (contentType != null && contentType.getValue().contains(TYPE_TEXT_PLAIN)) {
-                            // For 'text/plain', put the response body into the JSON object as a single field.
                             json = new JSONObject();
                             json.put(RESPONSE, jsonString);
                         } else {
@@ -108,31 +156,32 @@ public abstract class AbstractHTTPFunction {
                             json = (JSONObject) parser.parse(jsonString);
                         }
                     }
+                    return Pair.of(outcome, json); // Success, return immediately
+                } else if (responseCode == HTTP_STATUS_UNAUTHORIZED) {
+                    LOG.warn("Received 401 response from external API call. Url: " + endpointURL);
+                    return Pair.of(Constants.OUTCOME_FAIL, null); // Unauthorized, no retry
                 } else {
-                    outcome = Constants.OUTCOME_FAIL;
+                    outcome = Constants.OUTCOME_FAIL; // Other client or server error, retry if attempts left
                 }
-
-            } catch (IllegalArgumentException e) {
-                LOG.error("Invalid Url: " + endpointURL, e);
-                outcome = Constants.OUTCOME_FAIL;
-            } catch (ConnectTimeoutException e) {
-                LOG.error("Error while waiting to connect to " + endpointURL, e);
-                outcome = Constants.OUTCOME_TIMEOUT;
-            } catch (SocketTimeoutException e) {
-                LOG.error("Error while waiting for data from " + endpointURL, e);
-                outcome = Constants.OUTCOME_TIMEOUT;
-            } catch (IOException e) {
-                LOG.error("Error while calling endpoint. ", e);
-                outcome = Constants.OUTCOME_FAIL;
-            } catch (ParseException e) {
-                LOG.error("Error while parsing response. ", e);
-                outcome = Constants.OUTCOME_FAIL;
+            } catch (Exception e) {
+                // Log the error based on its type
+                if (e instanceof IllegalArgumentException) {
+                    LOG.error("Invalid Url: " + endpointURL, e);
+                } else if (e instanceof ConnectTimeoutException) {
+                    LOG.error("Error while waiting to connect to " + endpointURL, e);
+                } else if (e instanceof SocketTimeoutException) {
+                    LOG.error("Error while waiting for data from " + endpointURL, e);
+                } else if (e instanceof IOException) {
+                    LOG.error("Error while calling endpoint. ", e);
+                } else if (e instanceof ParseException) {
+                    LOG.error("Error while parsing response. ", e);
+                }
+                outcome = Constants.OUTCOME_FAIL; // Mark as fail and check if retry is possible
             }
-
-            asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
-        });
-        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+        }
+        return Pair.of(outcome, json); // Return outcome and json (which might be null if never successful)
     }
+
 
     private boolean isValidRequestDomain(URI url) {
 

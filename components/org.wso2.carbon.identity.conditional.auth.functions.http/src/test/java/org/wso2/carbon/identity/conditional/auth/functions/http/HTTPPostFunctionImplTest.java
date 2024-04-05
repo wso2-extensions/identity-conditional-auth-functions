@@ -94,7 +94,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         // Mocking the executeHttpMethod method to avoid actual http calls.
         httpPostFunction = spy(new HTTPPostFunctionImpl());
-        doNothing().when(httpPostFunction).executeHttpMethod(any(), any());
+        doNothing().when(httpPostFunction).executeHttpMethod(any(), any(), any());
     }
 
     @AfterClass

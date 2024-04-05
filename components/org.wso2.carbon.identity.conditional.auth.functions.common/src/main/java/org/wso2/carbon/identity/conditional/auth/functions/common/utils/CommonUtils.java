@@ -23,8 +23,13 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.internal.Funct
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 
 public class CommonUtils {
+
+    private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
+    private static final String SECRET_PREFIX = "secrets.";
 
     public static String getConnectorConfig(String key, String tenantDomain) throws IdentityEventException {
 
@@ -43,5 +48,41 @@ public class CommonUtils {
         } catch (IdentityGovernanceException e) {
             throw new IdentityEventException("Error while getting connector configurations for property :" + key, e);
         }
+    }
+
+    /**
+     * Check whether the given value is a secret alias.
+     *
+     * @param value Value to check
+     * @return True if the value is a secret alias, false otherwise
+     */
+    public static boolean isSecretAlias(String value) {
+
+        return value.startsWith(SECRET_PREFIX);
+    }
+
+    /**
+     * Resolve the secret alias to its actual value.
+     *
+     * @param alias Secret alias
+     * @return Actual secret value
+     */
+    public static String resolveSecretFromAlias(String alias) {
+
+        return alias.substring(SECRET_PREFIX.length());
+    }
+
+    /**
+     * Get the resolved secret value.
+     *
+     * @param name Secret name
+     * @return Resolved secret value
+     * @throws SecretManagementException
+     */
+    public static String getResolvedSecret(String name) throws SecretManagementException {
+
+        ResolvedSecret responseDTO = FunctionsDataHolder.getInstance().getSecretConfigManager()
+                .getResolvedSecret(SECRET_TYPE, name);
+        return responseDTO.getResolvedSecretValue();
     }
 }

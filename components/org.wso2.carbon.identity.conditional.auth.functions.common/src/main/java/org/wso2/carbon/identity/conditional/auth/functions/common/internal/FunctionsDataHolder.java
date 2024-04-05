@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.common.internal;
 
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
 /**
  * Data holder.
@@ -27,6 +28,7 @@ public class FunctionsDataHolder {
 
     private static FunctionsDataHolder instance = new FunctionsDataHolder();
     private IdentityGovernanceService identityGovernanceService;
+    private SecretResolveManager secretConfigManager;
 
     public static FunctionsDataHolder getInstance() {
 
@@ -41,5 +43,15 @@ public class FunctionsDataHolder {
     public void setIdentityGovernanceService(IdentityGovernanceService identityGovernanceService) {
 
         this.identityGovernanceService = identityGovernanceService;
+    }
+
+    public SecretResolveManager getSecretConfigManager() {
+
+        return secretConfigManager;
+    }
+
+    public void setSecretConfigManager(SecretResolveManager secretConfigManager) {
+
+        this.secretConfigManager = secretConfigManager;
     }
 }

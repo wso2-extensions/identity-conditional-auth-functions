@@ -25,6 +25,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
 @Component(
         name = "identity.conditional.auth.functions.common",
@@ -55,5 +56,28 @@ public class FunctionsServiceComponent {
             LOG.debug("Identity Governance service is unset from functions");
         }
         FunctionsDataHolder.getInstance().setIdentityGovernanceService(null);
+    }
+
+    @Reference(
+            name = "secret.config.manager",
+            service = SecretResolveManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretConfigManager"
+    )
+    protected void setSecretConfigManager(SecretResolveManager secretConfigManager) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Secret Config Manager is set form functions");
+        }
+        FunctionsDataHolder.getInstance().setSecretConfigManager(secretConfigManager);
+    }
+
+    protected void unsetSecretConfigManager(SecretResolveManager secretConfigManager) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Secret Config Manager is unset from functions");
+        }
+        FunctionsDataHolder.getInstance().setSecretConfigManager(null);
     }
 }

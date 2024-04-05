@@ -26,6 +26,7 @@ public class Constants {
 
     public static final String RECEIVER_URL = "AdaptiveAuth.EventPublisher.ReceiverURL";
     public static final String HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.HTTPConnectionTimeout";
+    public static final String HTTP_REQUEST_RETRY_COUNT = "AdaptiveAuth.HTTPRequestRetryCount";
     public static final String HTTP_READ_TIMEOUT = "AdaptiveAuth.HTTPReadTimeout";
     public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.HTTPConnectionRequestTimeout";
     public static final String AUTHENTICATION_ENABLED = "AdaptiveAuth.EventPublisher.BasicAuthentication.Enable";

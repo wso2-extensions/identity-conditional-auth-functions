@@ -92,7 +92,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         // Mocking the executeHttpMethod method to avoid actual http calls.
         httpGetFunction = spy(new HTTPGetFunctionImpl());
-        doNothing().when(httpGetFunction).executeHttpMethod(any(), any());
+        doNothing().when(httpGetFunction).executeHttpMethod(any(), any(), any());
     }
 
     @AfterClass
@@ -162,7 +162,8 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testHttpGetWithInvalidNumberOfArguments() {
         Map<String, Object> eventHandlers = new HashMap<>();
-        httpGetFunction.httpGet(getRequestUrl("dummy-get"), eventHandlers, eventHandlers, eventHandlers);
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"),
+                eventHandlers, eventHandlers, eventHandlers, eventHandlers);
     }
 
     private void setAllowedDomain(String domain) {
