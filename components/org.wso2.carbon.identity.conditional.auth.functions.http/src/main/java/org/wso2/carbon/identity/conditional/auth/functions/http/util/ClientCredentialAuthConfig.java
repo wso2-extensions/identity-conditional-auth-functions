@@ -75,7 +75,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     private static final String CONSUMER_KEY_VARIABLE_NAME = "consumerKey";
     private static final String CONSUMER_SECRET_VARIABLE_NAME = "consumerSecret";
     private static final String TOKEN_ENDPOINT = "tokenEndpoint";
-    private static final String SCOPES = "scopes";
+    private static final String SCOPE = "scope";
     private AtomicInteger tokenRequestAttemptCountForTimeOut;
     private static final String ACCESS_TOKEN_KEY = "access_token";
     private static final String JWT_EXP_CLAIM = "exp";
@@ -161,10 +161,10 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             LOG.error("Required properties not defined. Aborting token request.");
             return request;
         }
-        if (!properties.containsKey(SCOPES)) {
+        if (!properties.containsKey(SCOPE)) {
             setScopes(null);
         } else {
-            setScopes(properties.get(SCOPES).toString());
+            setScopes(properties.get(SCOPE).toString());
         }
         setConsumerKey(properties.get(CONSUMER_KEY_VARIABLE_NAME).toString());
         setConsumerSecret(properties.get(CONSUMER_SECRET_VARIABLE_NAME).toString());
@@ -279,7 +279,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         List<BasicNameValuePair> bodyParams = new ArrayList<>();
         bodyParams.add(new BasicNameValuePair(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS));
         if (StringUtils.isNotEmpty(getScopes())) {
-            bodyParams.add(new BasicNameValuePair(SCOPES, getScopes()));
+            bodyParams.add(new BasicNameValuePair(SCOPE, getScopes()));
         }
         request.setEntity(new UrlEncodedFormEntity(bodyParams));
 
