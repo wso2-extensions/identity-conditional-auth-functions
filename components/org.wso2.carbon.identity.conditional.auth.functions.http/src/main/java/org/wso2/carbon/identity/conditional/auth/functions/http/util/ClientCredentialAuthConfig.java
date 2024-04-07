@@ -38,9 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
-import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.cache.APIAccessTokenCache;
-import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.io.IOException;
@@ -71,17 +69,17 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     private static final String AUTHORIZATION = "Authorization";
     private static final String GRANT_TYPE = "grant_type";
     private static final String GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
-    private Gson gson;
+    private static final Gson GSON = new GsonBuilder().create();
     private static final String CONSUMER_KEY_VARIABLE_NAME = "consumerKey";
     private static final String CONSUMER_SECRET_VARIABLE_NAME = "consumerSecret";
     private static final String TOKEN_ENDPOINT = "tokenEndpoint";
-    private static final String SCOPE = "scope";
-    private AtomicInteger tokenRequestAttemptCountForTimeOut;
+    private static final String SCOPES = "scopes";
     private static final String ACCESS_TOKEN_KEY = "access_token";
     private static final String JWT_EXP_CLAIM = "exp";
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
-    private final int maxTokenRequestAttemptsForTimeOut = 2;
+    private static final int MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT = 2;
+    private AtomicInteger tokenRequestAttemptCountForTimeOut;
     private APIAccessTokenCache apiAccessTokenCache;
     private String consumerKey;
     private String consumerSecret;
@@ -96,10 +94,6 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
     public void setAsyncReturn(AsyncReturn asyncReturn) {
         this.asyncReturn = asyncReturn;
-    }
-
-    public AuthenticationContext getAuthenticationContext() {
-        return authenticationContext;
     }
 
     /**
@@ -151,76 +145,73 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     }
 
     @Override
-    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel) throws FrameworkException {
+    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
+            throws FrameworkException {
 
         this.apiAccessTokenCache = APIAccessTokenCache.getInstance();
         Map<String, Object> properties = authConfigModel.getProperties();
-        if (!properties.containsKey(CONSUMER_KEY_VARIABLE_NAME) || !properties.containsKey(CONSUMER_SECRET_VARIABLE_NAME) ||
-                !properties.containsKey(TOKEN_ENDPOINT)) {
-            asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
-            LOG.error("Required properties not defined. Aborting token request.");
-            return request;
-        }
-        if (!properties.containsKey(SCOPE)) {
-            setScopes(null);
-        } else {
-            setScopes(properties.get(SCOPE).toString());
-        }
+        validateRequiredProperties(properties);
+
         setConsumerKey(properties.get(CONSUMER_KEY_VARIABLE_NAME).toString());
         setConsumerSecret(properties.get(CONSUMER_SECRET_VARIABLE_NAME).toString());
         setTokenEndpoint(properties.get(TOKEN_ENDPOINT).toString());
-        String accessToken = callTokenEndpoint(getAuthenticationContext());
+        setScopes(properties.containsKey(SCOPES) ? properties.get(SCOPES).toString() : null);
+
+        String accessToken = getAccessToken();
+        if (accessToken == null) {
+            asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            LOG.error("Failed to retrieve access token. Aborting request.");
+            throw new FrameworkException("Failed to retrieve access token.");
+        }
         request.setHeader(AUTHORIZATION, BEARER + accessToken);
         return request;
     }
 
     /**
-     * This method is used to request the access token from the token endpoint.
+     * This method is used to get the access token from the token endpoint.
      *
-     * @param authenticationContext {@link AuthenticationContext}
      * @return Access token
      * @throws FrameworkException {@link FrameworkException}
      */
-    private String callTokenEndpoint(AuthenticationContext authenticationContext) throws FrameworkException {
+    private void validateRequiredProperties(Map<String, Object> properties) throws FrameworkException {
 
+        if (!properties.containsKey(CONSUMER_KEY_VARIABLE_NAME) ||
+                !properties.containsKey(CONSUMER_SECRET_VARIABLE_NAME) ||
+                !properties.containsKey(TOKEN_ENDPOINT)) {
+            asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            LOG.error("Required properties not defined. Aborting token request.");
+            throw new FrameworkException("Missing required properties.");
+        }
+    }
+
+    /**
+     * This method is used to get the access token from the cache or request a new token from the token endpoint.
+     *
+     * @return Access token
+     * @throws FrameworkException {@link FrameworkException}
+     */
+    private String getAccessToken() throws FrameworkException {
+        String accessToken = apiAccessTokenCache.getValueFromCache(getConsumerKey(),
+                authenticationContext.getTenantDomain());
         try {
-            if (StringUtils.isEmpty(getTokenEndpoint())) {
-                asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
-                LOG.error("Token endpoint not defined. Aborting token request.");
-                return null;
-            }
-            this.tokenRequestAttemptCountForTimeOut = new AtomicInteger(0);
-            this.gson = new GsonBuilder().create();
-            resolveConsumerKeySecrete();
-            String accessToken = apiAccessTokenCache.getValueFromCache(getConsumerKey(),
-                    authenticationContext.getTenantDomain());
             if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {
-                LOG.info("Unexpired access token available in cache. Session data key: " +
-                        authenticationContext.getContextIdentifier());
+                LOG.debug("Unexpired access token available in cache.");
                 return accessToken;
             } else {
-                LOG.info("Requesting the access token from external api token endpoint. Session data key: " +
-                        authenticationContext.getContextIdentifier());
-                accessToken = attemptAccessTokenRequest(maxTokenRequestAttemptsForTimeOut);
-                if (accessToken == null) {
-                    asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
-                    LOG.error("Failed to obtain access token after " + maxTokenRequestAttemptsForTimeOut +
-                            " attempts.");
-                } else {
-                    return accessToken;
-                }
+                resolveConsumerKeySecrete();
+                return attemptAccessTokenRequest(MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT);
             }
-        } catch (IllegalArgumentException e) {
-            LOG.error("Invalid endpoint Url: " + getTokenEndpoint(), e);
+        } catch (ParseException e) {
+            LOG.error("Error parsing token expiry.", e);
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
-        } catch (SecretManagementClientException e) {
-            LOG.debug("Client error while resolving external api token endpoint consumer key or secret.", e);
+        } catch (IllegalArgumentException e) {
+            LOG.error("Invalid endpoint URL: " + getTokenEndpoint(), e);
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
         } catch (SecretManagementException e) {
-            LOG.error("Error while resolving external api token endpoint consumer key or secret.", e);
+            LOG.error("Error while resolving consumer key or secret.", e);
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
         } catch (Exception e) {
-            LOG.error("Error while invoking the conditional authentication function.", e);
+            LOG.error("Unexpected error during token acquisition.", e);
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
         }
         return null;
@@ -238,7 +229,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
         while (attemptCount.incrementAndGet() <= maxAttempts) {
             try {
-                LOG.info("Retrying token request for session data key: " +
+                LOG.info("Trying token request for session data key: " +
                         this.authenticationContext.getContextIdentifier());
                 String accessToken = requestAccessToken();
                 if (accessToken != null) {
@@ -246,9 +237,6 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                 }
             } catch (IOException e) {
                 LOG.error("Attempt " + attemptCount.get() + " failed.", e);
-            } catch (FrameworkException e) {
-                LOG.error("Error while getting HTTP client for calling the token endpoint. session data key: " +
-                        authenticationContext.getContextIdentifier(), e);
             }
 
             LOG.info("Retrying token request. Attempt: " + attemptCount.get());
@@ -262,12 +250,10 @@ public class ClientCredentialAuthConfig implements AuthConfig {
      * This method is used to request the access token from the token endpoint.
      *
      * @return Access token
-     * @throws IOException        {@link IOException}
-     * @throws FrameworkException {@link FrameworkException}
+     * @throws IOException {@link IOException}
      */
-    private String requestAccessToken() throws IOException, FrameworkException {
+    private String requestAccessToken() throws IOException {
 
-        String outcome = Constants.OUTCOME_FAIL;
         HttpPost request = new HttpPost(tokenEndpoint);
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
         request.setHeader(CONTENT_TYPE, TYPE_FORM_DATA);
@@ -279,7 +265,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         List<BasicNameValuePair> bodyParams = new ArrayList<>();
         bodyParams.add(new BasicNameValuePair(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS));
         if (StringUtils.isNotEmpty(getScopes())) {
-            bodyParams.add(new BasicNameValuePair(SCOPE, getScopes()));
+            bodyParams.add(new BasicNameValuePair(SCOPES, getScopes()));
         }
         request.setEntity(new UrlEncodedFormEntity(bodyParams));
 
@@ -290,43 +276,26 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();
-        CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
-        try (CloseableHttpResponse response = client.execute(request)) {
-            int responseCode;
+        try (CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+             CloseableHttpResponse response = client.execute(request)) {
 
-            try {
-                LOG.info("Access token response received.");
-                responseCode = response.getStatusLine().getStatusCode();
-                if (responseCode >= 200 && responseCode < 300) {
-                    return processSuccessfulResponse(response);
-                } else {
-                    LOG.error("Failed to retrieve access token from external api token endpoint. Response Code: "
-                            + responseCode + ". Session data key: " + authenticationContext.getContextIdentifier());
-                }
-            } catch (IOException e) {
-                LOG.error("Failed to parse access token response to string. Session data key: " +
-                        authenticationContext.getContextIdentifier(), e);
-                outcome = Constants.OUTCOME_FAIL;
-            } catch (Exception e) {
-                LOG.error("Error occurred while handling the token response from external api token endpoint. " +
-                        "Session data key: " + authenticationContext.getContextIdentifier(), e);
-                outcome = Constants.OUTCOME_FAIL;
+            int responseCode = response.getStatusLine().getStatusCode();
+            if (responseCode >= 200 && responseCode < 300) {
+                return processSuccessfulResponse(response);
+            } else {
+                LOG.error("Failed to retrieve access token. Response Code: " + responseCode + ". Session data key: " +
+                        authenticationContext.getContextIdentifier());
             }
-        } catch (IllegalArgumentException e) {
-            LOG.error("Invalid Url: " + tokenEndpoint, e);
-            outcome = Constants.OUTCOME_FAIL;
         } catch (ConnectTimeoutException e) {
-            LOG.error("Error while waiting to connect to " + tokenEndpoint, e);
-            outcome = Constants.OUTCOME_TIMEOUT;
+            LOG.error("Connection timed out while requesting access token: " + tokenEndpoint, e);
         } catch (SocketTimeoutException e) {
-            LOG.error("Error while waiting for data from " + tokenEndpoint, e);
-            outcome = Constants.OUTCOME_TIMEOUT;
+            LOG.error("Socket timed out while requesting access token: " + tokenEndpoint, e);
         } catch (IOException e) {
-            LOG.error("Error while calling endpoint. ", e);
-            outcome = Constants.OUTCOME_FAIL;
+            LOG.error("IO Exception while requesting access token: ", e);
+        } catch (Exception e) {
+            LOG.error("Unexpected error during token request: ", e);
         }
-        asyncReturn.accept(authenticationContext, Collections.emptyMap(), outcome);
         return null;
     }
 
@@ -340,7 +309,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     private String processSuccessfulResponse(CloseableHttpResponse response) throws IOException {
 
         Type responseBodyType = new TypeToken<Map<String, String>>(){}.getType();
-        Map<String, String> responseBody = gson.fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
+        Map<String, String> responseBody = GSON.fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
         String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
 
         if (accessToken != null) {
