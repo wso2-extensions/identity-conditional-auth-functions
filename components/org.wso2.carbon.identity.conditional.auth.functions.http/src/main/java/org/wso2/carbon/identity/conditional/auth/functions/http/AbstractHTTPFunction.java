@@ -109,7 +109,8 @@ public abstract class AbstractHTTPFunction {
                     LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + endpointURL);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 } else {
-                    Pair<String, JSONObject> result = executeRequestWithRetries(request, endpointURL, maxRequestAttemptsForAPIEndpointTimeout); // Assuming 3 retries
+                    Pair<String, JSONObject> result = executeRequestWithRetries
+                            (request, endpointURL, maxRequestAttemptsForAPIEndpointTimeout);
                     outcome = result.getLeft();
                     JSONObject json = result.getRight();
 
