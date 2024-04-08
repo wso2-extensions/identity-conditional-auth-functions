@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.identity.conditional.auth.functions.http.util;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
@@ -36,12 +35,12 @@ public class ApiKeyAuthConfig implements AuthConfig {
     private static final String HEADER_NAME_VARIABLE_NAME = "headerName";
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
 
-    public void setHeaderName(String headerName) {
-        this.headerName = headerName;
+    public void setHeaderName(String headerName) throws SecretManagementException {
+        this.headerName = getResolvedSecret(headerName);
     }
 
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
+    public void setApiKey(String apiKey) throws SecretManagementException {
+        this.apiKey = getResolvedSecret(apiKey);
     }
 
     public String getHeaderName() {
@@ -59,25 +58,7 @@ public class ApiKeyAuthConfig implements AuthConfig {
         Map<String, Object> properties = authConfigModel.getProperties();
         setApiKey(properties.get(API_KEY_VARIABLE_NAME).toString());
         setHeaderName(properties.get(HEADER_NAME_VARIABLE_NAME).toString());
-        resolveAPIKey();
         request.addHeader(getHeaderName(), getApiKey());
         return request;
-    }
-
-    /**
-     * Resolve the API key from the secret alias.
-     *
-     * @throws SecretManagementException
-     */
-    public void resolveAPIKey() throws SecretManagementException {
-
-        if (StringUtils.isNotEmpty(getApiKey())) {
-            if (!isSecretAlias(getApiKey())) {
-                this.apiKey = getApiKey();
-            } else {
-                String consumerKeyAlias = resolveSecretFromAlias(getApiKey());
-                this.apiKey = getResolvedSecret(consumerKeyAlias);
-            }
-        }
     }
 }

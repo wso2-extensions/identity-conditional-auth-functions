@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.identity.conditional.auth.functions.http.util;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
@@ -33,8 +32,8 @@ import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.C
 public class BearerTokenAuthConfig implements AuthConfig {
     private String token;
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setToken(String token) throws SecretManagementException {
+        this.token = getResolvedSecret(token);
     }
 
     public String getToken() {
@@ -42,29 +41,12 @@ public class BearerTokenAuthConfig implements AuthConfig {
     }
 
     @Override
-    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel) throws SecretManagementException {
+    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
+            throws SecretManagementException {
 
         Map<String, Object> properties = authConfigModel.getProperties();
         setToken(properties.get("token").toString());
-        resolveToken();
         request.setHeader("Authorization", "Bearer " + getToken());
         return request;
-    }
-
-    /**
-     * Resolve the token from the secret alias.
-     *
-     * @throws SecretManagementException
-     */
-    public void resolveToken() throws SecretManagementException {
-
-        if (StringUtils.isNotEmpty(getToken())) {
-            if (!isSecretAlias(getToken())) {
-                this.token = getToken();
-            } else {
-                String tokenAlias = resolveSecretFromAlias(getToken());
-                this.token = getResolvedSecret(tokenAlias);
-            }
-        }
     }
 }

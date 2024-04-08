@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.identity.conditional.auth.functions.http.util;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
@@ -38,12 +37,12 @@ public class BasicAuthConfig implements AuthConfig {
     private static final String USERNAME_VARIABLE_NAME = "username";
     private static final String PASSWORD_VARIABLE_NAME = "password";
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUsername(String username) throws SecretManagementException {
+        this.username = getResolvedSecret(username);
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPassword(String password) throws SecretManagementException {
+        this.password = getResolvedSecret(password);
     }
 
     public String getUsername() {
@@ -55,42 +54,16 @@ public class BasicAuthConfig implements AuthConfig {
     }
 
     @Override
-    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel) throws SecretManagementException {
+    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
+            throws SecretManagementException {
 
         Map<String, Object> properties = authConfigModel.getProperties();
         setUsername(properties.get(USERNAME_VARIABLE_NAME).toString());
         setPassword(properties.get(PASSWORD_VARIABLE_NAME).toString());
-        resolveUsernamePassword();
         String auth = getUsername() + ":" + getPassword();
         String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
         request.addHeader("Authorization", "Basic " + encodedAuth);
 
         return request;
-    }
-
-    /**
-     * Resolve the username and password from the secret alias.
-     *
-     * @throws SecretManagementException
-     */
-    public void resolveUsernamePassword() throws SecretManagementException {
-
-        if (StringUtils.isNotEmpty(getUsername())) {
-            if (!isSecretAlias(getUsername())) {
-                this.username = getUsername();
-            } else {
-                String usernameAlias = resolveSecretFromAlias(getUsername());
-                this.username = getResolvedSecret(usernameAlias);
-            }
-        }
-
-        if (StringUtils.isNotEmpty(getPassword())) {
-            if (!isSecretAlias(getPassword())) {
-                this.password = getPassword();
-            } else {
-                String passwordAlias = resolveSecretFromAlias(getPassword());
-                this.password = getResolvedSecret(passwordAlias);
-            }
-        }
     }
 }

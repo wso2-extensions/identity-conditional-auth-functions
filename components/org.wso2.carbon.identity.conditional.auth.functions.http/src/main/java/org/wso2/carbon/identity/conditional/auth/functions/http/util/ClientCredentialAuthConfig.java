@@ -112,12 +112,12 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         return LocalDateTime.now().isAfter(expiryTimestamp);
     }
 
-    public void setConsumerKey(String consumerKey) {
-        this.consumerKey = consumerKey;
+    public void setConsumerKey(String consumerKey) throws SecretManagementException {
+        this.consumerKey = getResolvedSecret(consumerKey);
     }
 
-    public void setConsumerSecret(String consumerSecret) {
-        this.consumerSecret = consumerSecret;
+    public void setConsumerSecret(String consumerSecret) throws SecretManagementException {
+        this.consumerSecret = getResolvedSecret(consumerSecret);
     }
 
     public void setTokenEndpoint(String tokenEndpoint) {
@@ -146,7 +146,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
     @Override
     public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
-            throws FrameworkException {
+            throws FrameworkException, SecretManagementException {
 
         this.apiAccessTokenCache = APIAccessTokenCache.getInstance();
         Map<String, Object> properties = authConfigModel.getProperties();
@@ -198,7 +198,6 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                 LOG.debug("Unexpired access token available in cache.");
                 return accessToken;
             } else {
-                resolveConsumerKeySecrete();
                 return attemptAccessTokenRequest(MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT);
             }
         } catch (ParseException e) {
@@ -206,9 +205,6 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
         } catch (IllegalArgumentException e) {
             LOG.error("Invalid endpoint URL: " + getTokenEndpoint(), e);
-            asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
-        } catch (SecretManagementException e) {
-            LOG.error("Error while resolving consumer key or secret.", e);
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
         } catch (Exception e) {
             LOG.error("Unexpected error during token acquisition.", e);
@@ -320,35 +316,5 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         LOG.error("Token response does not contain an access token. Session data key: " +
                 authenticationContext.getContextIdentifier());
         return null;
-    }
-
-    /**
-     * This method is used to resolve the consumer key and secret from the secret alias.
-     *
-     * @throws SecretManagementException {@link SecretManagementException}
-     */
-    public void resolveConsumerKeySecrete() throws SecretManagementException {
-
-        if (StringUtils.isNotEmpty(getConsumerKey())) {
-            if (!isSecretAlias(getConsumerKey())) {
-                this.consumerKey = getConsumerKey();
-            } else {
-                String consumerKeyAlias = resolveSecretFromAlias(getConsumerKey());
-                this.consumerKey = getResolvedSecret(consumerKeyAlias);
-            }
-        }
-
-        if (StringUtils.isNotEmpty(getConsumerSecret())) {
-            if (!isSecretAlias(getConsumerSecret())) {
-                this.consumerSecret = getConsumerSecret();
-            } else {
-                String consumerSecretAlias = resolveSecretFromAlias(getConsumerSecret());
-                this.consumerSecret = getResolvedSecret(consumerSecretAlias);
-            }
-        }
-
-        if (StringUtils.isNotEmpty(getTokenEndpoint())) {
-            this.tokenEndpoint = getTokenEndpoint();
-        }
     }
 }
