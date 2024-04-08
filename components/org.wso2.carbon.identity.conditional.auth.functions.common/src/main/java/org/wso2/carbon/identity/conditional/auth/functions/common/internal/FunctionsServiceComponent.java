@@ -68,7 +68,7 @@ public class FunctionsServiceComponent {
     protected void setSecretConfigManager(SecretResolveManager secretConfigManager) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Secret Config Manager is set form functions");
+            LOG.debug("Secret Config Manager is set from function service.");
         }
         FunctionsDataHolder.getInstance().setSecretConfigManager(secretConfigManager);
     }
@@ -76,7 +76,7 @@ public class FunctionsServiceComponent {
     protected void unsetSecretConfigManager(SecretResolveManager secretConfigManager) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Secret Config Manager is unset from functions");
+            LOG.debug("Secret Config Manager is unset from function service.");
         }
         FunctionsDataHolder.getInstance().setSecretConfigManager(null);
     }
