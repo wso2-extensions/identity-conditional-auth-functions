@@ -183,7 +183,6 @@ public abstract class AbstractHTTPFunction {
         return Pair.of(outcome, json); // Return outcome and json (which might be null if never successful)
     }
 
-
     private boolean isValidRequestDomain(URI url) {
 
         if (url == null) {
@@ -267,5 +266,22 @@ public abstract class AbstractHTTPFunction {
         headers.entrySet().stream()
                 .filter(entry -> StringUtils.isNotBlank(entry.getKey()) && !entry.getKey().equals("null"))
                 .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
+    }
+
+    /**
+     * Get AuthConfigModel from the map.
+     *
+     * @param map Map of properties.
+     * @return AuthConfigModel.
+     */
+    protected AuthConfigModel getAuthConfigModel(Map<String, Object> map) {
+        AuthConfigModel authConfig;
+        if (map.get("type") == null || map.get("properties") == null) {
+            throw new IllegalArgumentException("Invalid argument type. Expected AuthConfigModel.");
+        }
+        String type = (String) map.get("type");
+        Map<String, Object> propertiesMap = (Map<String, Object>) map.get("properties");
+        authConfig = new AuthConfigModel(type, propertiesMap);
+        return authConfig;
     }
 }

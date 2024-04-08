@@ -65,8 +65,8 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
                 break;
             case 3:
                 if (params[0] instanceof Map && params[1] instanceof Map && params[2] instanceof Map) {
-                    authConfig = (AuthConfigModel) params[0];
-                    headers = validateHeaders((Map<String, ?>) params[1]);
+                    headers = validateHeaders((Map<String, ?>) params[0]);
+                    authConfig = getAuthConfigModel((Map<String, Object>) params[1]);
                     eventHandlers = (Map<String, Object>) params[2];
                 }  else {
                     throw new IllegalArgumentException("Invalid argument type. Expected payloadData " +

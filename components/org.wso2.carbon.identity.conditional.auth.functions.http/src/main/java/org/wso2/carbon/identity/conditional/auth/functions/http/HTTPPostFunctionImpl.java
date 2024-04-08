@@ -47,7 +47,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
 
     public HTTPPostFunctionImpl() {
 
-       super();
+        super();
     }
 
     @Override
@@ -89,15 +89,9 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                 break;
             case 4:
                 if (params[0] instanceof Map && params[1] instanceof Map && params[2] instanceof Map && params[3] instanceof Map) {
-                    Map<String, Object> map = (Map<String, Object>) params[0];
-                    if (map.get("type") == null || map.get("properties") == null) {
-                        throw new IllegalArgumentException("Invalid argument type. Expected AuthConfigModel.");
-                    }
-                    String type = (String) map.get("type");
-                    Map<String, Object> propertiesMap = (Map<String, Object>) map.get("properties");
-                    authConfig = new AuthConfigModel(type, propertiesMap);
-                    payloadData = (Map<String, Object>) params[1];
-                    headers = validateHeaders((Map<String, ?>) params[2]);
+                    payloadData = (Map<String, Object>) params[0];
+                    headers = validateHeaders((Map<String, ?>) params[1]);
+                    authConfig = getAuthConfigModel((Map<String, Object>) params[2]);
                     eventHandlers = (Map<String, Object>) params[3];
                 }  else {
                     throw new IllegalArgumentException("Invalid argument type. Expected payloadData " +
