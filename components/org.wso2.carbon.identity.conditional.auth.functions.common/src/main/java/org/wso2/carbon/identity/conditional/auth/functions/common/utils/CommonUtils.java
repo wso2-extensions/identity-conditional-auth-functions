@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 
 public class CommonUtils {
 
-    private static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
+    private static final String SECRET_TYPE_CALL_CHOREO = "ADAPTIVE_AUTH_CALL_CHOREO";
     private static final String SECRET_PREFIX = "secrets.";
 
     public static String getConnectorConfig(String key, String tenantDomain) throws IdentityEventException {
@@ -91,7 +91,7 @@ public class CommonUtils {
                 // If it's an alias, strip the prefix to get the actual secret name and resolve it
                 String secretName = secretOrAlias.substring(SECRET_PREFIX.length());
                 ResolvedSecret responseDTO = FunctionsDataHolder.getInstance().getSecretConfigManager()
-                        .getResolvedSecret(SECRET_TYPE, secretName);
+                        .getResolvedSecret(SECRET_TYPE_CALL_CHOREO, secretName);
                 if (responseDTO != null) {
                     return responseDTO.getResolvedSecretValue();
                 }
