@@ -221,9 +221,9 @@ public class ClientCredentialAuthConfig implements AuthConfig {
      */
     private String attemptAccessTokenRequest(int maxAttempts) {
 
-        AtomicInteger attemptCount = new AtomicInteger(0);
+        int attemptCount = 0;
 
-        while (attemptCount.incrementAndGet() <= maxAttempts) {
+        while (++attemptCount <= maxAttempts) {
             try {
                 LOG.info("Trying token request for session data key: " +
                         this.authenticationContext.getContextIdentifier());
@@ -232,10 +232,10 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                     return accessToken;
                 }
             } catch (IOException e) {
-                LOG.error("Attempt " + attemptCount.get() + " failed.", e);
+                LOG.error("Attempt " + attemptCount + " failed.", e);
             }
 
-            LOG.info("Retrying token request. Attempt: " + attemptCount.get());
+            LOG.info("Retrying token request. Attempt: " + attemptCount);
         }
 
         LOG.warn("Maximum token request attempts reached.");
