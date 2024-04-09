@@ -66,6 +66,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-get-test-sp.xml";
     private static final String TEST_HEADERS = "http-get-test-headers.xml";
+    private static final String TEST_AUTH_CONFIG = "http-get-test-auth-config.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
@@ -139,6 +140,21 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         String requestUrl = getRequestUrl("dummy-get-with-headers");
         String result = executeHttpGetFunction(requestUrl, TEST_HEADERS);
+
+        assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
+    }
+
+    /**
+     * Test http get method with auth config.
+     * Check if the auth config is applied to the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpGetMethodWithAuthConfig() throws JsTestException {
+
+        String requestUrl = getRequestUrl("dummy-get-with-auth-config");
+        String result = executeHttpGetFunction(requestUrl, TEST_AUTH_CONFIG);
 
         assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
     }
@@ -228,6 +244,27 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Produces("application/json")
     public Map<String, String> dummyGetWithHeaders(@HeaderParam(AUTHORIZATION) String authorization) {
 
+        Map<String, String> response = new HashMap<>();
+        if (authorization != null) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy endpoint to test the http get function with auth config.
+     *
+     * @param authorization Authorization header value.
+     * @return Response.
+     */
+    @GET
+    @Path("/dummy-get-with-auth-config")
+    @Produces("application/json")
+    public Map<String, String> dummyGetWithAuthConfig(@HeaderParam(AUTHORIZATION) String authorization) {
+
+        System.out.println("Authorization123: " + authorization);
         Map<String, String> response = new HashMap<>();
         if (authorization != null) {
             response.put(STATUS, SUCCESS);

@@ -34,6 +34,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfig;
@@ -41,6 +42,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigF
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -109,11 +111,34 @@ public abstract class AbstractHTTPFunction {
                     LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + endpointURL);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 } else {
-                    Pair<String, JSONObject> result = executeRequestWithRetries
-                            (request, endpointURL, maxRequestAttemptsForAPIEndpointTimeout);
+                    Pair<String, JSONObject> result = executeRequest(request, endpointURL);
+                    if (result.getLeft().equals(Constants.OUTCOME_FAIL)) {
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                                    DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                                    Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                            diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
+                                    .resultMessage("Error while calling endpoint, proceeding with retry attempts.")
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                        }
+                        LOG.error("Error while calling endpoint. Url: " + endpointURL);
+                        result = executeRequestWithRetries(request, endpointURL, maxRequestAttemptsForAPIEndpointTimeout);
+                    } else {
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                                    DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                                    Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                            diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
+                                    .resultMessage("Successfully called the external endpoint.")
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                        }
+                    }
                     outcome = result.getLeft();
                     JSONObject json = result.getRight();
-
                     asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
                 }
             } catch (SecretManagementException e) {
@@ -136,49 +161,90 @@ public abstract class AbstractHTTPFunction {
      * @return Pair of outcome and json.
      */
     private Pair<String, JSONObject> executeRequestWithRetries(HttpUriRequest request, String endpointURL, int maxRetries) {
+
         JSONObject json = null;
         String outcome = Constants.OUTCOME_FAIL;
         int attempts = 0;
 
         while (attempts < maxRetries) {
             attempts++;
-            try (CloseableHttpResponse response = client.execute(request)) {
-                int responseCode = response.getStatusLine().getStatusCode();
-                if (responseCode >= 200 && responseCode < 300) {
-                    outcome = Constants.OUTCOME_SUCCESS;
-                    if (response.getEntity() != null) {
-                        Header contentType = response.getEntity().getContentType();
-                        String jsonString = EntityUtils.toString(response.getEntity());
-                        if (contentType != null && contentType.getValue().contains(TYPE_TEXT_PLAIN)) {
-                            json = new JSONObject();
-                            json.put(RESPONSE, jsonString);
-                        } else {
-                            JSONParser parser = new JSONParser();
-                            json = (JSONObject) parser.parse(jsonString);
-                        }
-                    }
-                    return Pair.of(outcome, json); // Success, return immediately
-                } else if (responseCode == HTTP_STATUS_UNAUTHORIZED) {
-                    LOG.warn("Received 401 response from external API call. Url: " + endpointURL);
-                    return Pair.of(Constants.OUTCOME_FAIL, null); // Unauthorized, no retry
-                } else {
-                    outcome = Constants.OUTCOME_FAIL; // Other client or server error, retry if attempts left
-                }
-            } catch (Exception e) {
-                // Log the error based on its type
-                if (e instanceof IllegalArgumentException) {
-                    LOG.error("Invalid Url: " + endpointURL, e);
-                } else if (e instanceof ConnectTimeoutException) {
-                    LOG.error("Error while waiting to connect to " + endpointURL, e);
-                } else if (e instanceof SocketTimeoutException) {
-                    LOG.error("Error while waiting for data from " + endpointURL, e);
-                } else if (e instanceof IOException) {
-                    LOG.error("Error while calling endpoint. ", e);
-                } else if (e instanceof ParseException) {
-                    LOG.error("Error while parsing response. ", e);
-                }
-                outcome = Constants.OUTCOME_FAIL; // Mark as fail and check if retry is possible
+            LOG.warn("Retrying the request. Attempt: " + attempts + " for endpoint: " + endpointURL);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
+                        .resultMessage("Retrying the request for external endpoint.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
+            Pair<String, JSONObject> result = executeRequest(request, endpointURL);
+            if (result.getLeft().equals(Constants.OUTCOME_SUCCESS)) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
+                            .resultMessage("Successfully called the external endpoint.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                return result;
+            }
+        }
+        return Pair.of(outcome, json); // Return outcome and json (which might be null if never successful)
+    }
+
+    /**
+     * Execute the request.
+     *
+     * @param request     HttpUriRequest.
+     * @param endpointURL Endpoint URL.
+     * @return Pair of outcome and json.
+     */
+    private Pair<String, JSONObject> executeRequest(HttpUriRequest request, String endpointURL) {
+
+        JSONObject json = null;
+        String outcome;
+
+        try (CloseableHttpResponse response = client.execute(request)) {
+            int responseCode = response.getStatusLine().getStatusCode();
+            if (responseCode >= 200 && responseCode < 300) {
+                outcome = Constants.OUTCOME_SUCCESS;
+                if (response.getEntity() != null) {
+                    Header contentType = response.getEntity().getContentType();
+                    String jsonString = EntityUtils.toString(response.getEntity());
+                    if (contentType != null && contentType.getValue().contains(TYPE_TEXT_PLAIN)) {
+                        json = new JSONObject();
+                        json.put(RESPONSE, jsonString);
+                    } else {
+                        JSONParser parser = new JSONParser();
+                        json = (JSONObject) parser.parse(jsonString);
+                    }
+                }
+                return Pair.of(outcome, json); // Success, return immediately
+            } else if (responseCode == HTTP_STATUS_UNAUTHORIZED) {
+                LOG.warn("Received 401 response from external API call. Url: " + endpointURL);
+                return Pair.of(Constants.OUTCOME_FAIL, null); // Unauthorized, no retry
+            } else {
+                outcome = Constants.OUTCOME_FAIL; // Other client or server error, retry if attempts left
+            }
+        } catch (Exception e) {
+            // Log the error based on its type
+            if (e instanceof IllegalArgumentException) {
+                LOG.error("Invalid Url: " + endpointURL, e);
+            } else if (e instanceof ConnectTimeoutException) {
+                LOG.error("Error while waiting to connect to " + endpointURL, e);
+            } else if (e instanceof SocketTimeoutException) {
+                LOG.error("Error while waiting for data from " + endpointURL, e);
+            } else if (e instanceof IOException) {
+                LOG.error("Error while calling endpoint. ", e);
+            } else if (e instanceof ParseException) {
+                LOG.error("Error while parsing response. ", e);
+            }
+            outcome = Constants.OUTCOME_FAIL; // Mark as fail and check if retry is possible
         }
         return Pair.of(outcome, json); // Return outcome and json (which might be null if never successful)
     }

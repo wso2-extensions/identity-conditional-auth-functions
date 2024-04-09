@@ -37,9 +37,13 @@ import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.cache.APIAccessTokenCache;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -73,13 +77,12 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     private static final String CONSUMER_KEY_VARIABLE_NAME = "consumerKey";
     private static final String CONSUMER_SECRET_VARIABLE_NAME = "consumerSecret";
     private static final String TOKEN_ENDPOINT = "tokenEndpoint";
-    private static final String SCOPES = "scopes";
+    private static final String SCOPES = "scope";
     private static final String ACCESS_TOKEN_KEY = "access_token";
     private static final String JWT_EXP_CLAIM = "exp";
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
-    private static final int MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT = 2;
-    private AtomicInteger tokenRequestAttemptCountForTimeOut;
+    private int MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT = 2;
     private APIAccessTokenCache apiAccessTokenCache;
     private String consumerKey;
     private String consumerSecret;
@@ -94,22 +97,6 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
     public void setAsyncReturn(AsyncReturn asyncReturn) {
         this.asyncReturn = asyncReturn;
-    }
-
-    /**
-     * This method decodes access token and compare its expiry time with the current time to decide whether it's
-     * expired.
-     *
-     * @param accessToken Access token which needs to be evaluated
-     * @return A boolean value indicating whether the token is expired
-     * @throws ParseException {@link ParseException}
-     */
-    private boolean isTokenExpired(String accessToken) throws ParseException {
-
-        SignedJWT decodedToken = SignedJWT.parse(accessToken);
-        Date expiryDate = (Date) decodedToken.getJWTClaimsSet().getClaim(JWT_EXP_CLAIM);
-        LocalDateTime expiryTimestamp = LocalDateTime.ofInstant(expiryDate.toInstant(), ZoneId.systemDefault());
-        return LocalDateTime.now().isAfter(expiryTimestamp);
     }
 
     public void setConsumerKey(String consumerKey) throws SecretManagementException {
@@ -148,6 +135,10 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
             throws FrameworkException, SecretManagementException {
 
+        if (org.apache.commons.lang.StringUtils.isNotBlank(IdentityUtil.getProperty(Constants.HTTP_REQUEST_RETRY_COUNT))) {
+            MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT = Integer.parseInt
+                    (IdentityUtil.getProperty(Constants.HTTP_REQUEST_RETRY_COUNT));
+        }
         this.apiAccessTokenCache = APIAccessTokenCache.getInstance();
         Map<String, Object> properties = authConfigModel.getProperties();
         validateRequiredProperties(properties);
@@ -160,11 +151,39 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         String accessToken = getAccessToken();
         if (accessToken == null) {
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.RECEIVE_TOKEN);
+                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                        .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
+                                GRANT_TYPE_CLIENT_CREDENTIALS)
+                        .resultMessage("Failed to retrieve access token for the provided token endpoint.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             LOG.error("Failed to retrieve access token. Aborting request.");
             throw new FrameworkException("Failed to retrieve access token.");
         }
         request.setHeader(AUTHORIZATION, BEARER + accessToken);
         return request;
+    }
+
+    /**
+     * This method decodes access token and compare its expiry time with the current time to decide whether it's
+     * expired.
+     *
+     * @param accessToken Access token which needs to be evaluated
+     * @return A boolean value indicating whether the token is expired
+     * @throws ParseException {@link ParseException}
+     */
+    private boolean isTokenExpired(String accessToken) throws ParseException {
+
+        SignedJWT decodedToken = SignedJWT.parse(accessToken);
+        Date expiryDate = (Date) decodedToken.getJWTClaimsSet().getClaim(JWT_EXP_CLAIM);
+        LocalDateTime expiryTimestamp = LocalDateTime.ofInstant(expiryDate.toInstant(), ZoneId.systemDefault());
+        return LocalDateTime.now().isAfter(expiryTimestamp);
     }
 
     /**
@@ -198,6 +217,27 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                 LOG.debug("Unexpired access token available in cache.");
                 return accessToken;
             } else {
+                // Attempt the first request for an access token
+                LOG.info("Attempting initial access token request for session data key: " +
+                        authenticationContext.getContextIdentifier());
+                accessToken = requestAccessToken(); // Attempt to request a new token
+                if (accessToken != null) {
+                    return accessToken;
+                }
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_TOKEN);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                            .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
+                                    GRANT_TYPE_CLIENT_CREDENTIALS)
+                            .resultMessage("Initial request failed, proceeding with retry attempts.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                // If the initial request fails, proceed with retry logic
+                LOG.info("Initial request failed, proceeding with retry attempts.");
                 return attemptAccessTokenRequest(MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT);
             }
         } catch (ParseException e) {
@@ -223,9 +263,21 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
         int attemptCount = 0;
 
-        while (++attemptCount <= maxAttempts) {
+        while (++attemptCount < maxAttempts) {
             try {
-                LOG.info("Trying token request for session data key: " +
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_TOKEN);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                            .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
+                                    GRANT_TYPE_CLIENT_CREDENTIALS)
+                            .resultMessage("Retrying token request for the provided token endpoint.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.info("Retrying token request for session data key: " +
                         this.authenticationContext.getContextIdentifier());
                 String accessToken = requestAccessToken();
                 if (accessToken != null) {
@@ -284,8 +336,32 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                         authenticationContext.getContextIdentifier());
             }
         } catch (ConnectTimeoutException e) {
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.RECEIVE_TOKEN);
+                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                        .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
+                                GRANT_TYPE_CLIENT_CREDENTIALS)
+                        .resultMessage("Connection timed out while requesting access token.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             LOG.error("Connection timed out while requesting access token: " + tokenEndpoint, e);
         } catch (SocketTimeoutException e) {
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.RECEIVE_TOKEN);
+                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                        .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
+                                GRANT_TYPE_CLIENT_CREDENTIALS)
+                        .resultMessage("Socket timed out while requesting access token.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             LOG.error("Socket timed out while requesting access token: " + tokenEndpoint, e);
         } catch (IOException e) {
             LOG.error("IO Exception while requesting access token: ", e);
