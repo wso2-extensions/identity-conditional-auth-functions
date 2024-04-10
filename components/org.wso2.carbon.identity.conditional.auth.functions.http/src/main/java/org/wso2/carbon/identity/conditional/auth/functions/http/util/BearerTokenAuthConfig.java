@@ -18,11 +18,8 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http.util;
 
 import org.apache.http.client.methods.HttpUriRequest;
-import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.util.Map;
-
-import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.*;
 
 /**
  * Implementation of the {@link AuthConfig}
@@ -32,8 +29,8 @@ import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.C
 public class BearerTokenAuthConfig implements AuthConfig {
     private String token;
 
-    public void setToken(String token) throws SecretManagementException {
-        this.token = getResolvedSecret(token);
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getToken() {
@@ -41,8 +38,7 @@ public class BearerTokenAuthConfig implements AuthConfig {
     }
 
     @Override
-    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
-            throws SecretManagementException {
+    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel) {
 
         Map<String, Object> properties = authConfigModel.getProperties();
         setToken(properties.get("token").toString());

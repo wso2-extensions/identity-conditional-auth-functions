@@ -18,11 +18,8 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http.util;
 
 import org.apache.http.client.methods.HttpUriRequest;
-import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.util.Map;
-
-import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.*;
 
 /**
  * Implementation of the {@link AuthConfig}
@@ -35,12 +32,12 @@ public class ApiKeyAuthConfig implements AuthConfig {
     private static final String HEADER_NAME_VARIABLE_NAME = "headerName";
     private static final String API_KEY_VARIABLE_NAME = "apiKey";
 
-    public void setHeaderName(String headerName) throws SecretManagementException {
-        this.headerName = getResolvedSecret(headerName);
+    public void setHeaderName(String headerName) {
+        this.headerName = headerName;
     }
 
-    public void setApiKey(String apiKey) throws SecretManagementException {
-        this.apiKey = getResolvedSecret(apiKey);
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 
     public String getHeaderName() {
@@ -52,8 +49,7 @@ public class ApiKeyAuthConfig implements AuthConfig {
     }
 
     @Override
-    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
-            throws SecretManagementException {
+    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel) {
 
         Map<String, Object> properties = authConfigModel.getProperties();
         setApiKey(properties.get(API_KEY_VARIABLE_NAME).toString());

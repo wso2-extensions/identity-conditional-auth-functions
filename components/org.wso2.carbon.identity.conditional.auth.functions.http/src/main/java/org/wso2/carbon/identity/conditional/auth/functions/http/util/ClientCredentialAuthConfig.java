@@ -41,8 +41,6 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.cache.APIAccessTokenCache;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
@@ -82,7 +80,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     private static final String JWT_EXP_CLAIM = "exp";
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
-    private int MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT = 2;
+    private int maxRequestAttemptsForAPIEndpointTimeout;
     private APIAccessTokenCache apiAccessTokenCache;
     private String consumerKey;
     private String consumerSecret;
@@ -99,12 +97,12 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         this.asyncReturn = asyncReturn;
     }
 
-    public void setConsumerKey(String consumerKey) throws SecretManagementException {
-        this.consumerKey = getResolvedSecret(consumerKey);
+    public void setConsumerKey(String consumerKey) {
+        this.consumerKey = consumerKey;
     }
 
-    public void setConsumerSecret(String consumerSecret) throws SecretManagementException {
-        this.consumerSecret = getResolvedSecret(consumerSecret);
+    public void setConsumerSecret(String consumerSecret) {
+        this.consumerSecret = consumerSecret;
     }
 
     public void setTokenEndpoint(String tokenEndpoint) {
@@ -133,12 +131,10 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
     @Override
     public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
-            throws FrameworkException, SecretManagementException {
+            throws FrameworkException {
 
-        if (org.apache.commons.lang.StringUtils.isNotBlank(IdentityUtil.getProperty(Constants.HTTP_REQUEST_RETRY_COUNT))) {
-            MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT = Integer.parseInt
-                    (IdentityUtil.getProperty(Constants.HTTP_REQUEST_RETRY_COUNT));
-        }
+        maxRequestAttemptsForAPIEndpointTimeout = ConfigProvider.getInstance().
+                getMaxRequestAttemptsForAPIEndpointTimeout();
         this.apiAccessTokenCache = APIAccessTokenCache.getInstance();
         Map<String, Object> properties = authConfigModel.getProperties();
         validateRequiredProperties(properties);
@@ -238,7 +234,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                 }
                 // If the initial request fails, proceed with retry logic
                 LOG.info("Initial request failed, proceeding with retry attempts.");
-                return attemptAccessTokenRequest(MAX_TOKEN_REQUEST_ATTEMPTS_FOR_TIMEOUT);
+                return attemptAccessTokenRequest(maxRequestAttemptsForAPIEndpointTimeout);
             }
         } catch (ParseException e) {
             LOG.error("Error parsing token expiry.", e);

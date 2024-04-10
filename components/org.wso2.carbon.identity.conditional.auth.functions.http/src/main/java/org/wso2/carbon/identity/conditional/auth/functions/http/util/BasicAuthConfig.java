@@ -18,13 +18,10 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http.util;
 
 import org.apache.http.client.methods.HttpUriRequest;
-import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
-
-import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.*;
 
 /**
  * Implementation of the {@link AuthConfig}
@@ -37,12 +34,12 @@ public class BasicAuthConfig implements AuthConfig {
     private static final String USERNAME_VARIABLE_NAME = "username";
     private static final String PASSWORD_VARIABLE_NAME = "password";
 
-    public void setUsername(String username) throws SecretManagementException {
-        this.username = getResolvedSecret(username);
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public void setPassword(String password) throws SecretManagementException {
-        this.password = getResolvedSecret(password);
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getUsername() {
@@ -54,8 +51,7 @@ public class BasicAuthConfig implements AuthConfig {
     }
 
     @Override
-    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
-            throws SecretManagementException {
+    public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel) {
 
         Map<String, Object> properties = authConfigModel.getProperties();
         setUsername(properties.get(USERNAME_VARIABLE_NAME).toString());
