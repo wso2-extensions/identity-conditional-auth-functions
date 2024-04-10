@@ -28,6 +28,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.FilterAuthenticatorsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.FilterAuthenticatorsFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginUserFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginUserFunctionImpl;
 
 /**
  * OSGi declarative services component which handles registration and de-registration of utils related
@@ -46,6 +48,11 @@ public class UtilsFunctionServiceComponent {
         JsFunctionRegistry jsFunctionRegistry = UtilsFunctionServiceHolder.getInstance().getJsFunctionRegistry();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "filterAuthenticators",
                 filterAuthenticatorsFunctionImpl);
+
+        ResolveMultiAttributeLoginUserFunction resolveMultiAttributeLoginUserFunctionImpl =
+                new ResolveMultiAttributeLoginUserFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "resolveMultiAttributeLoginUser",
+                resolveMultiAttributeLoginUserFunctionImpl);
     }
 
     @Deactivate
@@ -54,6 +61,8 @@ public class UtilsFunctionServiceComponent {
         JsFunctionRegistry jsFunctionRegistry = UtilsFunctionServiceHolder.getInstance().getJsFunctionRegistry();
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "filterAuthenticators");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
+                    "resolveMultiAttributeLoginUser");
         }
     }
 
