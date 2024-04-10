@@ -62,22 +62,18 @@ public abstract class AbstractHTTPFunction {
     protected static final String TYPE_TEXT_PLAIN = "text/plain";
     private static final char DOMAIN_SEPARATOR = '.';
     private static final String RESPONSE = "response";
-    private static final int HTTP_STATUS_UNAUTHORIZED = 401;
-    private static final int HTTP_STATUS_OK = 200;
-    private static final int HTTP_STATUS_MULTIPLE_CHOICES = 300;
-    private static final int HTTP_STATUS_TOO_MANY_REQUESTS = 429;
     private static final int HTTP_STATUS_REQUEST_TIMEOUT = 408;
     private static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
     private static final int HTTP_STATUS_BAD_REQUEST = 400;
-    private int maxRequestAttemptsForAPIEndpointTimeout;
+    private final int requestRetryCount;
     private final List<String> allowedDomains;
 
     private CloseableHttpClient client;
 
     public AbstractHTTPFunction() {
 
-        maxRequestAttemptsForAPIEndpointTimeout = ConfigProvider.getInstance().
-                getMaxRequestAttemptsForAPIEndpointTimeout();
+        requestRetryCount = ConfigProvider.getInstance().
+                getRequestRetryCount();
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
                 .setConnectionRequestTimeout(ConfigProvider.getInstance().getConnectionRequestTimeout())
@@ -110,15 +106,14 @@ public abstract class AbstractHTTPFunction {
                 }
 
                 if (!isValidRequestDomain(request.getURI())) {
-                    LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + endpointURL);
+                    LOG.error("Request URL does not match with the allowed domain list. Request Url: " +
+                            endpointURL);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 } else {
                     Pair<Integer, Pair<String, JSONObject>> result = executeRequest(request, endpointURL);
-                    if (result.getLeft() != HTTP_STATUS_TOO_MANY_REQUESTS &&
-                            result.getLeft() != HTTP_STATUS_UNAUTHORIZED &&
-                            !result.getRight().getLeft().equals(Constants.OUTCOME_SUCCESS)) {
+                    if (result.getLeft() >= 400 && result.getLeft() <= 500) {
                         LOG.error("Error while calling endpoint. Url: " + endpointURL);
-                        result = executeRequestWithRetries(request, endpointURL, maxRequestAttemptsForAPIEndpointTimeout);
+                        result = executeRequestWithRetries(request, endpointURL, requestRetryCount);
                     }
                     outcome = result.getRight().getLeft();
                     JSONObject json = result.getRight().getRight();
@@ -150,20 +145,20 @@ public abstract class AbstractHTTPFunction {
 
         while (attempts < maxRetries) {
             attempts++;
-            LOG.warn("Retrying the request. Attempt: " + attempts + " for endpoint: " + endpointURL);
+            LOG.warn("Retrying the request for endpoint: " + endpointURL + ". Attempt: " + attempts);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                         DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                         Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                        .resultMessage("Retrying the request for external endpoint.")
+                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                        .inputParam(Constants.LogConstants.InputKeys.ATTEMPT, attempts)
+                        .resultMessage("Retrying the request for external api.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             result = executeRequest(request, endpointURL);
-            if (result.getLeft() == HTTP_STATUS_TOO_MANY_REQUESTS || result.getLeft() == HTTP_STATUS_UNAUTHORIZED ||
-                    result.getRight().getLeft().equals(Constants.OUTCOME_SUCCESS)) {
+            if (result.getLeft() >= 200 && result.getLeft() < 400) {
                 return result;
             }
         }
@@ -185,8 +180,7 @@ public abstract class AbstractHTTPFunction {
 
         try (CloseableHttpResponse response = client.execute(request)) {
             int responseCode = response.getStatusLine().getStatusCode();
-            if (responseCode >= HTTP_STATUS_OK && responseCode < HTTP_STATUS_MULTIPLE_CHOICES) {
-                statuscode = HTTP_STATUS_OK;
+            if (responseCode >= 200 && responseCode < 300) {
                 if (response.getEntity() != null) {
                     Header contentType = response.getEntity().getContentType();
                     String jsonString = EntityUtils.toString(response.getEntity());
@@ -202,94 +196,64 @@ public abstract class AbstractHTTPFunction {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Successfully called the external endpoint.")
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Successfully called the external api. Status code: " + responseCode)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
+                LOG.info("Successfully called the external api. Status code: " + responseCode + ". Url: " +
+                        endpointURL);
                 outcome = Constants.OUTCOME_SUCCESS;
-                return Pair.of(statuscode, Pair.of(outcome, json)); // Success, return immediately
-            } else if (responseCode == HTTP_STATUS_UNAUTHORIZED) {
+                return Pair.of(responseCode, Pair.of(outcome, json)); // Success, return immediately
+            } else if (responseCode >= 300 && responseCode < 400) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received 401 response from external API call.")
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("External api invocation returned a redirection. Status code: " +
+                                    responseCode)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                LOG.warn("Received 401 response from external API call. Url: " + endpointURL);
+                LOG.warn("External api invocation returned a redirection. Status code: " +
+                        responseCode + ". Url: " + endpointURL);
                 outcome = Constants.OUTCOME_FAIL;
-                return Pair.of(HTTP_STATUS_UNAUTHORIZED, Pair.of(outcome, null)); // Unauthorized, no retry
-            } else if (responseCode == HTTP_STATUS_REQUEST_TIMEOUT) {
+                return Pair.of(responseCode, Pair.of(outcome, null)); // Unauthorized, no retry
+            } else if (responseCode >= 400 && responseCode < 500) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received 408 response from external API call.")
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("External api invocation returned a client error. Status code: " +
+                                    responseCode)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                outcome = Constants.OUTCOME_TIMEOUT;
-                statuscode = HTTP_STATUS_REQUEST_TIMEOUT; // Timeout, retry if attempts left
-            } else if (responseCode == HTTP_STATUS_TOO_MANY_REQUESTS) {
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received 429 response from external API call.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                }
+                LOG.warn("External api invocation returned a client error. Status code: " +
+                        responseCode + ". Url: " + endpointURL);
                 outcome = Constants.OUTCOME_FAIL;
-                statuscode = HTTP_STATUS_TOO_MANY_REQUESTS; // Rate limited, no retry
-                return Pair.of(statuscode, Pair.of(outcome, null));
-            } else if (responseCode >= HTTP_STATUS_INTERNAL_SERVER_ERROR) {
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received 5xx response from external API call.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                }
-                outcome = Constants.OUTCOME_FAIL;
-                statuscode = HTTP_STATUS_INTERNAL_SERVER_ERROR; // Server error, retry if attempts left
-            } else if (responseCode >= HTTP_STATUS_BAD_REQUEST) {
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received 4xx response from external API call.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                }
-                outcome = Constants.OUTCOME_FAIL;
-                statuscode = HTTP_STATUS_BAD_REQUEST; // Client error, retry if attempts left
+                return Pair.of(responseCode, Pair.of(outcome, null)); // Unauthorized, no retry
             } else {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received unknown response from external API call.")
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Received unknown response from external API call. Status code: " +
+                                    responseCode)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
+                LOG.error("Received unknown response from external API call. Status code: " +
+                        responseCode + ". Url: " + endpointURL);
                 outcome = Constants.OUTCOME_FAIL;
-                statuscode = responseCode; // Other client or server error, retry if attempts left
+                return Pair.of(responseCode, Pair.of(outcome, null)); // Server error, retry if attempts left
             }
         } catch (Exception e) {
             // Log the error based on its type
@@ -298,7 +262,7 @@ public abstract class AbstractHTTPFunction {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
                             .resultMessage("Invalid Url for external API call.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
@@ -307,13 +271,13 @@ public abstract class AbstractHTTPFunction {
                 statuscode = HTTP_STATUS_BAD_REQUEST; // Client error, retry if attempts left
                 outcome = Constants.OUTCOME_FAIL;
                 LOG.error("Invalid Url: " + endpointURL, e);
-            } else if (e instanceof ConnectTimeoutException) {
+            } else if (e instanceof ConnectTimeoutException || e instanceof SocketTimeoutException) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received connection timeout from external API call.")
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Received timeout from external API call.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
@@ -321,31 +285,7 @@ public abstract class AbstractHTTPFunction {
                 statuscode = HTTP_STATUS_REQUEST_TIMEOUT; // Timeout, retry if attempts left
                 outcome = Constants.OUTCOME_TIMEOUT;
                 LOG.error("Error while waiting to connect to " + endpointURL, e);
-            } else if (e instanceof SocketTimeoutException) {
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received socket timeout from external API call.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                }
-                statuscode = HTTP_STATUS_REQUEST_TIMEOUT; // Timeout, retry if attempts left
-                outcome = Constants.OUTCOME_TIMEOUT;
-                LOG.error("Error while waiting for data from " + endpointURL, e);
             } else if (e instanceof IOException) {
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Received IO exception from external API call.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                }
                 statuscode = HTTP_STATUS_REQUEST_TIMEOUT; // Timeout, retry if attempts left
                 outcome = Constants.OUTCOME_TIMEOUT;
                 LOG.error("Error while calling endpoint. ", e);
@@ -354,8 +294,8 @@ public abstract class AbstractHTTPFunction {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
-                            .resultMessage("Error while parsing response from external API call.")
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Failed to parse the response from the external API.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
@@ -368,7 +308,7 @@ public abstract class AbstractHTTPFunction {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.EXTERNAL_API, endpointURL)
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
                             .resultMessage("Received unknown exception from external API call.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
@@ -410,8 +350,10 @@ public abstract class AbstractHTTPFunction {
             return true;
         }
 
-        LOG.error("Domain: " + domain + " extracted from url: " + url.toString() + " is not available in the " +
-                "allowed domain list: " + StringUtils.join(allowedDomains, ','));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Domain: " + domain + " extracted from url: " + url.toString() + " is not available in the " +
+                    "allowed domain list: " + StringUtils.join(allowedDomains, ','));
+        }
 
         return false;
     }

@@ -71,7 +71,8 @@ public class Constants {
         public static class InputKeys {
 
             public static final String TOKEN_ENDPOINT = "token endpoint";
-            public static final String EXTERNAL_API = "external api";
+            public static final String API = "external api";
+            public static final String ATTEMPT = "attempt";
         }
 
         /**

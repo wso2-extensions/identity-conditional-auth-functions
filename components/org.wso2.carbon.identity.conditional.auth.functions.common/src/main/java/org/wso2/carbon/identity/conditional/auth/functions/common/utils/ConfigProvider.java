@@ -40,7 +40,7 @@ public class ConfigProvider {
     private int connectionTimeout;
     private int readTimeout;
     private int connectionRequestTimeout;
-    private int maxRequestAttemptsForAPIEndpointTimeout = 2;
+    private int requestRetryCount = 2;
     private List<String> httpFunctionAllowedDomainList = new ArrayList<>();
     private List<String> choreoDomainList = new ArrayList<>();
     private final String choreoTokenEndpoint;
@@ -53,7 +53,7 @@ public class ConfigProvider {
         String connectionTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_TIMEOUT);
         String readTimeoutString = IdentityUtil.getProperty(HTTP_READ_TIMEOUT);
         String connectionRequestTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_REQUEST_TIMEOUT);
-        String maxRequestAttemptsForAPIEndpointTimeoutString = IdentityUtil.getProperty(HTTP_REQUEST_RETRY_COUNT);
+        String requestRetryCountString = IdentityUtil.getProperty(HTTP_REQUEST_RETRY_COUNT);
         List<String> httpFunctionAllowedDomainList = IdentityUtil.getPropertyAsList(HTTP_FUNCTION_ALLOWED_DOMAINS);
         List<String> choreoDomainList = IdentityUtil.getPropertyAsList(CHOREO_DOMAINS);
 
@@ -83,13 +83,13 @@ public class ConfigProvider {
                 LOG.error("Error while parsing connection request timeout : " + connectionTimeoutString, e);
             }
         }
-        if (maxRequestAttemptsForAPIEndpointTimeoutString != null) {
+        if (requestRetryCountString != null) {
             try {
-                maxRequestAttemptsForAPIEndpointTimeout = Integer.parseInt
-                        (maxRequestAttemptsForAPIEndpointTimeoutString);
+                requestRetryCount = Integer.parseInt
+                        (requestRetryCountString);
             } catch (NumberFormatException e) {
                 LOG.error("Error while parsing max request attempts for api endpoint timeout : " +
-                        maxRequestAttemptsForAPIEndpointTimeoutString, e);
+                        requestRetryCountString, e);
             }
         }
 
@@ -131,9 +131,9 @@ public class ConfigProvider {
         return connectionRequestTimeout;
     }
 
-    public int getMaxRequestAttemptsForAPIEndpointTimeout() {
+    public int getRequestRetryCount() {
 
-        return maxRequestAttemptsForAPIEndpointTimeout;
+        return requestRetryCount;
     }
 
     public List<String> getAllowedDomainsForHttpFunctions() {

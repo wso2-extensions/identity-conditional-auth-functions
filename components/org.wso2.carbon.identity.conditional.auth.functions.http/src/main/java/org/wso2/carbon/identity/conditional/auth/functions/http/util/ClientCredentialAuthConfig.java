@@ -134,7 +134,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             throws FrameworkException {
 
         maxRequestAttemptsForAPIEndpointTimeout = ConfigProvider.getInstance().
-                getMaxRequestAttemptsForAPIEndpointTimeout();
+                getRequestRetryCount();
         this.apiAccessTokenCache = APIAccessTokenCache.getInstance();
         Map<String, Object> properties = authConfigModel.getProperties();
         validateRequiredProperties(properties);
