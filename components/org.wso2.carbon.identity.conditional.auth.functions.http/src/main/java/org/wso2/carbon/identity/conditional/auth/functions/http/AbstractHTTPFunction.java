@@ -176,7 +176,7 @@ public abstract class AbstractHTTPFunction {
 
         JSONObject json = null;
         String outcome;
-        int statuscode;
+        int statuscode = 500;
 
         try (CloseableHttpResponse response = client.execute(request)) {
             int responseCode = response.getStatusLine().getStatusCode();
@@ -277,17 +277,15 @@ public abstract class AbstractHTTPFunction {
                             DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
-                            .resultMessage("Received timeout from external API call.")
+                            .resultMessage("Creating a connection for the external API call timed out.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                statuscode = HTTP_STATUS_REQUEST_TIMEOUT; // Timeout, retry if attempts left
-                outcome = Constants.OUTCOME_TIMEOUT;
+                outcome = Constants.OUTCOME_TIMEOUT; // Timeout, retry if attempts left
                 LOG.error("Error while waiting to connect to " + endpointURL, e);
             } else if (e instanceof IOException) {
-                statuscode = HTTP_STATUS_REQUEST_TIMEOUT; // Timeout, retry if attempts left
-                outcome = Constants.OUTCOME_TIMEOUT;
+                outcome = Constants.OUTCOME_TIMEOUT; // Timeout, retry if attempts left
                 LOG.error("Error while calling endpoint. ", e);
             } else if (e instanceof ParseException) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -300,8 +298,7 @@ public abstract class AbstractHTTPFunction {
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                statuscode = HTTP_STATUS_INTERNAL_SERVER_ERROR; // Server error, retry if attempts left
-                outcome = Constants.OUTCOME_FAIL;
+                outcome = Constants.OUTCOME_FAIL; // Server error, retry if attempts left
                 LOG.error("Error while parsing response. ", e);
             } else {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -314,8 +311,7 @@ public abstract class AbstractHTTPFunction {
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                statuscode = HTTP_STATUS_INTERNAL_SERVER_ERROR; // Server error, retry if attempts left
-                outcome = Constants.OUTCOME_FAIL;
+                outcome = Constants.OUTCOME_FAIL; // Server error, retry if attempts left
                 LOG.error("Error while calling endpoint. ", e);
             }
         }
