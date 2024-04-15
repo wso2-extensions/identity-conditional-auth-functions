@@ -82,6 +82,15 @@ public abstract class AbstractHTTPFunction {
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
 
+    public enum RetryDecision {
+        RETRY,
+        NO_RETRY;
+
+        public boolean shouldRetry() {
+            return this == RETRY;
+        }
+    }
+
     protected void executeHttpMethod(HttpUriRequest clientRequest, Map<String, Object> eventHandlers,
                                      AuthConfigModel authConfigModel) {
 
@@ -107,9 +116,9 @@ public abstract class AbstractHTTPFunction {
                             endpointURL);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 } else {
-                    Pair<Boolean, Pair<String, JSONObject>> result = executeRequest(request, endpointURL);
-                    if (Boolean.TRUE.equals(result.getLeft())) {
-                        LOG.error("Error while calling endpoint. Url: " + endpointURL);
+                    Pair<RetryDecision, Pair<String, JSONObject>> result = executeRequest(request, endpointURL);
+                    if (result.getLeft().shouldRetry()) {
+                        LOG.info("Failed to invoke the endpoint. Url: " + endpointURL + ". Retrying the request.");
                         result = executeRequestWithRetries(request, endpointURL, requestRetryCount);
                     }
                     outcome = result.getRight().getLeft();
@@ -132,13 +141,13 @@ public abstract class AbstractHTTPFunction {
      * @param maxRetries  Maximum number of retries.
      * @return Pair of outcome and json.
      */
-    private Pair<Boolean, Pair<String, JSONObject>> executeRequestWithRetries
+    private Pair<RetryDecision, Pair<String, JSONObject>> executeRequestWithRetries
     (HttpUriRequest request, String endpointURL, int maxRetries) {
 
-        Pair<Boolean, Pair<String, JSONObject>> result;
+        Pair<RetryDecision, Pair<String, JSONObject>> result;
         String outcome = Constants.OUTCOME_FAIL;
         int attempts = 0;
-        boolean isRetry = false;
+        RetryDecision isRetry = RetryDecision.NO_RETRY;
 
         while (attempts < maxRetries) {
             attempts++;
@@ -156,7 +165,7 @@ public abstract class AbstractHTTPFunction {
             }
             result = executeRequest(request, endpointURL);
             isRetry = result.getLeft();
-            if (!isRetry) {
+            if (!isRetry.shouldRetry()) {
                 return result;
             }
         }
@@ -170,11 +179,11 @@ public abstract class AbstractHTTPFunction {
      * @param endpointURL Endpoint URL.
      * @return Pair of outcome and json.
      */
-    private Pair<Boolean, Pair<String, JSONObject>> executeRequest(HttpUriRequest request, String endpointURL) {
+    private Pair<RetryDecision, Pair<String, JSONObject>> executeRequest(HttpUriRequest request, String endpointURL) {
 
         JSONObject json = null;
         String outcome;
-        boolean isRetry = false;
+        RetryDecision isRetry = RetryDecision.NO_RETRY;
 
         try (CloseableHttpResponse response = client.execute(request)) {
             int responseCode = response.getStatusLine().getStatusCode();
@@ -203,7 +212,7 @@ public abstract class AbstractHTTPFunction {
                 LOG.info("Successfully called the external api. Status code: " + responseCode + ". Url: " +
                         endpointURL);
                 outcome = Constants.OUTCOME_SUCCESS;
-                return Pair.of(false, Pair.of(outcome, json)); // Success, return immediately
+                return Pair.of(RetryDecision.NO_RETRY, Pair.of(outcome, json)); // Success, return immediately
             } else if (responseCode >= 300 && responseCode < 400) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
@@ -219,7 +228,7 @@ public abstract class AbstractHTTPFunction {
                 LOG.warn("External api invocation returned a redirection. Status code: " +
                         responseCode + ". Url: " + endpointURL);
                 outcome = Constants.OUTCOME_FAIL;
-                return Pair.of(false, Pair.of(outcome, null)); // Unauthorized, no retry
+                return Pair.of(RetryDecision.NO_RETRY, Pair.of(outcome, null)); // Unauthorized, no retry
             } else if (responseCode >= 400 && responseCode < 500) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
@@ -235,7 +244,7 @@ public abstract class AbstractHTTPFunction {
                 LOG.warn("External api invocation returned a client error. Status code: " +
                         responseCode + ". Url: " + endpointURL);
                 outcome = Constants.OUTCOME_FAIL;
-                return Pair.of(false, Pair.of(outcome, null)); // Unauthorized, no retry
+                return Pair.of(RetryDecision.NO_RETRY, Pair.of(outcome, null)); // Unauthorized, no retry
             } else {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
@@ -251,7 +260,7 @@ public abstract class AbstractHTTPFunction {
                 LOG.error("Received unknown response from external API call. Status code: " +
                         responseCode + ". Url: " + endpointURL);
                 outcome = Constants.OUTCOME_FAIL;
-                return Pair.of(true, Pair.of(outcome, null)); // Server error, retry if attempts left
+                return Pair.of(RetryDecision.RETRY, Pair.of(outcome, null)); // Server error, retry if attempts left
             }
         } catch (Exception e) {
             // Log the error based on its type
@@ -279,12 +288,11 @@ public abstract class AbstractHTTPFunction {
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                isRetry = true; // Timeout, retry if attempts left
+                isRetry = RetryDecision.RETRY; // Timeout, retry if attempts left
                 outcome = Constants.OUTCOME_TIMEOUT;
                 LOG.error("Error while waiting to connect to " + endpointURL, e);
             } else if (e instanceof IOException) {
-                isRetry = true; // Timeout, retry if attempts left
-                outcome = Constants.OUTCOME_TIMEOUT;
+                outcome = Constants.OUTCOME_FAIL;
                 LOG.error("Error while calling endpoint. ", e);
             } else if (e instanceof ParseException) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -297,7 +305,6 @@ public abstract class AbstractHTTPFunction {
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                isRetry = true; // Timeout, retry if attempts left
                 outcome = Constants.OUTCOME_FAIL;
                 LOG.error("Error while parsing response. ", e);
             } else {
@@ -311,7 +318,6 @@ public abstract class AbstractHTTPFunction {
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                isRetry = true; // Timeout, retry if attempts left
                 outcome = Constants.OUTCOME_FAIL;
                 LOG.error("Error while calling endpoint. ", e);
             }

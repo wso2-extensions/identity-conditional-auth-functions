@@ -95,12 +95,12 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                     eventHandlers = (Map<String, Object>) params[3];
                 }  else {
                     throw new IllegalArgumentException("Invalid argument type. Expected payloadData " +
-                            "(Map<String, Object>), headers (Map<String, String>), and eventHandlers " +
-                            "(Map<String, Object>) respectively.");
+                            "(Map<String, Object>), headers (Map<String, String>), authConfig (Map<String, String>)," +
+                            " and eventHandlers (Map<String, Object>) respectively.");
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Invalid number of arguments. Expected 1, 2, or 3. Found: "
+                throw new IllegalArgumentException("Invalid number of arguments. Expected 1, 2, 3, or 4. Found: "
                         + params.length + ".");
         }
 

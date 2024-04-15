@@ -20,10 +20,11 @@ package org.wso2.carbon.identity.conditional.auth.functions.http.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import com.nimbusds.jwt.SignedJWT;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -50,12 +51,15 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.*;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
 
 /**
@@ -127,6 +131,15 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
     public String getScopes() {
         return scopes;
+    }
+
+    public enum RetryDecision {
+        RETRY,
+        NO_RETRY;
+
+        public boolean shouldRetry() {
+            return this == RETRY;
+        }
     }
 
     @Override
@@ -216,35 +229,29 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                 // Attempt the first request for an access token
                 LOG.info("Attempting initial access token request for session data key: " +
                         authenticationContext.getContextIdentifier());
-                accessToken = requestAccessToken(); // Attempt to request a new token
-                if (accessToken != null) {
-                    return accessToken;
+                Pair<RetryDecision, String> retryDecision = requestAccessToken();
+                if (retryDecision.getLeft().shouldRetry()) {
+                    return attemptAccessTokenRequest(maxRequestAttemptsForAPIEndpointTimeout);
+                } else {
+                    return retryDecision.getRight();
                 }
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                            Constants.LogConstants.ActionIDs.RECEIVE_TOKEN);
-                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
-                            .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
-                                    GRANT_TYPE_CLIENT_CREDENTIALS)
-                            .resultMessage("Initial request failed, proceeding with retry attempts.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                }
-                // If the initial request fails, proceed with retry logic
-                LOG.info("Initial request failed, proceeding with retry attempts.");
-                return attemptAccessTokenRequest(maxRequestAttemptsForAPIEndpointTimeout);
             }
         } catch (ParseException e) {
             LOG.error("Error parsing token expiry.", e);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                        .resultMessage("Failed to parse token expiry.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
+            LOG.error("Error parsing token expiry.", e);
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
-        } catch (IllegalArgumentException e) {
-            LOG.error("Invalid endpoint URL: " + getTokenEndpoint(), e);
-            asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
-        } catch (Exception e) {
-            LOG.error("Unexpected error during token acquisition.", e);
-            asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
+        } catch (IOException e) {
+            LOG.error("Error while calling token endpoint. ", e);
         }
         return null;
     }
@@ -259,7 +266,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
         int attemptCount = 0;
 
-        while (++attemptCount < maxAttempts) {
+        while (attemptCount < maxAttempts) {
+
             try {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
@@ -268,22 +276,22 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                             .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
                                     GRANT_TYPE_CLIENT_CREDENTIALS)
-                            .resultMessage("Retrying token request for the provided token endpoint.")
+                            .resultMessage("Retrying token request for the provided token endpoint. Attempt: " +
+                                    attemptCount + ".")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    attemptCount++;         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
                 LOG.info("Retrying token request for session data key: " +
-                        this.authenticationContext.getContextIdentifier());
-                String accessToken = requestAccessToken();
-                if (accessToken != null) {
-                    return accessToken;
+                        this.authenticationContext.getContextIdentifier() + ". Attempt: " + attemptCount);
+                Pair<RetryDecision, String> retryDecision = requestAccessToken();
+                if (!retryDecision.getLeft().shouldRetry()) {
+                    return retryDecision.getRight();
                 }
             } catch (IOException e) {
-                LOG.error("Attempt " + attemptCount + " failed.", e);
+                LOG.error("Error while calling token endpoint. ", e);
             }
-
-            LOG.info("Retrying token request. Attempt: " + attemptCount);
+            attemptCount++;
         }
 
         LOG.warn("Maximum token request attempts reached.");
@@ -296,8 +304,9 @@ public class ClientCredentialAuthConfig implements AuthConfig {
      * @return Access token
      * @throws IOException {@link IOException}
      */
-    private String requestAccessToken() throws IOException {
+    private Pair<RetryDecision, String> requestAccessToken() throws IOException {
 
+        RetryDecision isRetry = RetryDecision.NO_RETRY;
         HttpPost request = new HttpPost(tokenEndpoint);
         request.setHeader(ACCEPT, TYPE_APPLICATION_JSON);
         request.setHeader(CONTENT_TYPE, TYPE_FORM_DATA);
@@ -327,44 +336,94 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             int responseCode = response.getStatusLine().getStatusCode();
             if (responseCode >= 200 && responseCode < 300) {
                 return processSuccessfulResponse(response);
+            } else if (responseCode >= 300 && responseCode < 400) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                            .resultMessage("Token endpoint returned a redirection. Status code: " + responseCode)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.warn("Token endpoint returned a redirection. Status code: " + responseCode + ". Url: " +
+                        tokenEndpoint);
+                return Pair.of(RetryDecision.NO_RETRY, null);
+            } else if (responseCode >= 400 && responseCode < 500) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                            .resultMessage("Token endpoint returned a client error. Status code: " + responseCode)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.warn("Token endpoint returned a client error. Status code: " + responseCode + ". Url: " +
+                        tokenEndpoint);
+                return Pair.of(RetryDecision.NO_RETRY, null);
             } else {
-                LOG.error("Failed to retrieve access token. Response Code: " + responseCode + ". Session data key: " +
-                        authenticationContext.getContextIdentifier());
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                            .resultMessage("Received unknown response from token endpoint. Status code: " +
+                                    responseCode)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.error("Received unknown response from token endpoint. Status code: " + responseCode + ". Url: " +
+                        tokenEndpoint);
+                return Pair.of(RetryDecision.RETRY, null); // Server error, retry if attempts left
             }
-        } catch (ConnectTimeoutException e) {
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                        Constants.LogConstants.ActionIDs.RECEIVE_TOKEN);
-                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
-                        .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
-                                GRANT_TYPE_CLIENT_CREDENTIALS)
-                        .resultMessage("Connection timed out while requesting access token.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-            }
-            LOG.error("Connection timed out while requesting access token: " + tokenEndpoint, e);
-        } catch (SocketTimeoutException e) {
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                        Constants.LogConstants.ActionIDs.RECEIVE_TOKEN);
-                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
-                        .configParam(Constants.LogConstants.ConfigKeys.SUPPORTED_GRANT_TYPES,
-                                GRANT_TYPE_CLIENT_CREDENTIALS)
-                        .resultMessage("Socket timed out while requesting access token.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-            }
-            LOG.error("Socket timed out while requesting access token: " + tokenEndpoint, e);
-        } catch (IOException e) {
-            LOG.error("IO Exception while requesting access token: ", e);
         } catch (Exception e) {
-            LOG.error("Unexpected error during token request: ", e);
+            // Log the error based on its type
+            if (e instanceof IllegalArgumentException) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                            .resultMessage("Invalid Url for token endpoint.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.error("Invalid Url: " + tokenEndpoint, e);
+            } else if (e instanceof SocketTimeoutException || e instanceof ConnectTimeoutException) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                            .resultMessage("Request for the token endpoint timed out.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                isRetry = RetryDecision.RETRY; // Timeout, retry if attempts left
+                LOG.error("Error while waiting to connect to " + tokenEndpoint, e);
+            } else if (e instanceof IOException) {
+                LOG.error("Error while calling token endpoint. ", e);
+            } else {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                            .resultMessage("Received an error while invoking the token endpoint.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.error("Error while calling token endpoint. ", e);
+            }
         }
-        return null;
+        return Pair.of(isRetry, null);
     }
 
     /**
@@ -374,19 +433,32 @@ public class ClientCredentialAuthConfig implements AuthConfig {
      * @return Access token
      * @throws IOException {@link IOException}
      */
-    private String processSuccessfulResponse(CloseableHttpResponse response) throws IOException {
+    private Pair<RetryDecision, String> processSuccessfulResponse(CloseableHttpResponse response) throws IOException {
 
         Type responseBodyType = new TypeToken<Map<String, String>>(){}.getType();
         Map<String, String> responseBody = GSON.fromJson(EntityUtils.toString(response.getEntity()), responseBodyType);
         String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
 
         if (accessToken != null) {
+
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
+                        .resultMessage("Received access token from the token endpoint.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
+            LOG.info("Received access token from the token endpoint. Session data key: " +
+                    authenticationContext.getContextIdentifier());
             apiAccessTokenCache.addToCache(getConsumerKey(), accessToken,
                     this.authenticationContext.getTenantDomain());
-            return accessToken;
+            return Pair.of(RetryDecision.NO_RETRY, accessToken);
         }
         LOG.error("Token response does not contain an access token. Session data key: " +
                 authenticationContext.getContextIdentifier());
-        return null;
+        return Pair.of(RetryDecision.NO_RETRY, null);
     }
 }

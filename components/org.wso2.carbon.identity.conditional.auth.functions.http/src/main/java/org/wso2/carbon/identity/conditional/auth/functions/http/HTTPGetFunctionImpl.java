@@ -69,13 +69,13 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
                     authConfig = getAuthConfigModel((Map<String, Object>) params[1]);
                     eventHandlers = (Map<String, Object>) params[2];
                 }  else {
-                    throw new IllegalArgumentException("Invalid argument type. Expected payloadData " +
-                            "(Map<String, Object>), headers (Map<String, String>), and eventHandlers " +
-                            "(Map<String, Object>) respectively.");
+                    throw new IllegalArgumentException("Invalid argument type. Expected " +
+                            "headers (Map<String, String>), authConfig (Map<String, String>)," +
+                            " and eventHandlers (Map<String, Object>) respectively.");
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Invalid number of arguments. Expected 1 or 2, but got: " +
+                throw new IllegalArgumentException("Invalid number of arguments. Expected 1, 2 or 3, but got: " +
                         params.length + ".");
         }
 
