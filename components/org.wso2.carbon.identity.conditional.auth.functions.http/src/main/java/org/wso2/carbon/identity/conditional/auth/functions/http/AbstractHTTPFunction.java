@@ -82,7 +82,7 @@ public abstract class AbstractHTTPFunction {
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
 
-    public enum RetryDecision {
+    private enum RetryDecision {
         RETRY,
         NO_RETRY;
 
@@ -157,8 +157,7 @@ public abstract class AbstractHTTPFunction {
                         DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                         Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
                 diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
-                        .inputParam(Constants.LogConstants.InputKeys.ATTEMPT, attempts)
-                        .resultMessage("Retrying the request for external api.")
+                        .resultMessage("Retrying the request for external api. Attempt: " + attempts)
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);

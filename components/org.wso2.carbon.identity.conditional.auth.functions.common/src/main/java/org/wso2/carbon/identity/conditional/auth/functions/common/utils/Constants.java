@@ -72,7 +72,6 @@ public class Constants {
 
             public static final String TOKEN_ENDPOINT = "token endpoint";
             public static final String API = "external api";
-            public static final String ATTEMPT = "attempt";
         }
 
         /**

@@ -133,7 +133,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         return scopes;
     }
 
-    public enum RetryDecision {
+    private enum RetryDecision {
         RETRY,
         NO_RETRY;
 
