@@ -26,6 +26,7 @@ public class Constants {
 
     public static final String RECEIVER_URL = "AdaptiveAuth.EventPublisher.ReceiverURL";
     public static final String HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.HTTPConnectionTimeout";
+    public static final String HTTP_REQUEST_RETRY_COUNT = "AdaptiveAuth.HTTPRequestRetryCount";
     public static final String HTTP_READ_TIMEOUT = "AdaptiveAuth.HTTPReadTimeout";
     public static final String HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.HTTPConnectionRequestTimeout";
     public static final String AUTHENTICATION_ENABLED = "AdaptiveAuth.EventPublisher.BasicAuthentication.Enable";
@@ -46,4 +47,40 @@ public class Constants {
     public static final String HTTP_FUNCTION_ALLOWED_DOMAINS = "AdaptiveAuth.HTTPFunctionAllowedDomains.Domain";
     public static final String CHOREO_DOMAINS = "AdaptiveAuth.ChoreoDomains.Domain";
     public static final String CHOREO_TOKEN_ENDPOINT = "AdaptiveAuth.ChoreoTokenEndpoint";
+
+    /**
+     * Define logging constants.
+     */
+    public static class LogConstants {
+
+        public static final String ADAPTIVE_AUTH_SERVICE = "adaptive-auth-service";
+        public static final String FAILED = "FAILED";
+
+        /**
+         * Define action IDs for diagnostic logs.
+         */
+        public static class ActionIDs {
+
+            public static final String RECEIVE_TOKEN = "receive-token";
+            public static final String RECEIVE_API_RESPONSE = "receive-api-response";
+        }
+
+        /**
+         * Define common and reusable Input keys for diagnostic logs.
+         */
+        public static class InputKeys {
+
+            public static final String TOKEN_ENDPOINT = "token endpoint";
+            public static final String API = "external api";
+        }
+
+        /**
+         * Define common and reusable Configuration keys for diagnostic logs.
+         */
+        public static class ConfigKeys {
+
+            public static final String SUPPORTED_GRANT_TYPES = "supported grant types";
+
+        }
+    }
 }

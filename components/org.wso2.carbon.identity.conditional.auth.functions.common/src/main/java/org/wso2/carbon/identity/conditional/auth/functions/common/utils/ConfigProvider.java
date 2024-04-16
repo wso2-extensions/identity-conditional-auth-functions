@@ -31,6 +31,7 @@ import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.C
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_TIMEOUT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_FUNCTION_ALLOWED_DOMAINS;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_READ_TIMEOUT;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_REQUEST_RETRY_COUNT;
 
 public class ConfigProvider {
 
@@ -39,6 +40,7 @@ public class ConfigProvider {
     private int connectionTimeout;
     private int readTimeout;
     private int connectionRequestTimeout;
+    private int requestRetryCount = 2;
     private List<String> httpFunctionAllowedDomainList = new ArrayList<>();
     private List<String> choreoDomainList = new ArrayList<>();
     private final String choreoTokenEndpoint;
@@ -51,6 +53,7 @@ public class ConfigProvider {
         String connectionTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_TIMEOUT);
         String readTimeoutString = IdentityUtil.getProperty(HTTP_READ_TIMEOUT);
         String connectionRequestTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_REQUEST_TIMEOUT);
+        String requestRetryCountString = IdentityUtil.getProperty(HTTP_REQUEST_RETRY_COUNT);
         List<String> httpFunctionAllowedDomainList = IdentityUtil.getPropertyAsList(HTTP_FUNCTION_ALLOWED_DOMAINS);
         List<String> choreoDomainList = IdentityUtil.getPropertyAsList(CHOREO_DOMAINS);
 
@@ -78,6 +81,15 @@ public class ConfigProvider {
                 connectionRequestTimeout = Integer.parseInt(connectionRequestTimeoutString);
             } catch (NumberFormatException e) {
                 LOG.error("Error while parsing connection request timeout : " + connectionTimeoutString, e);
+            }
+        }
+        if (requestRetryCountString != null) {
+            try {
+                requestRetryCount = Integer.parseInt
+                        (requestRetryCountString);
+            } catch (NumberFormatException e) {
+                LOG.error("Error while parsing max request attempts for api endpoint timeout : " +
+                        requestRetryCountString, e);
             }
         }
 
@@ -117,6 +129,11 @@ public class ConfigProvider {
     public int getConnectionRequestTimeout() {
 
         return connectionRequestTimeout;
+    }
+
+    public int getRequestRetryCount() {
+
+        return requestRetryCount;
     }
 
     public List<String> getAllowedDomainsForHttpFunctions() {

@@ -67,6 +67,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-post-test-sp.xml";
     private static final String TEST_HEADERS = "http-post-test-headers.xml";
+    private static final String TEST_AUTH_CONFIG = "http-post-test-auth-config.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
@@ -74,6 +75,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String EMAIL = "email";
     private static final String ALLOWED_DOMAIN = "abc";
     private static final String AUTHORIZATION = "Authorization";
+    private static final String API_KEY_HEADER = "X-API-KEY";
     private HTTPPostFunctionImpl httpPostFunction;
 
     @InjectMicroservicePort
@@ -94,7 +96,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         // Mocking the executeHttpMethod method to avoid actual http calls.
         httpPostFunction = spy(new HTTPPostFunctionImpl());
-        doNothing().when(httpPostFunction).executeHttpMethod(any(), any());
+        doNothing().when(httpPostFunction).executeHttpMethod(any(), any(), any());
     }
 
     @AfterClass
@@ -140,6 +142,21 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         String requestUrl = getRequestUrl("dummy-post-headers");
         String result = executeHttpPostFunction(requestUrl, TEST_HEADERS);
+        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
+                + result);
+    }
+
+    /**
+     * Test httpPost with auth config.
+     * Check if the auth config is sent with the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostWithAuthConfig() throws JsTestException {
+
+        String requestUrl = getRequestUrl("dummy-post-auth-config");
+        String result = executeHttpPostFunction(requestUrl, TEST_AUTH_CONFIG);
         assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
                 + result);
     }
@@ -248,6 +265,29 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         Map<String, String> response = new HashMap<>();
         if (data.containsKey(EMAIL) && authorization != null) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy post method to test auth config.
+     * Check if the auth config is sent with the request.
+     * @param apikeyHeader
+     * @param data
+     * @return
+     */
+    @POST
+    @Path("/dummy-post-auth-config")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public Map<String, String> dummyPostWithAuthConfig(@HeaderParam(API_KEY_HEADER) String apikeyHeader,
+                                                       Map<String, String> data) {
+
+        Map<String, String> response = new HashMap<>();
+        if (data.containsKey(EMAIL) && apikeyHeader != null) {
             response.put(STATUS, SUCCESS);
         } else {
             response.put(STATUS, FAILED);

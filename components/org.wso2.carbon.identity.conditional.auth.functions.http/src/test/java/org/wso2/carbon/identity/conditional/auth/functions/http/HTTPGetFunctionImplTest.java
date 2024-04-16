@@ -66,6 +66,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-get-test-sp.xml";
     private static final String TEST_HEADERS = "http-get-test-headers.xml";
+    private static final String TEST_AUTH_CONFIG = "http-get-test-auth-config.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
@@ -92,7 +93,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         // Mocking the executeHttpMethod method to avoid actual http calls.
         httpGetFunction = spy(new HTTPGetFunctionImpl());
-        doNothing().when(httpGetFunction).executeHttpMethod(any(), any());
+        doNothing().when(httpGetFunction).executeHttpMethod(any(), any(), any());
     }
 
     @AfterClass
@@ -144,6 +145,21 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
+     * Test http get method with auth config.
+     * Check if the auth config is applied to the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpGetMethodWithAuthConfig() throws JsTestException {
+
+        String requestUrl = getRequestUrl("dummy-get-with-auth-config");
+        String result = executeHttpGetFunction(requestUrl, TEST_AUTH_CONFIG);
+
+        assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
+    }
+
+    /**
      * Tests the behavior of the httpGet function when provided with null headers.
      *
      * @throws IllegalArgumentException if the provided arguments are not valid.
@@ -162,7 +178,8 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testHttpGetWithInvalidNumberOfArguments() {
         Map<String, Object> eventHandlers = new HashMap<>();
-        httpGetFunction.httpGet(getRequestUrl("dummy-get"), eventHandlers, eventHandlers, eventHandlers);
+        httpGetFunction.httpGet(getRequestUrl("dummy-get"),
+                eventHandlers, eventHandlers, eventHandlers, eventHandlers);
     }
 
     private void setAllowedDomain(String domain) {
@@ -227,6 +244,27 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Produces("application/json")
     public Map<String, String> dummyGetWithHeaders(@HeaderParam(AUTHORIZATION) String authorization) {
 
+        Map<String, String> response = new HashMap<>();
+        if (authorization != null) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy endpoint to test the http get function with auth config.
+     *
+     * @param authorization Authorization header value.
+     * @return Response.
+     */
+    @GET
+    @Path("/dummy-get-with-auth-config")
+    @Produces("application/json")
+    public Map<String, String> dummyGetWithAuthConfig(@HeaderParam(AUTHORIZATION) String authorization) {
+
+        System.out.println("Authorization123: " + authorization);
         Map<String, String> response = new HashMap<>();
         if (authorization != null) {
             response.put(STATUS, SUCCESS);

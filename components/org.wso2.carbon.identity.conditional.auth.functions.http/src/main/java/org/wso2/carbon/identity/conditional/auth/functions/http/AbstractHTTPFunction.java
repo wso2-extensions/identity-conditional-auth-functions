@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -33,8 +34,13 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfig;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigFactory;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -56,12 +62,15 @@ public abstract class AbstractHTTPFunction {
     protected static final String TYPE_TEXT_PLAIN = "text/plain";
     private static final char DOMAIN_SEPARATOR = '.';
     private static final String RESPONSE = "response";
+    private final int requestRetryCount;
     private final List<String> allowedDomains;
 
     private CloseableHttpClient client;
 
     public AbstractHTTPFunction() {
 
+        requestRetryCount = ConfigProvider.getInstance().
+                getRequestRetryCount();
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(ConfigProvider.getInstance().getConnectionTimeout())
                 .setConnectionRequestTimeout(ConfigProvider.getInstance().getConnectionRequestTimeout())
@@ -73,65 +82,247 @@ public abstract class AbstractHTTPFunction {
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
 
-    protected void executeHttpMethod(HttpUriRequest request, Map<String, Object> eventHandlers) {
+    private enum RetryDecision {
+        RETRY,
+        NO_RETRY;
+
+        public boolean shouldRetry() {
+            return this == RETRY;
+        }
+    }
+
+    protected void executeHttpMethod(HttpUriRequest clientRequest, Map<String, Object> eventHandlers,
+                                     AuthConfigModel authConfigModel) {
 
         AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
-            JSONObject json = null;
-            int responseCode;
             String outcome;
             String endpointURL = null;
 
-            if (request.getURI() != null) {
-                endpointURL = request.getURI().toString();
-            }
-
-            if (!isValidRequestDomain(request.getURI())) {
-                outcome = Constants.OUTCOME_FAIL;
-                LOG.error("Provided Url does not contain a allowed domain. Invalid Url: " + endpointURL);
-                asyncReturn.accept(context, Collections.emptyMap(), outcome);
-                return;
-            }
-
-            try (CloseableHttpResponse response = client.execute(request)) {
-                responseCode = response.getStatusLine().getStatusCode();
-                if (responseCode >= 200 && responseCode < 300) {
-                    outcome = Constants.OUTCOME_SUCCESS;
-                    if (response.getEntity() != null) {
-                        Header contentType = response.getEntity().getContentType();
-                        String jsonString = EntityUtils.toString(response.getEntity());
-                        if (contentType != null && contentType.getValue().contains(TYPE_TEXT_PLAIN)) {
-                            // For 'text/plain', put the response body into the JSON object as a single field.
-                            json = new JSONObject();
-                            json.put(RESPONSE, jsonString);
-                        } else {
-                            JSONParser parser = new JSONParser();
-                            json = (JSONObject) parser.parse(jsonString);
-                        }
-                    }
+            HttpUriRequest request;
+            try {
+                if (authConfigModel != null) {
+                    AuthConfig authConfig = AuthConfigFactory.getAuthConfig(authConfigModel, context, asyncReturn);
+                    request = authConfig.applyAuth(clientRequest, authConfigModel);
                 } else {
-                    outcome = Constants.OUTCOME_FAIL;
+                    request = clientRequest;
                 }
 
-            } catch (IllegalArgumentException e) {
-                LOG.error("Invalid Url: " + endpointURL, e);
-                outcome = Constants.OUTCOME_FAIL;
-            } catch (ConnectTimeoutException e) {
-                LOG.error("Error while waiting to connect to " + endpointURL, e);
-                outcome = Constants.OUTCOME_TIMEOUT;
-            } catch (SocketTimeoutException e) {
-                LOG.error("Error while waiting for data from " + endpointURL, e);
-                outcome = Constants.OUTCOME_TIMEOUT;
-            } catch (IOException e) {
-                LOG.error("Error while calling endpoint. ", e);
-                outcome = Constants.OUTCOME_FAIL;
-            } catch (ParseException e) {
-                LOG.error("Error while parsing response. ", e);
-                outcome = Constants.OUTCOME_FAIL;
-            }
+                if (request.getURI() != null) {
+                    endpointURL = request.getURI().toString();
+                }
 
-            asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
+                if (!isValidRequestDomain(request.getURI())) {
+                    LOG.error("Request URL does not match with the allowed domain list. Request Url: " +
+                            endpointURL);
+                    asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
+                } else {
+                    Pair<RetryDecision, Pair<String, JSONObject>> result = executeRequest(request, endpointURL);
+                    if (result.getLeft().shouldRetry()) {
+                        LOG.info("Failed to invoke the endpoint. Url: " + endpointURL + ". Retrying the request.");
+                        result = executeRequestWithRetries(request, endpointURL, requestRetryCount);
+                    }
+                    outcome = result.getRight().getLeft();
+                    JSONObject json = result.getRight().getRight();
+                    asyncReturn.accept(context, json != null ? json : Collections.emptyMap(), outcome);
+                }
+            } catch (Exception e) {
+                LOG.error("Error while applying authentication to the request.", e);
+                asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
+            }
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+    }
+
+    /**
+     * Execute the request with retries.
+     *
+     * @param request     HttpUriRequest.
+     * @param endpointURL Endpoint URL.
+     * @param maxRetries  Maximum number of retries.
+     * @return Pair of outcome and json.
+     */
+    private Pair<RetryDecision, Pair<String, JSONObject>> executeRequestWithRetries
+    (HttpUriRequest request, String endpointURL, int maxRetries) {
+
+        Pair<RetryDecision, Pair<String, JSONObject>> result;
+        String outcome = Constants.OUTCOME_FAIL;
+        int attempts = 0;
+        RetryDecision isRetry = RetryDecision.NO_RETRY;
+
+        while (attempts < maxRetries) {
+            attempts++;
+            LOG.warn("Retrying the request for endpoint: " + endpointURL + ". Attempt: " + attempts);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                        .resultMessage("Retrying the request for external api. Attempt: " + attempts)
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
+            result = executeRequest(request, endpointURL);
+            isRetry = result.getLeft();
+            if (!isRetry.shouldRetry()) {
+                return result;
+            }
+        }
+        return Pair.of(isRetry, Pair.of(outcome, null));
+    }
+
+    /**
+     * Execute the request.
+     *
+     * @param request     HttpUriRequest.
+     * @param endpointURL Endpoint URL.
+     * @return Pair of outcome and json.
+     */
+    private Pair<RetryDecision, Pair<String, JSONObject>> executeRequest(HttpUriRequest request, String endpointURL) {
+
+        JSONObject json = null;
+        String outcome;
+        RetryDecision isRetry = RetryDecision.NO_RETRY;
+
+        try (CloseableHttpResponse response = client.execute(request)) {
+            int responseCode = response.getStatusLine().getStatusCode();
+            if (responseCode >= 200 && responseCode < 300) {
+                if (response.getEntity() != null) {
+                    Header contentType = response.getEntity().getContentType();
+                    String jsonString = EntityUtils.toString(response.getEntity());
+                    if (contentType != null && contentType.getValue().contains(TYPE_TEXT_PLAIN)) {
+                        json = new JSONObject();
+                        json.put(RESPONSE, jsonString);
+                    } else {
+                        JSONParser parser = new JSONParser();
+                        json = (JSONObject) parser.parse(jsonString);
+                    }
+                }
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Successfully called the external api. Status code: " + responseCode)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.info("Successfully called the external api. Status code: " + responseCode + ". Url: " +
+                        endpointURL);
+                outcome = Constants.OUTCOME_SUCCESS;
+                return Pair.of(RetryDecision.NO_RETRY, Pair.of(outcome, json)); // Success, return immediately
+            } else if (responseCode >= 300 && responseCode < 400) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("External api invocation returned a redirection. Status code: " +
+                                    responseCode)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.warn("External api invocation returned a redirection. Status code: " +
+                        responseCode + ". Url: " + endpointURL);
+                outcome = Constants.OUTCOME_FAIL;
+                return Pair.of(RetryDecision.NO_RETRY, Pair.of(outcome, null)); // Unauthorized, no retry
+            } else if (responseCode >= 400 && responseCode < 500) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("External api invocation returned a client error. Status code: " +
+                                    responseCode)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.warn("External api invocation returned a client error. Status code: " +
+                        responseCode + ". Url: " + endpointURL);
+                outcome = Constants.OUTCOME_FAIL;
+                return Pair.of(RetryDecision.NO_RETRY, Pair.of(outcome, null)); // Unauthorized, no retry
+            } else {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Received unknown response from external API call. Status code: " +
+                                    responseCode)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                LOG.error("Received unknown response from external API call. Status code: " +
+                        responseCode + ". Url: " + endpointURL);
+                outcome = Constants.OUTCOME_FAIL;
+                return Pair.of(RetryDecision.RETRY, Pair.of(outcome, null)); // Server error, retry if attempts left
+            }
+        } catch (Exception e) {
+            // Log the error based on its type
+            if (e instanceof IllegalArgumentException) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Invalid Url for external API call.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                outcome = Constants.OUTCOME_FAIL;
+                LOG.error("Invalid Url: " + endpointURL, e);
+            } else if (e instanceof ConnectTimeoutException || e instanceof SocketTimeoutException) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Request for the external API timed out.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                isRetry = RetryDecision.RETRY; // Timeout, retry if attempts left
+                outcome = Constants.OUTCOME_TIMEOUT;
+                LOG.error("Error while waiting to connect to " + endpointURL, e);
+            } else if (e instanceof IOException) {
+                outcome = Constants.OUTCOME_FAIL;
+                LOG.error("Error while calling endpoint. ", e);
+            } else if (e instanceof ParseException) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Failed to parse the response from the external API.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                outcome = Constants.OUTCOME_FAIL;
+                LOG.error("Error while parsing response. ", e);
+            } else {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.RECEIVE_API_RESPONSE);
+                    diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.API, endpointURL)
+                            .resultMessage("Received an error while invoking the external API.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                outcome = Constants.OUTCOME_FAIL;
+                LOG.error("Error while calling endpoint. ", e);
+            }
+        }
+        // Return the outcome and json (which might be null if never successful)
+        return Pair.of(isRetry, Pair.of(outcome, json));
     }
 
     private boolean isValidRequestDomain(URI url) {
@@ -217,5 +408,22 @@ public abstract class AbstractHTTPFunction {
         headers.entrySet().stream()
                 .filter(entry -> StringUtils.isNotBlank(entry.getKey()) && !entry.getKey().equals("null"))
                 .forEach(entry -> request.setHeader(entry.getKey(), entry.getValue()));
+    }
+
+    /**
+     * Get AuthConfigModel from the map.
+     *
+     * @param map Map of properties.
+     * @return AuthConfigModel.
+     */
+    protected AuthConfigModel getAuthConfigModel(Map<String, Object> map) {
+        AuthConfigModel authConfig;
+        if (map.get("type") == null || map.get("properties") == null) {
+            throw new IllegalArgumentException("Invalid argument type. Expected {type: string, properties: map}");
+        }
+        String type = (String) map.get("type");
+        Map<String, Object> propertiesMap = (Map<String, Object>) map.get("properties");
+        authConfig = new AuthConfigModel(type, propertiesMap);
+        return authConfig;
     }
 }
