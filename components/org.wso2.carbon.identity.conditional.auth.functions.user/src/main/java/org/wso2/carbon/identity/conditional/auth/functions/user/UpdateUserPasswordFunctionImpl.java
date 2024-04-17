@@ -19,7 +19,11 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
 
 /**
  * Function to update user password.
@@ -27,19 +31,35 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunction {
 
     @Override
-    public void updateUserPassword(String username, String newPassword, String tenantDomain)
-            throws FrameworkException {
+    public void updateUserPassword(JsAuthenticatedUser user, String newPassword) throws FrameworkException {
 
-        if (StringUtils.isBlank(username)) {
-            throw new FrameworkException("Username cannot be empty.");
+        if (user == null) {
+            throw new FrameworkException("User is not defined.");
         }
         if (StringUtils.isBlank(newPassword)) {
             throw new FrameworkException("The password cannot be empty.");
         }
-        if (StringUtils.isBlank(tenantDomain)) {
-            throw new FrameworkException("Tenant domain cannot be empty.");
-        }
 
-        // Update user password
+        try {
+            if (user.getWrapped() != null) {
+                String tenantDomain = user.getWrapped().getTenantDomain();
+                String userStoreDomain = user.getWrapped().getUserStoreDomain();
+                String username = user.getWrapped().getUserName();
+                UserRealm userRealm = Utils.getUserRealm(tenantDomain);
+
+                if (userRealm != null) {
+                    UserStoreManager userStoreManager = Utils.getUserStoreManager(
+                            tenantDomain, userRealm, userStoreDomain);
+                    userStoreManager.updateCredentialByAdmin(username, newPassword);
+                } else {
+                    throw new FrameworkException(String.format("Unable to find user realm for the user: %s " +
+                            "in tenant: %s", username, tenantDomain));
+                }
+            } else {
+                throw new FrameworkException("Unable to get wrapped content for the user.");
+            }
+        } catch (UserStoreException e) {
+            throw new FrameworkException("Error while updating the user password.", e);
+        }
     }
 }
