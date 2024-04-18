@@ -27,5 +27,5 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 @FunctionalInterface
 public interface UpdateUserPasswordFunction {
 
-    void updateUserPassword(JsAuthenticatedUser user, String newPassword) throws FrameworkException;
+    void updateUserPassword(JsAuthenticatedUser user, Object... parameters) throws FrameworkException;
 }

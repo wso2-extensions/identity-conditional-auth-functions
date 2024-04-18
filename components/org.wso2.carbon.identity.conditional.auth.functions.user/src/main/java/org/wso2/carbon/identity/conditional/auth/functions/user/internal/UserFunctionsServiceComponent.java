@@ -59,6 +59,8 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesV
 import org.wso2.carbon.identity.conditional.auth.functions.user.TerminateUserSessionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUserImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUser;
+import org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunctionImpl;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -91,6 +93,8 @@ public class UserFunctionsServiceComponent {
             SetAccountAssociationToLocalUser setAccountAssociationToLocalUserImpl = new SetAccountAssociationToLocalUserImpl();
             GetAuthenticatedApplicationsFunction getAuthenticatedApplicationsFunctionImp = new GetAuthenticatedAppsFuncImp();
             MicrosoftEmailVerificationFunction microsoftEmailVerificationFunction = new MicrosoftEmailVerificationFunctionImpl();
+            UpdateUserPasswordFunction updateUserPasswordFunction = new UpdateUserPasswordFunctionImpl();
+
             JsFunctionRegistry jsFunctionRegistry = UserFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasRole", hasRoleFunctionImpl);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
@@ -125,6 +129,8 @@ public class UserFunctionsServiceComponent {
                     getAuthenticatedApplicationsFunctionImp);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkMicrosoftEmailVerification",
                     microsoftEmailVerificationFunction);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "updateUserPassword",
+                    updateUserPasswordFunction);
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }
@@ -149,6 +155,7 @@ public class UserFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "doAssociationWithLocalUser");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "isAnyOfTheRolesAssignedToUser");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "checkMicrosoftEmailVerification");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "updateUserPassword");
         }
     }
 

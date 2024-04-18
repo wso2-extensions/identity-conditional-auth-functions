@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.user.core.UserRealm;
@@ -30,12 +32,30 @@ import org.wso2.carbon.user.core.UserStoreManager;
  */
 public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunction {
 
+    private static final Log LOG = LogFactory.getLog(UpdateUserPasswordFunctionImpl.class);
+
     @Override
-    public void updateUserPassword(JsAuthenticatedUser user, String newPassword) throws FrameworkException {
+    public void updateUserPassword(JsAuthenticatedUser user, Object... parameters) throws FrameworkException {
 
         if (user == null) {
             throw new FrameworkException("User is not defined.");
         }
+        if (parameters == null || parameters.length == 0) {
+            throw new FrameworkException("Password parameters are not defined.");
+        }
+
+        String newPassword = null;
+        String passwordMigrationStatusClaim = null;
+
+        if (parameters.length == 2) {
+            LOG.debug("Both password and password migration status claim parameters are provided.");
+            newPassword = (String) parameters[0];
+            passwordMigrationStatusClaim = (String) parameters[1];
+        } else {
+            LOG.debug("Only the new password is provided.");
+            newPassword = (String) parameters[0];
+        }
+
         if (StringUtils.isBlank(newPassword)) {
             throw new FrameworkException("The password cannot be empty.");
         }
@@ -50,7 +70,29 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                 if (userRealm != null) {
                     UserStoreManager userStoreManager = Utils.getUserStoreManager(
                             tenantDomain, userRealm, userStoreDomain);
+
+                    // Check for password migration status only if the claim is present.
+                    if (StringUtils.isNotBlank(passwordMigrationStatusClaim)) {
+                        String passwordMigrationStatus = userStoreManager.getUserClaimValue(
+                                username, passwordMigrationStatusClaim, null);
+                        LOG.debug("Password migration status for the user: " + username + " in tenant: "
+                                + tenantDomain + " is: " + passwordMigrationStatus);
+
+                        if (Boolean.parseBoolean(passwordMigrationStatus)) {
+                            throw new FrameworkException("Password migration has already been completed for the " +
+                                    "user: " + username + " in tenant: " + tenantDomain);
+                        }
+                    }
+
+                    // Update the user password.
                     userStoreManager.updateCredentialByAdmin(username, newPassword);
+
+                    // Update the password migration status claim.
+                    if (StringUtils.isNotBlank(passwordMigrationStatusClaim)) {
+                        LOG.debug("Updating the password migration status for the user: " + username
+                                + " in tenant: " + tenantDomain + " to true.");
+                        userStoreManager.setUserClaimValue(username, passwordMigrationStatusClaim, "true", null);
+                    }
                 } else {
                     throw new FrameworkException(String.format("Unable to find user realm for the user: %s " +
                             "in tenant: %s", username, tenantDomain));
