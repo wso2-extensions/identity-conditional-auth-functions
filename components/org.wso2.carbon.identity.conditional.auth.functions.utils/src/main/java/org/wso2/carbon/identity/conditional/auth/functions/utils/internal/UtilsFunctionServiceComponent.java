@@ -28,8 +28,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.FilterAuthenticatorsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.FilterAuthenticatorsFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginUserFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginUserFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginIdentifierFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginIdentifierFunctionImpl;
 
 /**
  * OSGi declarative services component which handles registration and de-registration of utils related
@@ -49,10 +49,10 @@ public class UtilsFunctionServiceComponent {
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "filterAuthenticators",
                 filterAuthenticatorsFunctionImpl);
 
-        ResolveMultiAttributeLoginUserFunction resolveMultiAttributeLoginUserFunctionImpl =
-                new ResolveMultiAttributeLoginUserFunctionImpl();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "resolveMultiAttributeLoginUser",
-                resolveMultiAttributeLoginUserFunctionImpl);
+        ResolveMultiAttributeLoginIdentifierFunction resolveMultiAttributeLoginIdentifierFunctionImpl =
+                new ResolveMultiAttributeLoginIdentifierFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
+                "resolveMultiAttributeLoginIdentifier", resolveMultiAttributeLoginIdentifierFunctionImpl);
     }
 
     @Deactivate
@@ -62,7 +62,7 @@ public class UtilsFunctionServiceComponent {
         if (jsFunctionRegistry != null) {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "filterAuthenticators");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
-                    "resolveMultiAttributeLoginUser");
+                    "resolveMultiAttributeLoginIdentifier");
         }
     }
 

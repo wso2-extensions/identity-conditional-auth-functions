@@ -18,17 +18,11 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.utils;
 
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
-
 /**
- * Function to resolve user from multi attribute login identifier.
+ * Function to resolve username from the multi attribute login identifier.
  */
-public class ResolveMultiAttributeLoginUserFunctionImpl implements ResolveMultiAttributeLoginUserFunction {
+@FunctionalInterface
+public interface ResolveMultiAttributeLoginIdentifierFunction {
 
-    @Override
-    public ResolvedUserResult resolveMultiAttributeLoginUser(String loginIdentifier, String tenantDomain) {
-
-        return FrameworkUtils.processMultiAttributeLoginIdentification(loginIdentifier, tenantDomain);
-    }
+    String resolveMultiAttributeLoginIdentifier(String loginIdentifier, String tenantDomain);
 }
