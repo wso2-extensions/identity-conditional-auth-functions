@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
@@ -28,6 +27,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.simple.JSONObject;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
 
@@ -48,7 +47,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
 
     public HTTPPostFunctionImpl() {
 
-       super();
+        super();
     }
 
     @Override
@@ -57,6 +56,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
         Map<String, Object> eventHandlers;
         Map<String, Object> payloadData = new HashMap<>();
         Map<String, String> headers = new HashMap<>();
+        AuthConfigModel authConfig = null;
 
         switch (params.length) {
             case 1:
@@ -87,8 +87,20 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                             "(Map<String, Object>) respectively.");
                 }
                 break;
+            case 4:
+                if (params[0] instanceof Map && params[1] instanceof Map && params[2] instanceof Map && params[3] instanceof Map) {
+                    payloadData = (Map<String, Object>) params[0];
+                    headers = validateHeaders((Map<String, ?>) params[1]);
+                    authConfig = getAuthConfigModel((Map<String, Object>) params[2]);
+                    eventHandlers = (Map<String, Object>) params[3];
+                }  else {
+                    throw new IllegalArgumentException("Invalid argument type. Expected payloadData " +
+                            "(Map<String, Object>), headers (Map<String, String>), authConfig (Map<String, String>)," +
+                            " and eventHandlers (Map<String, Object>) respectively.");
+                }
+                break;
             default:
-                throw new IllegalArgumentException("Invalid number of arguments. Expected 1, 2, or 3. Found: "
+                throw new IllegalArgumentException("Invalid number of arguments. Expected 1, 2, 3, or 4. Found: "
                         + params.length + ".");
         }
 
@@ -114,6 +126,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
                 request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
             }
         }
-        executeHttpMethod(request, eventHandlers);
+
+        executeHttpMethod(request, eventHandlers, authConfig);
     }
 }

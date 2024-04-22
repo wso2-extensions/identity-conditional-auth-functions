@@ -18,15 +18,13 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.apache.http.HttpHeaders.ACCEPT;
 
 /**
  * Implementation of the {@link HTTPGetFunction}
@@ -45,6 +43,7 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
 
         Map<String, Object> eventHandlers;
         Map<String, String> headers = new HashMap<>();
+        AuthConfigModel authConfig = null;
 
         switch (params.length) {
             case 1:
@@ -64,14 +63,25 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
                             "and eventHandlers (Map<String, Object>) respectively.");
                 }
                 break;
+            case 3:
+                if (params[0] instanceof Map && params[1] instanceof Map && params[2] instanceof Map) {
+                    headers = validateHeaders((Map<String, ?>) params[0]);
+                    authConfig = getAuthConfigModel((Map<String, Object>) params[1]);
+                    eventHandlers = (Map<String, Object>) params[2];
+                }  else {
+                    throw new IllegalArgumentException("Invalid argument type. Expected " +
+                            "headers (Map<String, String>), authConfig (Map<String, String>)," +
+                            " and eventHandlers (Map<String, Object>) respectively.");
+                }
+                break;
             default:
-                throw new IllegalArgumentException("Invalid number of arguments. Expected 1 or 2, but got: " +
+                throw new IllegalArgumentException("Invalid number of arguments. Expected 1, 2 or 3, but got: " +
                         params.length + ".");
         }
 
         HttpGet request = new HttpGet(endpointURL);
         setHeaders(request, headers);
 
-        executeHttpMethod(request, eventHandlers);
+        executeHttpMethod(request, eventHandlers, authConfig);
     }
 }
