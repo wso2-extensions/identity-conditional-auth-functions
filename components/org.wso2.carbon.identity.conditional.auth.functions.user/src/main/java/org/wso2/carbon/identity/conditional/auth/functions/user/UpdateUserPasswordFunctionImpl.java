@@ -23,9 +23,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 /**
  * Function to update user password.
@@ -35,13 +38,37 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
     private static final Log LOG = LogFactory.getLog(UpdateUserPasswordFunctionImpl.class);
 
     @Override
-    public void updateUserPassword(JsAuthenticatedUser user, Object... parameters) throws FrameworkException {
+    public void updateUserPassword(JsAuthenticatedUser user, Object... parameters) {
 
         if (user == null) {
-            throw new FrameworkException("User is not defined.");
+            LOG.debug("User is not defined.");
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.VALIDATE_INPUT_PARAMS
+                );
+                diagnosticLogBuilder.resultMessage("User is not defined.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
+
+            return;
         }
         if (parameters == null || parameters.length == 0) {
-            throw new FrameworkException("Password parameters are not defined.");
+            LOG.debug("Password parameters are not defined.");
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.VALIDATE_INPUT_PARAMS
+                );
+                diagnosticLogBuilder.resultMessage("Password parameters are not defined.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
+
+            return;
         }
 
         String newPassword = null;
@@ -57,7 +84,19 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
         }
 
         if (StringUtils.isBlank(newPassword)) {
-            throw new FrameworkException("The password cannot be empty.");
+            LOG.debug("The provided password is empty.");
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.VALIDATE_INPUT_PARAMS
+                );
+                diagnosticLogBuilder.resultMessage("The provided password is empty.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
+
+            return;
         }
 
         try {
@@ -65,43 +104,157 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                 String tenantDomain = user.getWrapped().getTenantDomain();
                 String userStoreDomain = user.getWrapped().getUserStoreDomain();
                 String username = user.getWrapped().getUserName();
+                String loggableUserId = user.getWrapped().getLoggableMaskedUserId();
                 UserRealm userRealm = Utils.getUserRealm(tenantDomain);
 
                 if (userRealm != null) {
                     UserStoreManager userStoreManager = Utils.getUserStoreManager(
                             tenantDomain, userRealm, userStoreDomain);
 
+                    if (userStoreManager == null) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(String.format("Unable to find user store manager for the " +
+                                    "user store domain: %s in tenant: %s", userStoreDomain, tenantDomain));
+                        }
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                                    new DiagnosticLog.DiagnosticLogBuilder(
+                                            Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                                            Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
+                                    );
+                            diagnosticLogBuilder.resultMessage("Unable to find user store manager for the " +
+                                            "user store domain.")
+                                    .inputParam("tenantDomain", tenantDomain)
+                                    .inputParam("userStoreDomain", userStoreDomain)
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                        }
+
+                        return;
+                    }
+
                     // Check for password migration status only if the claim is present.
                     if (StringUtils.isNotBlank(passwordMigrationStatusClaim)) {
                         String passwordMigrationStatus = userStoreManager.getUserClaimValue(
                                 username, passwordMigrationStatusClaim, null);
-                        LOG.debug("Password migration status for the user: " + username + " in tenant: "
-                                + tenantDomain + " is: " + passwordMigrationStatus);
+
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(String.format("Password migration status for the user: %s in tenant: %s is: %s",
+                                    username, tenantDomain, passwordMigrationStatus));
+                        }
 
                         if (Boolean.parseBoolean(passwordMigrationStatus)) {
-                            throw new FrameworkException("Password migration has already been completed for the " +
-                                    "user: " + username + " in tenant: " + tenantDomain);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug(String.format("Password migration has already been completed for the " +
+                                        "user: %s in tenant: %s", username, tenantDomain));
+                            }
+                            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                                        new DiagnosticLog.DiagnosticLogBuilder(
+                                                Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                                                Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
+                                        );
+                                diagnosticLogBuilder.resultMessage("Password migration has already been completed " +
+                                                "for the user.").inputParam("user", loggableUserId)
+                                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                            }
+
+                            return;
                         }
                     }
 
                     // Update the user password.
                     userStoreManager.updateCredentialByAdmin(username, newPassword);
 
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format("User password updated successfully for the user: %s " +
+                                "in tenant: %s.", username, tenantDomain));
+                    }
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                                new DiagnosticLog.DiagnosticLogBuilder(
+                                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                                        Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
+                                );
+                        diagnosticLogBuilder.resultMessage("User password updated successfully.")
+                                .inputParam("user", loggableUserId)
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    }
+
                     // Update the password migration status claim.
                     if (StringUtils.isNotBlank(passwordMigrationStatusClaim)) {
-                        LOG.debug("Updating the password migration status for the user: " + username
-                                + " in tenant: " + tenantDomain + " to true.");
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(String.format("Updating the password migration status claim: %s " +
+                                    "for the user: %s in tenant: %s to true.",
+                                    passwordMigrationStatusClaim, username, tenantDomain));
+                        }
                         userStoreManager.setUserClaimValue(username, passwordMigrationStatusClaim, "true", null);
+
+                        LOG.debug("Password migration status claim updated successfully for the user: " + username
+                                + " in tenant: " + tenantDomain + ".");
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                                    new DiagnosticLog.DiagnosticLogBuilder(
+                                            Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                                            Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
+                                    );
+                            diagnosticLogBuilder.resultMessage("Password migration status claim updated successfully.")
+                                    .inputParam("user", loggableUserId)
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                        }
                     }
                 } else {
-                    throw new FrameworkException(String.format("Unable to find user realm for the user: %s " +
-                            "in tenant: %s", username, tenantDomain));
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format("Unable to find user realm for the user: %s " +
+                                "in tenant: %s", username, tenantDomain));
+                    }
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                                new DiagnosticLog.DiagnosticLogBuilder(
+                                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                                        Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
+                                );
+                        diagnosticLogBuilder.resultMessage("Unable to find user realm for the user.")
+                                .inputParam("user", loggableUserId)
+                                .inputParam("tenantDomain", tenantDomain)
+                                .inputParam("userStoreDomain", userStoreDomain)
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    }
                 }
             } else {
-                throw new FrameworkException("Unable to get wrapped content for the user.");
+                LOG.debug("Unable to get wrapped content for the user.");
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                            Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
+                    );
+                    diagnosticLogBuilder.resultMessage("Unable to get wrapped content for the user.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
             }
-        } catch (UserStoreException e) {
-            throw new FrameworkException("Error while updating the user password.", e);
+        } catch (UserStoreException | FrameworkException e) {
+            LOG.error("Error occurred while updating the user password.", e);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
+                );
+                diagnosticLogBuilder.resultMessage("Error occurred while updating the user password.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
         }
     }
 }

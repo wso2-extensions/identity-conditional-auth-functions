@@ -24,5 +24,12 @@ package org.wso2.carbon.identity.conditional.auth.functions.utils;
 @FunctionalInterface
 public interface ResolveMultiAttributeLoginIdentifierFunction {
 
+    /**
+     * Resolves username from the provided login identifier when multi attribute login is enabled.
+     *
+     * @param loginIdentifier The user provided login identifier.
+     * @param tenantDomain    The tenant domain.
+     * @return The resolved username.
+     */
     String resolveMultiAttributeLoginIdentifier(String loginIdentifier, String tenantDomain);
 }

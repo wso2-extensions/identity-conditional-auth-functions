@@ -63,6 +63,8 @@ public class Constants {
 
             public static final String RECEIVE_TOKEN = "receive-token";
             public static final String RECEIVE_API_RESPONSE = "receive-api-response";
+            public static final String VALIDATE_INPUT_PARAMS = "validate-input-parameters";
+            public static final String UPDATE_USER_PASSWORD = "update-user-password";
         }
 
         /**
