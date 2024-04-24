@@ -111,29 +111,6 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                     UserStoreManager userStoreManager = Utils.getUserStoreManager(
                             tenantDomain, userRealm, userStoreDomain);
 
-                    if (userStoreManager == null) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(String.format("Unable to find user store manager for the " +
-                                    "user store domain: %s in tenant: %s", userStoreDomain, tenantDomain));
-                        }
-                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
-                                    new DiagnosticLog.DiagnosticLogBuilder(
-                                            Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                                            Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
-                                    );
-                            diagnosticLogBuilder.resultMessage("Unable to find user store manager for the " +
-                                            "user store domain.")
-                                    .inputParam("tenantDomain", tenantDomain)
-                                    .inputParam("userStoreDomain", userStoreDomain)
-                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                        }
-
-                        return;
-                    }
-
                     // Check for password migration status only if the claim is present.
                     if (StringUtils.isNotBlank(passwordMigrationStatusClaim)) {
                         String passwordMigrationStatus = userStoreManager.getUserClaimValue(
