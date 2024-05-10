@@ -31,7 +31,7 @@ public interface UpdateUserPasswordFunction {
      *
      * @param user       Authenticated user.
      * @param parameters Parameters. It is mandatory to provide the new password as the first parameter.
-     *                   Then an optional local claim can be provided to hold the password update status.
+     *                   Then an optional map of event handlers can be provided.
      */
     void updateUserPassword(JsAuthenticatedUser user, Object... parameters);
 }

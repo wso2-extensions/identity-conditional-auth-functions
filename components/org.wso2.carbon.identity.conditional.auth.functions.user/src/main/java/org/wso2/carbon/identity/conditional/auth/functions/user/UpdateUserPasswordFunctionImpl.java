@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -29,6 +31,9 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.DiagnosticLog;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Function to update user password.
@@ -41,63 +46,55 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
     public void updateUserPassword(JsAuthenticatedUser user, Object... parameters) {
 
         if (user == null) {
-            LOG.debug("User is not defined.");
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                        Constants.LogConstants.ActionIDs.VALIDATE_INPUT_PARAMS
-                );
-                diagnosticLogBuilder.resultMessage("User is not defined.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-            }
-
-            return;
+            throw new IllegalArgumentException("User is not defined.");
         }
         if (parameters == null || parameters.length == 0) {
-            LOG.debug("Password parameters are not defined.");
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                        Constants.LogConstants.ActionIDs.VALIDATE_INPUT_PARAMS
-                );
-                diagnosticLogBuilder.resultMessage("Password parameters are not defined.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-            }
-
-            return;
+            throw new IllegalArgumentException("Password is not defined.");
         }
 
         String newPassword = null;
-        String passwordMigrationStatusClaim = null;
+        Map<String, Object> eventHandlers = null;
 
         if (parameters.length == 2) {
-            LOG.debug("Both password and password migration status claim parameters are provided.");
+            LOG.debug("Both password and event handlers are provided.");
             newPassword = (String) parameters[0];
-            passwordMigrationStatusClaim = (String) parameters[1];
+
+            if (parameters[1] instanceof Map) {
+                eventHandlers = (Map<String, Object>) parameters[1];
+            } else {
+                throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
+                        "(Map<String, Object>).");
+            }
         } else {
-            LOG.debug("Only the new password is provided.");
+            LOG.debug("Only the password is provided.");
             newPassword = (String) parameters[0];
         }
 
         if (StringUtils.isBlank(newPassword)) {
-            LOG.debug("The provided password is empty.");
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                        Constants.LogConstants.ActionIDs.VALIDATE_INPUT_PARAMS
-                );
-                diagnosticLogBuilder.resultMessage("The provided password is empty.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-            }
-
-            return;
+            throw new IllegalArgumentException("The provided password is empty.");
         }
+
+        if (eventHandlers != null) {
+            String finalNewPassword = newPassword;
+            AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
+                try {
+                    doUpdatePassword(user, finalNewPassword);
+                    asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_SUCCESS);
+                } catch (FrameworkException e) {
+                    asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
+                }
+            });
+            JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+        } else {
+            try {
+                doUpdatePassword(user, newPassword);
+            } catch (FrameworkException e) {
+                // Ignore FrameworkException as the function is not expected to throw any.
+            }
+        }
+    }
+
+    private void doUpdatePassword(JsAuthenticatedUser user, String newPassword) throws FrameworkException {
 
         try {
             if (user.getWrapped() != null) {
@@ -110,38 +107,6 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                 if (userRealm != null) {
                     UserStoreManager userStoreManager = Utils.getUserStoreManager(
                             tenantDomain, userRealm, userStoreDomain);
-
-                    // Check for password migration status only if the claim is present.
-                    if (StringUtils.isNotBlank(passwordMigrationStatusClaim)) {
-                        String passwordMigrationStatus = userStoreManager.getUserClaimValue(
-                                username, passwordMigrationStatusClaim, null);
-
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(String.format("Password migration status for the user: %s in tenant: %s is: %s",
-                                    username, tenantDomain, passwordMigrationStatus));
-                        }
-
-                        if (Boolean.parseBoolean(passwordMigrationStatus)) {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug(String.format("Password migration has already been completed for the " +
-                                        "user: %s in tenant: %s", username, tenantDomain));
-                            }
-                            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
-                                        new DiagnosticLog.DiagnosticLogBuilder(
-                                                Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                                                Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
-                                        );
-                                diagnosticLogBuilder.resultMessage("Password migration has already been completed " +
-                                                "for the user.").inputParam("user", loggableUserId)
-                                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                            }
-
-                            return;
-                        }
-                    }
 
                     // Update the user password.
                     userStoreManager.updateCredentialByAdmin(username, newPassword);
@@ -162,43 +127,19 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                                 .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }
-
-                    // Update the password migration status claim.
-                    if (StringUtils.isNotBlank(passwordMigrationStatusClaim)) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(String.format("Updating the password migration status claim: %s " +
-                                    "for the user: %s in tenant: %s to true.",
-                                    passwordMigrationStatusClaim, username, tenantDomain));
-                        }
-                        userStoreManager.setUserClaimValue(username, passwordMigrationStatusClaim, "true", null);
-
-                        LOG.debug("Password migration status claim updated successfully for the user: " + username
-                                + " in tenant: " + tenantDomain + ".");
-                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
-                                    new DiagnosticLog.DiagnosticLogBuilder(
-                                            Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                                            Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
-                                    );
-                            diagnosticLogBuilder.resultMessage("Password migration status claim updated successfully.")
-                                    .inputParam("user", loggableUserId)
-                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
-                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-                        }
-                    }
                 } else {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(String.format("Unable to find user realm for the user: %s " +
                                 "in tenant: %s", username, tenantDomain));
                     }
+                    String message = "Unable to find user realm for the user.";
                     if (LoggerUtils.isDiagnosticLogsEnabled()) {
                         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
                                 new DiagnosticLog.DiagnosticLogBuilder(
                                         Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                                         Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
                                 );
-                        diagnosticLogBuilder.resultMessage("Unable to find user realm for the user.")
+                        diagnosticLogBuilder.resultMessage(message)
                                 .inputParam("user", loggableUserId)
                                 .inputParam("tenantDomain", tenantDomain)
                                 .inputParam("userStoreDomain", userStoreDomain)
@@ -206,32 +147,42 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }
+
+                    throw new FrameworkException(message);
                 }
             } else {
-                LOG.debug("Unable to get wrapped content for the user.");
+                String message = "Unable to get wrapped content for the user.";
+
+                LOG.debug(message);
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                             Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                             Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
                     );
-                    diagnosticLogBuilder.resultMessage("Unable to get wrapped content for the user.")
+                    diagnosticLogBuilder.resultMessage(message)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
+
+                throw new FrameworkException(message);
             }
         } catch (UserStoreException | FrameworkException e) {
-            LOG.error("Error occurred while updating the user password.", e);
+            String message = "Error occurred while updating the user password.";
+
+            LOG.error(message, e);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
                         Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD
                 );
-                diagnosticLogBuilder.resultMessage("Error occurred while updating the user password.")
+                diagnosticLogBuilder.resultMessage(message)
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
+
+            throw new FrameworkException(message, e);
         }
     }
 }

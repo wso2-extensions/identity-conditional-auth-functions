@@ -18,36 +18,47 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
+import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
-import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
+import org.wso2.carbon.identity.conditional.auth.functions.common.internal.FunctionsDataHolder;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
-import org.wso2.carbon.identity.event.IdentityEventException;
-import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -57,38 +68,47 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @WithCarbonHome
-@WithRealmService(injectToSingletons = {FrameworkServiceDataHolder.class})
-public class UpdateUserPasswordFunctionImplTest {
+@WithRealmService(injectToSingletons = {UserFunctionsServiceHolder.class, IdentityTenantUtil.class,
+        FrameworkServiceDataHolder.class})
+@WithH2Database(files = "dbscripts/h2.sql")
+public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
-    private UpdateUserPasswordFunctionImpl testFunction;
-    private JsAuthenticatedUser jsAuthenticatedUser;
-
-    @Mock
     RealmService realmServiceMock;
-    @Mock
     UserRealm userRealmMock;
-
+    FunctionsDataHolder functionsDataHolderMock;
     UserStoreManager userStoreManagerMock;
     IdentityEventService identityEventServiceMock;
 
-    private final String USERNAME = "testUser";
-    private final String PASSWORD = "password";
-    private final String PASSWORD_UPDATE_STATUS_CLAIM = "http://wso2.org/claims/password_migration_status";
+    private UpdateUserPasswordFunctionImpl testFunction;
 
     @BeforeClass
-    public void setUp() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp() throws Exception {
 
-        testFunction = new UpdateUserPasswordFunctionImpl();
+        super.setUp();
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
+        sequenceHandlerRunner.registerJsFunction("updateUserPassword", new UpdateUserPasswordFunctionImpl());
+
         initMocks(this);
+        testFunction = new UpdateUserPasswordFunctionImpl();
 
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setUserName(USERNAME);
-        authenticatedUser.setTenantDomain("carbon.super");
-        authenticatedUser.setUserStoreDomain("PRIMARY");
-        authenticatedUser.setUserId("123456");
-        jsAuthenticatedUser = new JsOpenJdkNashornAuthenticatedUser(authenticatedUser);
+        functionsDataHolderMock = mock(FunctionsDataHolder.class);
+        Field functionsDataHolderInstance = FunctionsDataHolder.class.getDeclaredField("instance");
+        functionsDataHolderInstance.setAccessible(true);
+        functionsDataHolderInstance.set(null, functionsDataHolderMock);
 
-        // Diagnostic log related mocks.
+        Field frameworkServiceDataHolderInstance = FrameworkServiceDataHolder.class.getDeclaredField("instance");
+        frameworkServiceDataHolderInstance.setAccessible(true);
+        FrameworkServiceDataHolder availableInstance =
+                (FrameworkServiceDataHolder) frameworkServiceDataHolderInstance.get(null);
+
+        LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
+        CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);
+        int connectionTimeout = 10000;
+        LongWaitStatusStoreService longWaitStatusStoreService =
+                new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
+        availableInstance.setLongWaitStatusStoreService(longWaitStatusStoreService);
+
+        // Set and initialize diagnostic log mode.
         Field serverConfiguration = ServerConfiguration.class.getDeclaredField("instance");
         serverConfiguration.setAccessible(true);
         ServerConfiguration serverConfigurationInstance = (ServerConfiguration) serverConfiguration.get(null);
@@ -106,20 +126,23 @@ public class UpdateUserPasswordFunctionImplTest {
     }
 
     @BeforeMethod
-    public void setUpMethod() throws org.wso2.carbon.user.api.UserStoreException, NoSuchFieldException,
-            IllegalAccessException {
+    public void setUpMethod() throws NoSuchFieldException, IllegalAccessException,
+            org.wso2.carbon.user.api.UserStoreException {
 
+        // Mock realm service and user store manager.
+        realmServiceMock = mock(RealmService.class);
+        userRealmMock = mock(UserRealm.class);
+        userStoreManagerMock = mock(UserStoreManager.class);
         Field userFunctionsServiceHolder = UserFunctionsServiceHolder.class.getDeclaredField("instance");
         userFunctionsServiceHolder.setAccessible(true);
         UserFunctionsServiceHolder instance = (UserFunctionsServiceHolder) userFunctionsServiceHolder.get(null);
         instance.setRealmService(realmServiceMock);
 
-        userStoreManagerMock = mock(UserStoreManager.class);
         when(realmServiceMock.getTenantUserRealm(anyInt())).thenReturn(userRealmMock);
         when(userRealmMock.getUserStoreManager()).thenReturn(userStoreManagerMock);
         when(userStoreManagerMock.getSecondaryUserStoreManager(anyString())).thenReturn(userStoreManagerMock);
 
-        // Diagnostic log related mocks.
+        // Mock identity event service for diagnostic log publishing.
         identityEventServiceMock = mock(IdentityEventService.class);
         Field logMgtServiceHolder = CentralLogMgtServiceComponentHolder.class.getDeclaredField(
                 "centralLogMgtServiceComponentHolder");
@@ -129,111 +152,82 @@ public class UpdateUserPasswordFunctionImplTest {
         logMgtInstance.setIdentityEventService(identityEventServiceMock);
     }
 
+    private AuthenticationContext getAuthenticationContextForSP(String spFileName) throws JsTestException {
+
+        sequenceHandlerRunner.addSubjectAuthenticator("BasicMockAuthenticator", "test_user", Collections.emptyMap());
+        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(spFileName, this);
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
+        SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp);
+        context.setSequenceConfig(sequenceConfig);
+        context.initializeAnalyticsData();
+
+        return context;
+    }
+
     @DataProvider(name = "updateUserPasswordWithEmptyInputDataProvider")
     public Object[][] updateUserPasswordWithEmptyInputDataProvider() {
 
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserName("test_user");
+        authenticatedUser.setTenantDomain("carbon.super");
+        authenticatedUser.setUserStoreDomain("PRIMARY");
+        authenticatedUser.setUserId("123456");
+        JsAuthenticatedUser jsAuthenticatedUser = new JsOpenJdkNashornAuthenticatedUser(authenticatedUser);
+
         return new Object[][]{
                 {null, "newPassword", null, "User is not defined."},
-                {jsAuthenticatedUser, null, null, "Password parameters are not defined."},
+                {jsAuthenticatedUser, null, null, "Password is not defined."},
                 {jsAuthenticatedUser, "", null, "The provided password is empty."},
-                {jsAuthenticatedUser, "", "testClaim", "The provided password is empty."}
+                {jsAuthenticatedUser, "newPassword", Collections.EMPTY_LIST, "Invalid argument type. " +
+                        "Expected eventHandlers (Map<String, Object>)."}
         };
     }
 
     @Test(dataProvider = "updateUserPasswordWithEmptyInputDataProvider")
     public void testUpdateUserPasswordWithEmptyInput(JsAuthenticatedUser user, String password,
-                                                     String claimURI, String logMessage)
-            throws UserStoreException, IdentityEventException {
+                                                     List<Object> eventHandlers, String errorMessage)
+            throws UserStoreException {
 
-        if (password == null && claimURI == null) {
-            testFunction.updateUserPassword(user);
-        } else {
-            testFunction.updateUserPassword(user, password, claimURI);
+        try {
+            if (password == null) {
+                testFunction.updateUserPassword(user);
+            } else if (eventHandlers != null) {
+                testFunction.updateUserPassword(user, password, eventHandlers);
+            } else {
+                testFunction.updateUserPassword(user, password);
+            }
+        } catch (IllegalArgumentException e) {
+            // Assert for the correct exception.
+            Assert.assertEquals(e.getMessage(), errorMessage);
         }
 
         // Assert that user store manager methods are never invoked.
         verify(userStoreManagerMock, times(0)).updateCredentialByAdmin(anyString(), anyString());
-
-        // Assert for the correct diagnostic logs.
-        ArgumentCaptor<Event> logEventCaptor = ArgumentCaptor.forClass(Event.class);
-        verify(identityEventServiceMock).handleEvent(logEventCaptor.capture());
-        assertDiagnosticLog(logEventCaptor.getValue(), Constants.LogConstants.ActionIDs.VALIDATE_INPUT_PARAMS,
-                DiagnosticLog.ResultStatus.FAILED, logMessage);
     }
 
-    @DataProvider(name = "updateUserPasswordDataProvider")
-    public Object[][] updateUserPasswordDataProvider() {
+    @Test
+    public void testUpdateUserPassword() throws UserStoreException, JsTestException {
 
-        return new Object[][]{
-                {null, null},
-                {PASSWORD_UPDATE_STATUS_CLAIM, null},
-                {PASSWORD_UPDATE_STATUS_CLAIM, "false"},
-                {PASSWORD_UPDATE_STATUS_CLAIM, "true"}
-        };
+        AuthenticationContext context = getAuthenticationContextForSP("update-password-sp.xml");
+        HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
+        HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
+
+        sequenceHandlerRunner.handle(req, resp, context, "test_domain");
+
+        // Assert that updateCredentialByAdmin method is invoked.
+        verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(anyString(), any());
     }
 
-    @Test(dataProvider = "updateUserPasswordDataProvider")
-    public void testUpdateUserPassword(String claim, String claimValue)
-            throws UserStoreException, IdentityEventException {
+    @Test
+    public void testUpdateUserPasswordWithCallbacks() throws UserStoreException, JsTestException {
 
-        if (claim != null) {
-            when(userStoreManagerMock.getUserClaimValue(USERNAME, PASSWORD_UPDATE_STATUS_CLAIM, null))
-                    .thenReturn(claimValue);
-            testFunction.updateUserPassword(jsAuthenticatedUser, PASSWORD, PASSWORD_UPDATE_STATUS_CLAIM);
+        AuthenticationContext context = getAuthenticationContextForSP("update-password-async-sp.xml");
+        HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
+        HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
-            if ("true".equals(claimValue)) {
-                // Assert that user store manager methods are never invoked when the password is already updated.
-                verify(userStoreManagerMock, times(0)).updateCredentialByAdmin(USERNAME, PASSWORD);
+        sequenceHandlerRunner.handle(req, resp, context, "test_domain");
 
-                // Assert for the correct diagnostic logs.
-                ArgumentCaptor<Event> logEventCaptor = ArgumentCaptor.forClass(Event.class);
-                verify(identityEventServiceMock).handleEvent(logEventCaptor.capture());
-                assertDiagnosticLog(logEventCaptor.getValue(),
-                        Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD, DiagnosticLog.ResultStatus.FAILED,
-                        "Password migration has already been completed for the user.");
-            } else {
-                // Assert that user store manager methods are invoked when the password is not updated.
-                verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(USERNAME, PASSWORD);
-                verify(userStoreManagerMock, times(1))
-                        .getUserClaimValue(USERNAME, PASSWORD_UPDATE_STATUS_CLAIM, null);
-                verify(userStoreManagerMock, times(1))
-                        .setUserClaimValue(USERNAME, PASSWORD_UPDATE_STATUS_CLAIM, "true", null);
-
-                // Assert for the correct diagnostic logs.
-                ArgumentCaptor<Event> logEventCaptor = ArgumentCaptor.forClass(Event.class);
-                verify(identityEventServiceMock, times(2)).handleEvent(logEventCaptor.capture());
-                List<Event> eventList = logEventCaptor.getAllValues();
-
-                assertDiagnosticLog(eventList.get(0), Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD,
-                        DiagnosticLog.ResultStatus.SUCCESS, "User password updated successfully.");
-
-                assertDiagnosticLog(eventList.get(1),
-                        Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD, DiagnosticLog.ResultStatus.SUCCESS,
-                        "Password migration status claim updated successfully.");
-            }
-        } else {
-            testFunction.updateUserPassword(jsAuthenticatedUser, PASSWORD);
-
-            // Assert that only the updateCredentialByAdmin method is invoked.
-            verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(USERNAME, PASSWORD);
-            verify(userStoreManagerMock, times(0))
-                    .setUserClaimValue(USERNAME, PASSWORD_UPDATE_STATUS_CLAIM, "true", null);
-
-            // Assert for the correct diagnostic logs.
-            ArgumentCaptor<Event> logEventCaptor = ArgumentCaptor.forClass(Event.class);
-            verify(identityEventServiceMock).handleEvent(logEventCaptor.capture());
-            assertDiagnosticLog(logEventCaptor.getValue(), Constants.LogConstants.ActionIDs.UPDATE_USER_PASSWORD,
-                    DiagnosticLog.ResultStatus.SUCCESS, "User password updated successfully.");
-        }
-    }
-
-    private void assertDiagnosticLog(Event capturedEvent, String expectedActionID,
-                                     DiagnosticLog.ResultStatus expectedResultStatus, String expectedMessage) {
-
-        DiagnosticLog diagnosticLog = (DiagnosticLog) capturedEvent.getEventProperties().get("diagnosticLog");
-        Assert.assertEquals(diagnosticLog.getComponentId(), Constants.LogConstants.ADAPTIVE_AUTH_SERVICE);
-        Assert.assertEquals(diagnosticLog.getActionId(), expectedActionID);
-        Assert.assertEquals(diagnosticLog.getResultStatus(), expectedResultStatus.name());
-        Assert.assertEquals(diagnosticLog.getResultMessage(), expectedMessage);
+        // Assert that updateCredentialByAdmin method is invoked.
+        verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(anyString(), any());
     }
 }

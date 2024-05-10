@@ -23,32 +23,49 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 import org.wso2.carbon.user.core.common.User;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @WithCarbonHome
-@WithRealmService(injectToSingletons = {FrameworkServiceDataHolder.class})
-public class ResolveMultiAttributeLoginIdentifierFunctionImplTest {
-
-    private ResolveMultiAttributeLoginIdentifierFunctionImpl testFunction;
+@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
+@WithH2Database(files = "dbscripts/h2.sql")
+public class ResolveMultiAttributeLoginIdentifierFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @Mock
     private MultiAttributeLoginService multiAttributeLoginServiceMock;
 
     @BeforeClass
-    public void setUp() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp() throws Exception {
 
-        testFunction = new ResolveMultiAttributeLoginIdentifierFunctionImpl();
+        super.setUp();
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
+        sequenceHandlerRunner.registerJsFunction("resolveMultiAttributeLoginIdentifier",
+                new ResolveMultiAttributeLoginIdentifierFunctionImpl());
+
         initMocks(this);
 
         Field frameworkServiceDataHolder = FrameworkServiceDataHolder.class.getDeclaredField("instance");
@@ -69,10 +86,10 @@ public class ResolveMultiAttributeLoginIdentifierFunctionImplTest {
 
     @Test (dataProvider = "loginIdentifierProvider")
     public void testResolveMultiAttributeLoginIdentifier(boolean multiAttributeLoginEnabled,
-                                                         String loginIdentifier, String username) {
+                                                         String loginIdentifier, String username)
+            throws JsTestException {
 
         ResolvedUserResult userResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.SUCCESS);
-
         if (multiAttributeLoginEnabled) {
             User user = new User("123456", username, username);
             userResult.setUser(user);
@@ -81,15 +98,42 @@ public class ResolveMultiAttributeLoginIdentifierFunctionImplTest {
         }
 
         when(multiAttributeLoginServiceMock.isEnabled(anyString())).thenReturn(multiAttributeLoginEnabled);
-        when(multiAttributeLoginServiceMock.resolveUser(loginIdentifier, "carbon.super")).thenReturn(userResult);
+        when(multiAttributeLoginServiceMock.resolveUser(loginIdentifier, "test_domain")).thenReturn(userResult);
 
-        String result = testFunction.resolveMultiAttributeLoginIdentifier(loginIdentifier, "carbon.super");
+        AuthenticationContext context = getAuthenticationContextForSP(loginIdentifier);
+        HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
+        HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
+        sequenceHandlerRunner.handle(req, resp, context, "test_domain");
+
+        String returnResult = context.getSelectedAcr();
+        Assert.assertNotNull(returnResult);
         if (multiAttributeLoginEnabled) {
-            Assert.assertNotNull(result);
-            Assert.assertEquals(result, username);
+            Assert.assertEquals(returnResult, username);
         } else {
-            Assert.assertNull(result);
+            Assert.assertEquals(returnResult, "NONE");
         }
+    }
+
+    private AuthenticationContext getAuthenticationContextForSP(String loginIdentifier) throws JsTestException {
+
+        sequenceHandlerRunner.addSubjectAuthenticator("BasicMockAuthenticator", "test_user", Collections.emptyMap());
+        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(
+                "resolve-multi-attribute-login-sp.xml", this);
+
+        LocalAndOutboundAuthenticationConfig authConfig = sp.getLocalAndOutBoundAuthenticationConfig();
+        AuthenticationScriptConfig scriptConfig = authConfig.getAuthenticationScriptConfig();
+        String content = scriptConfig.getContent();
+        String newContent = String.format(content, loginIdentifier);
+        scriptConfig.setContent(newContent);
+        authConfig.setAuthenticationScriptConfig(scriptConfig);
+        sp.setLocalAndOutBoundAuthenticationConfig(authConfig);
+
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
+        SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp);
+        context.setSequenceConfig(sequenceConfig);
+        context.initializeAnalyticsData();
+
+        return context;
     }
 }
