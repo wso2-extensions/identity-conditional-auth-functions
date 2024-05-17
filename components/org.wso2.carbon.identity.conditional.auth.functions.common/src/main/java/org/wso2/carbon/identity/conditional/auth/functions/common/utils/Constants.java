@@ -55,7 +55,8 @@ public class Constants {
      */
     public static class LogConstants {
 
-        public static final String ADAPTIVE_AUTH_SERVICE = "adaptive-auth-service";
+        public static final String ADAPTIVE_AUTH_SERVICE_HTTP_GET = "adaptive-auth-service-http-get";
+        public static final String ADAPTIVE_AUTH_SERVICE_HTTP_POST = "adaptive-auth-service-http-post";
         public static final String FAILED = "FAILED";
 
         /**
