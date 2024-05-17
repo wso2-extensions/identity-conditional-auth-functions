@@ -23,6 +23,8 @@ public class Constants {
     public static final String OUTCOME_SUCCESS = "onSuccess";
     public static final String OUTCOME_FAIL = "onFail";
     public static final String OUTCOME_TIMEOUT = "onTimeout";
+    public static final String GET = "GET";
+    public static final String POST = "POST";
 
     public static final String RECEIVER_URL = "AdaptiveAuth.EventPublisher.ReceiverURL";
     public static final String HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.HTTPConnectionTimeout";
@@ -61,8 +63,10 @@ public class Constants {
          */
         public static class ActionIDs {
 
-            public static final String RECEIVE_TOKEN = "receive-token";
-            public static final String RECEIVE_API_RESPONSE = "receive-api-response";
+            public static final String RECEIVE_TOKEN_HTTP_GET = "receive-token-http-get";
+            public static final String RECEIVE_TOKEN_HTTP_POST = "receive-token-http-post";
+            public static final String RECEIVE_API_RESPONSE_HTTP_GET = "receive-api-response-http-get";
+            public static final String RECEIVE_API_RESPONSE_HTTP_POST = "receive-api-response-http-post";
         }
 
         /**
@@ -72,6 +76,7 @@ public class Constants {
 
             public static final String TOKEN_ENDPOINT = "token endpoint";
             public static final String API = "external api";
+            public static final String GRANT_TYPE = "grant type";
         }
 
         /**
@@ -79,8 +84,7 @@ public class Constants {
          */
         public static class ConfigKeys {
 
-            public static final String SUPPORTED_GRANT_TYPES = "supported grant types";
-
+            public static final String MAX_REQUEST_ATTEMPTS = "max request attempts";
         }
     }
 }
