@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -95,15 +96,19 @@ public abstract class AbstractHTTPFunction {
     protected void executeHttpMethod(HttpUriRequest clientRequest, Map<String, Object> eventHandlers,
                                      AuthConfigModel authConfigModel) {
 
+        Map<String, Object> eventHandlersMap = new HashMap<>(eventHandlers);
+        AuthConfigModel authConfigModelClone =
+                authConfigModel == null ? null : new AuthConfigModel(authConfigModel.getType(),
+                        new HashMap<>(authConfigModel.getProperties()));
         AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
             String outcome;
             String endpointURL = null;
 
             HttpUriRequest request;
             try {
-                if (authConfigModel != null) {
-                    AuthConfig authConfig = AuthConfigFactory.getAuthConfig(authConfigModel, context, asyncReturn);
-                    request = authConfig.applyAuth(clientRequest, authConfigModel);
+                if (authConfigModelClone != null) {
+                    AuthConfig authConfig = AuthConfigFactory.getAuthConfig(authConfigModelClone, context, asyncReturn);
+                    request = authConfig.applyAuth(clientRequest, authConfigModelClone);
                 } else {
                     request = clientRequest;
                 }
@@ -131,7 +136,7 @@ public abstract class AbstractHTTPFunction {
                 asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
             }
         });
-        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+        JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlersMap);
     }
 
     /**

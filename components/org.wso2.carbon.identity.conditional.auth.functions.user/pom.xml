@@ -193,8 +193,6 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
-                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs;
@@ -202,8 +200,6 @@
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model;
                             version="${carbon.identity.package.import.version.range}",
