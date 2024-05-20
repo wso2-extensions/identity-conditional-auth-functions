@@ -61,6 +61,8 @@ import java.util.Map;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
+import static org.wso2.carbon.identity.conditional.auth.functions.http.util.HttpUtil.getInvokeApiActionId;
+import static org.wso2.carbon.identity.conditional.auth.functions.http.util.HttpUtil.getRequestTokenActionId;
 
 /**
  * Implementation of the {@link AuthConfig}
@@ -84,8 +86,6 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     private static final String JWT_EXP_CLAIM = "exp";
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
-    private String INVOKE_API = "invoke-api";
-    private String REQUEST_TOKEN = "request-token";
     private int maxRequestAttemptsForAPIEndpointTimeout;
     private APIAccessTokenCache apiAccessTokenCache;
     private String consumerKey;
@@ -94,6 +94,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     private String tokenEndpoint;
     private AuthenticationContext authenticationContext;
     private AsyncReturn asyncReturn;
+    private HttpUriRequest request;
 
     public void setAuthenticationContext(AuthenticationContext authenticationContext) {
         this.authenticationContext = authenticationContext;
@@ -131,6 +132,14 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         return consumerSecret;
     }
 
+    public HttpUriRequest getRequest() {
+        return request;
+    }
+
+    public void setRequest(HttpUriRequest request) {
+        this.request = request;
+    }
+
     public String getScopes() {
         return scopes;
     }
@@ -148,13 +157,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     public HttpUriRequest applyAuth(HttpUriRequest request, AuthConfigModel authConfigModel)
             throws FrameworkException {
 
-        if (request.getMethod().equals(Constants.GET)) {
-            INVOKE_API = Constants.LogConstants.ActionIDs.INVOKE_API_HTTP_GET;
-            REQUEST_TOKEN = Constants.LogConstants.ActionIDs.REQUEST_TOKEN_HTTP_GET;
-        } else if (request.getMethod().equals(Constants.POST)) {
-            INVOKE_API = Constants.LogConstants.ActionIDs.INVOKE_API_HTTP_POST;
-            REQUEST_TOKEN = Constants.LogConstants.ActionIDs.REQUEST_TOKEN_HTTP_POST;
-        }
+        setRequest(request);
         maxRequestAttemptsForAPIEndpointTimeout = ConfigProvider.getInstance().
                 getRequestRetryCount();
         this.apiAccessTokenCache = APIAccessTokenCache.getInstance();
@@ -171,7 +174,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, REQUEST_TOKEN);
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        getRequestTokenActionId(getRequest()));
                 diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                         .inputParam(Constants.LogConstants.InputKeys.GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS)
                         .configParam(Constants.LogConstants.ConfigKeys.MAX_REQUEST_ATTEMPTS,
@@ -249,7 +253,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             LOG.error("Error parsing token expiry.", e);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, INVOKE_API);
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        getInvokeApiActionId(getRequest()));
                 diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                         .resultMessage("Failed to parse token expiry.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -279,7 +284,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             try {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, REQUEST_TOKEN);
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            getRequestTokenActionId(getRequest()));
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                             .inputParam(Constants.LogConstants.InputKeys.GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS)
                             .configParam(Constants.LogConstants.ConfigKeys.MAX_REQUEST_ATTEMPTS, maxAttempts)
@@ -346,7 +352,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             } else if (responseCode >= 300 && responseCode < 400) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, INVOKE_API);
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            getInvokeApiActionId(getRequest()));
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                             .resultMessage("Token endpoint returned a redirection. Status code: " + responseCode)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -359,7 +366,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             } else if (responseCode >= 400 && responseCode < 500) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, INVOKE_API);
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            getInvokeApiActionId(getRequest()));
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                             .resultMessage("Token endpoint returned a client error. Status code: " + responseCode)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -372,7 +380,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             } else {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, INVOKE_API);
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            getInvokeApiActionId(getRequest()));
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                             .resultMessage("Received unknown response from token endpoint. Status code: " +
                                     responseCode)
@@ -389,7 +398,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             if (e instanceof IllegalArgumentException) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, INVOKE_API);
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            getInvokeApiActionId(getRequest()));
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                             .resultMessage("Invalid Url for token endpoint.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -400,7 +410,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             } else if (e instanceof SocketTimeoutException || e instanceof ConnectTimeoutException) {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, INVOKE_API);
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            getInvokeApiActionId(getRequest()));
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                             .resultMessage("Request for the token endpoint timed out.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -414,7 +425,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             } else {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, INVOKE_API);
+                            DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                            getInvokeApiActionId(getRequest()));
                     diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                             .resultMessage("Received an error while invoking the token endpoint.")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -444,7 +456,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
 
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE, INVOKE_API);
+                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
+                        getInvokeApiActionId(getRequest()));
                 diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
                         .resultMessage("Received access token from the token endpoint.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
