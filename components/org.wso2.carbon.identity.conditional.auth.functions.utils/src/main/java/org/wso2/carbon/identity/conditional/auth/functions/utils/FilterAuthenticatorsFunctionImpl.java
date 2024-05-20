@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.utils;
 
 import org.apache.commons.lang.StringUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Map;
  */
 public class FilterAuthenticatorsFunctionImpl implements FilterAuthenticatorsFunction {
     @Override
+    @HostAccess.Export
     public Map<String, Map<String, String>> filterAuthenticators(List<Map<String, String>> authenticatorOptions,
                                                                  String excludeAuthenticator) {
 
