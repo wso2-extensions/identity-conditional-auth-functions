@@ -55,8 +55,7 @@ public class Constants {
      */
     public static class LogConstants {
 
-        public static final String ADAPTIVE_AUTH_SERVICE_HTTP_GET = "adaptive-auth-service-http-get";
-        public static final String ADAPTIVE_AUTH_SERVICE_HTTP_POST = "adaptive-auth-service-http-post";
+        public static final String ADAPTIVE_AUTH_SERVICE = "adaptive-auth-service";
         public static final String FAILED = "FAILED";
 
         /**
@@ -64,10 +63,10 @@ public class Constants {
          */
         public static class ActionIDs {
 
-            public static final String RECEIVE_TOKEN_HTTP_GET = "receive-token-http-get";
-            public static final String RECEIVE_TOKEN_HTTP_POST = "receive-token-http-post";
-            public static final String RECEIVE_API_RESPONSE_HTTP_GET = "receive-api-response-http-get";
-            public static final String RECEIVE_API_RESPONSE_HTTP_POST = "receive-api-response-http-post";
+            public static final String REQUEST_TOKEN_HTTP_GET = "request-token-http-get";
+            public static final String REQUEST_TOKEN_HTTP_POST = "request-token-http-post";
+            public static final String INVOKE_API_HTTP_GET = "invoke-api-http-get";
+            public static final String INVOKE_API_HTTP_POST = "invoke-api-http-post";
         }
 
         /**
