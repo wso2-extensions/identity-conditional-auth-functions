@@ -67,6 +67,8 @@ public class Constants {
             public static final String REQUEST_TOKEN_HTTP_POST = "request-token-http-post";
             public static final String INVOKE_API_HTTP_GET = "invoke-api-http-get";
             public static final String INVOKE_API_HTTP_POST = "invoke-api-http-post";
+            public static final String VALIDATE_INPUT_PARAMS = "validate-input-parameters";
+            public static final String UPDATE_USER_PASSWORD = "update-user-password";
         }
 
         /**
