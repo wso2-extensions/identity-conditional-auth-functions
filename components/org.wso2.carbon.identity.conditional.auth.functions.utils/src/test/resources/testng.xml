@@ -19,7 +19,14 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.conditional.auth.functions.utils.test">
-    <test name="org.wso2.carbon.identity.conditional.auth.functions.utils.test" parallel="false">
+    <test name="org.wso2.carbon.identity.conditional.auth.functions.utils.test.nashorn" parallel="false">
+        <parameter name="scriptEngine" value="nashorn"/>
+        <classes>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginIdentifierFunctionImplTest"/>
+        </classes>
+    </test>
+    <test name="org.wso2.carbon.identity.conditional.auth.functions.utils.test.graaljs" parallel="false">
+        <parameter name="scriptEngine" value="graaljs"/>
         <classes>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginIdentifierFunctionImplTest"/>
         </classes>
