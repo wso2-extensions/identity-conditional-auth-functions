@@ -34,6 +34,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
@@ -63,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -122,13 +124,22 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
     }
 
     @Override
+    @HostAccess.Export
     public void callChoreo(Map<String, String> connectionMetaData, Map<String, Object> payloadData,
                            Map<String, Object> eventHandlers) {
 
+        /*
+         * Here, we need to clone the parameters since, even though we're accessing the parameters as Map objects,
+         * these may be instances of child classes of Map class (Script Engine specific implementations).
+         * When the AsyncProcess is executed, the objects will not be available if the relevant Script Engine is closed.
+         * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
+         */
+        Map<String, String> connectionMetaDataMap = new HashMap<>(connectionMetaData);
+        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
             LOG.info("Starting the callChoreo function for session data key: " +
                     authenticationContext.getContextIdentifier());
-            String epUrl = connectionMetaData.get(URL_VARIABLE_NAME);
+            String epUrl = connectionMetaDataMap.get(URL_VARIABLE_NAME);
             try {
                 if (!isValidChoreoDomain(epUrl)) {
                     LOG.error("Provided Url does not contain a configured choreo domain. Invalid Url: " + epUrl);
@@ -138,7 +149,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
                 String tenantDomain = authenticationContext.getTenantDomain();
                 AccessTokenRequestHelper accessTokenRequestHelper = new AccessTokenRequestHelper(
-                        connectionMetaData, asyncReturn, authenticationContext, payloadData);
+                        connectionMetaDataMap, asyncReturn, authenticationContext, payloadDataMap);
                 String accessToken = choreoAccessTokenCache.getValueFromCache(accessTokenRequestHelper.getConsumerKey(),
                         tenantDomain);
                 if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {

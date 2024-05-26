@@ -55,8 +55,6 @@ public class HasAnyOfTheRolesFunctionImplTest extends JsSequenceHandlerAbstractT
     @BeforeMethod
     protected void setUp() throws Exception {
 
-        super.setUp();
-
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("hasAnyOfTheRoles", new HasAnyOfTheRolesFunctionImpl());
         UserRealm userRealm = realmService.getTenantUserRealm(-1234);

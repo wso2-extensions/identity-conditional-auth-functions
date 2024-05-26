@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2024, WSO2 LLC. (https://www.wso2.com).
+  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -11,7 +11,7 @@
   ~ Unless required by applicable law or agreed to in writing,
   ~ software distributed under the License is distributed on an
   ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  ~ KIND, either express or implied.  See the License for the
+  ~ KIND, either express or implied. See the License for the
   ~ specific language governing permissions and limitations
   ~ under the License.
   -->
@@ -19,12 +19,21 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.conditional.auth.functions.http.test">
-    <test name="org.wso2.carbon.identity.conditional.auth.functions.http.test" parallel="false">
+    <test name="http-functions-nashorn" parallel="false">
+        <parameter name="scriptEngine" value="nashorn"/>
         <classes>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.http.SimpleCryptoProviderTest"/>
+        </classes>
+    </test>
+    <test name="http-functions-graaljs" parallel="false">
+        <parameter name="scriptEngine" value="graaljs"/>
+        <classes>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImplTest"/>
         </classes>
     </test>
 </suite>

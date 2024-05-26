@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.http;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
 
 import java.util.HashMap;
@@ -39,6 +40,7 @@ public class HTTPGetFunctionImpl extends AbstractHTTPFunction implements HTTPGet
     }
 
     @Override
+    @HostAccess.Export
     public void httpGet(String endpointURL, Object... params) {
 
         Map<String, Object> eventHandlers;

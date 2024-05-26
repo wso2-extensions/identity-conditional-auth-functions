@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
@@ -34,6 +35,7 @@ public class SetAccountAssociationToLocalUserImpl implements SetAccountAssociati
     private static final Log log = LogFactory.getLog(SetAccountAssociationToLocalUserImpl.class);
 
     @Override
+    @HostAccess.Export
     public boolean doAssociationWithLocalUser(JsAuthenticatedUser federatedUser, String username, String tenantDomain,
                                               String userStoreDomainName) {
 

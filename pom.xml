@@ -180,9 +180,9 @@
                 <version>${json.wso2.version}</version>
             </dependency>
             <dependency>
-            <groupId>net.minidev</groupId>
-            <artifactId>json-smart</artifactId>
-            <version>${json-smart.version}</version>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json-smart.version}</version>
             </dependency>
 
             <!-- Test related dependencies -->
@@ -297,6 +297,12 @@
                 <groupId>org.openjdk.nashorn</groupId>
                 <artifactId>nashorn-core</artifactId>
                 <version>${nashorn.core.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -493,7 +499,7 @@
         <carbon.kernel.version>4.9.17</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.user.package.import.version.range>[1.0.1, 2.0.0)</carbon.user.package.import.version.range>
-        <carbon.identity.framework.version>5.25.509</carbon.identity.framework.version>
+        <carbon.identity.framework.version>7.2.29</carbon.identity.framework.version>
         <identity.organization.management.core.version>1.0.89</identity.organization.management.core.version>
         <carbon.identity.framework.testutils.version>5.20.447</carbon.identity.framework.testutils.version>
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
@@ -543,6 +549,7 @@
         <org.osgi.framework.imp.pkg.version.range>[1.9.0,2.0.0)</org.osgi.framework.imp.pkg.version.range>
         <xml.apis.version>1.4.01</xml.apis.version>
         <nashorn.core.version>15.3</nashorn.core.version>
+        <graalvm.version>22.3.4</graalvm.version>
         <sonar.coverage.exclusions>
             **/*Exception.java,
             **/*Constants*.java,

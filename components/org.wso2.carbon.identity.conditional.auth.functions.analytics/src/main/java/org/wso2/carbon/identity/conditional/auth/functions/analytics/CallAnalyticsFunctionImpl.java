@@ -28,6 +28,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.util.EntityUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -60,14 +62,23 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
     private static final String PARAM_INPUT_STREAM = "InputStream";
 
     @Override
+    @HostAccess.Export
     public void callAnalytics(Map<String, String> metadata,
                               Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
+        /*
+         * Here, we need to clone the parameters since, even though we're accessing the parameters as Map objects,
+         * these may be instances of child classes of Map class (Script Engine specific implementations).
+         * When the AsyncProcess is executed, the objects will not be available if the relevant Script Engine is closed.
+         * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
+         */
+        Map<String, String> metadataMap = new HashMap<>(metadata);
+        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
 
-            String appName = metadata.get(PARAM_APP_NAME);
-            String inputStream = metadata.get(PARAM_INPUT_STREAM);
-            String receiverUrl = metadata.get(PARAM_EP_URL);
+            String appName = metadataMap.get(PARAM_APP_NAME);
+            String inputStream = metadataMap.get(PARAM_INPUT_STREAM);
+            String receiverUrl = metadataMap.get(PARAM_EP_URL);
             String targetPath;
             try {
                 if (appName != null && inputStream != null) {
@@ -92,7 +103,7 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
 
                 JSONObject jsonObject = new JSONObject();
                 JSONObject event = new JSONObject();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                for (Map.Entry<String, Object> dataElements : payloadDataMap.entrySet()) {
                     event.put(dataElements.getKey(), dataElements.getValue());
                 }
                 jsonObject.put("event", event);

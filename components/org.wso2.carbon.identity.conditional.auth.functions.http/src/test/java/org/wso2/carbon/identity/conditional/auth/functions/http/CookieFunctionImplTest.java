@@ -68,11 +68,9 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @BeforeMethod
     protected void setUp() throws Exception {
 
-        super.setUp();
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
-        sequenceHandlerRunner.registerJsFunction("setCookie", (SetCookieFunction) new CookieFunctionImpl()::setCookie);
-        sequenceHandlerRunner.registerJsFunction("getCookieValue", (GetCookieFunction) new CookieFunctionImpl()
-                ::getCookieValue);
+        sequenceHandlerRunner.registerJsFunction("setCookie", new SetCookieFunctionImpl());
+        sequenceHandlerRunner.registerJsFunction("getCookieValue", new GetCookieFunctionImpl());
         DefaultCryptoService defaultCryptoService = new DefaultCryptoService();
         defaultCryptoService.registerInternalCryptoProvider(new SimpleCryptoProviderTest());
         CarbonCoreDataHolder.getInstance().setCryptoService(defaultCryptoService);
@@ -169,7 +167,9 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private void internalTestSetAndGetCookieValues(String inputCookieValue, boolean shouldEncrypt,
                                                    boolean shouldDecrypt, boolean shouldSign) throws JsTestException {
 
-        CookieFunctionImpl cookieFunction = new CookieFunctionImpl();
+        GetCookieFunctionImpl getCookieFunction = new GetCookieFunctionImpl();
+        SetCookieFunctionImpl setCookieFunction = new SetCookieFunctionImpl();
+
         String name = "test";
 
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
@@ -178,7 +178,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         setCookieParams.put(HTTPConstants.ENCRYPT, shouldEncrypt);
         setCookieParams.put(HTTPConstants.SIGN, shouldSign);
         // Set the Cookie value.
-        cookieFunction.setCookie(jsServletResponse, name, inputCookieValue, setCookieParams);
+        setCookieFunction.setCookie(jsServletResponse, name, inputCookieValue, setCookieParams);
 
         // Get the cookie value that added to the response when setCookie method value is called.
         ArgumentCaptor<Cookie> argumentCaptor = ArgumentCaptor.forClass(Cookie.class);
@@ -192,7 +192,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         Map<String, Object> getCookieParams = new HashMap<>();
         getCookieParams.put(HTTPConstants.DECRYPT, shouldDecrypt);
         // Get the cookie value
-        String value = cookieFunction.getCookieValue(jsServletRequest, name, getCookieParams );
+        String value = getCookieFunction.getCookieValue(jsServletRequest, name, getCookieParams );
 
         Assert.assertEquals(value, inputCookieValue);
     }

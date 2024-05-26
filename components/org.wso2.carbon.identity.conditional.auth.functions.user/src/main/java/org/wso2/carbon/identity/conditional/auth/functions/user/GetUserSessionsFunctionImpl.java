@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
@@ -43,6 +44,7 @@ public class GetUserSessionsFunctionImpl implements GetUserSessionsFunction {
     private static final Log LOG = LogFactory.getLog(GetUserSessionsFunctionImpl.class);
 
     @Override
+    @HostAccess.Export
     public List<JsUserSession> getUserSessions(JsAuthenticatedUser user) {
 
         List<JsUserSession> sessionsForUser = null;

@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -59,9 +60,10 @@ public class ResolveMultiAttributeLoginIdentifierFunctionImplTest extends JsSequ
     private MultiAttributeLoginService multiAttributeLoginServiceMock;
 
     @BeforeClass
-    public void setUp() throws Exception {
+    @Parameters({"scriptEngine"})
+    public void setUp(String scriptEngine) throws Exception {
 
-        super.setUp();
+        super.setUp(scriptEngine);
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("resolveMultiAttributeLoginIdentifier",
                 new ResolveMultiAttributeLoginIdentifierFunctionImpl());

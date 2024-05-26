@@ -26,6 +26,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
+import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
 
@@ -51,6 +52,7 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
     }
 
     @Override
+    @HostAccess.Export
     public void httpPost(String endpointURL, Object... params) {
 
         Map<String, Object> eventHandlers;

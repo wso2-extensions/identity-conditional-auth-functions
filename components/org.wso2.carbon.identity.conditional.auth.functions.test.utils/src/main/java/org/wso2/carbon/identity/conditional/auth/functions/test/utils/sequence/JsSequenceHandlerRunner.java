@@ -28,14 +28,21 @@ import org.wso2.carbon.identity.application.authentication.framework.config.buil
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.MockAuthenticator;
@@ -91,23 +98,28 @@ public class JsSequenceHandlerRunner {
 
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
-    protected JsGraphBuilderFactory graphBuilderFactory;
+    protected JsGenericGraphBuilderFactory graphBuilderFactory;
     protected  JSExecutionSupervisor jsExecutionSupervisor;
 
     private JsFunctionRegistryImpl jsFunctionRegistry;
     private URL applicationAuthenticatorConfigFileLocation;
 
     public static final int THREAD_COUNT = 1;
-    public static final long SUPERVISOR_TIMEOUT = 500L;
+    public static final long SUPERVISOR_TIMEOUT = 500000L;
 
     private static final String DEFAULT_APPLICATION_AUTHENTICATION_XML_FILE_NAME = "application-authentication-test.xml";
 
-    public void init(URL applicationAuthenticatorConfigFileLocation) throws InvocationTargetException {
+    public void init(URL applicationAuthenticatorConfigFileLocation, String scriptEngine)
+            throws InvocationTargetException, NoSuchFieldException, IllegalAccessException {
 
         this.applicationAuthenticatorConfigFileLocation = applicationAuthenticatorConfigFileLocation;
         configurationLoader = new UIBasedConfigurationLoader();
-        graphBuilderFactory = new JsGraphBuilderFactory();
 
+        if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.NASHORN)) {
+            graphBuilderFactory = new JsGraphBuilderFactory();
+        } else if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
+            graphBuilderFactory = new JsGraalGraphBuilderFactory();
+        }
         jsFunctionRegistry = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
 
@@ -115,7 +127,15 @@ public class JsSequenceHandlerRunner {
         FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
 
         graphBuilderFactory.init();
-        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
+        FrameworkServiceDataHolder.getInstance().setJsGenericGraphBuilderFactory(graphBuilderFactory);
+
+        Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
+        wrapperFactory.setAccessible(true);
+        if (graphBuilderFactory instanceof JsGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsWrapperFactory());
+        } else if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsGraalWrapperFactory());
+        }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();

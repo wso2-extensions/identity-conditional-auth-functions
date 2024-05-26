@@ -22,6 +22,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -52,6 +53,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private static final String GROUPS_LOCAL_CLAIM = "http://wso2.org/claims/groups";
 
     @Override
+    @HostAccess.Export
     public boolean isMemberOfAnyOfGroups(JsAuthenticatedUser user, List<String> groupNames) {
 
         boolean result = false;

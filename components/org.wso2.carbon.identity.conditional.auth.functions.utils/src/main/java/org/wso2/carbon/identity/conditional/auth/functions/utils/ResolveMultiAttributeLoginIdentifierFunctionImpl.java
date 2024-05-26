@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.utils;
 
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 
@@ -27,6 +28,7 @@ import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 public class ResolveMultiAttributeLoginIdentifierFunctionImpl implements ResolveMultiAttributeLoginIdentifierFunction {
 
     @Override
+    @HostAccess.Export
     public String resolveMultiAttributeLoginIdentifier(String loginIdentifier, String tenantDomain) {
 
         ResolvedUserResult resolvedUserResult = FrameworkUtils.processMultiAttributeLoginIdentification(

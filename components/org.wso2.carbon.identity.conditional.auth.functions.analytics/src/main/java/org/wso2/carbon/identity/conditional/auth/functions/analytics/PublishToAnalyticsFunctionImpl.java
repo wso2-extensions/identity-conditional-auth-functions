@@ -26,6 +26,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -34,6 +35,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -48,12 +50,23 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
     private static final String PARAM_INPUT_STREAM = "InputStream";
 
     @Override
+    @HostAccess.Export
     public void publishToAnalytics(Map<String, String> metadata, Map<String, Object> payloadData,
                                    JsAuthenticationContext context) {
 
-        String appName = metadata.get(PARAM_APP_NAME);
-        String inputStream = metadata.get(PARAM_INPUT_STREAM);
-        String targetPath = metadata.get(PARAM_EP_URL);
+        /*
+         * Here, we need to clone the parameters since, even though we're accessing the parameters as Map objects,
+         * these may be instances of child classes of Map class (Script Engine specific implementations).
+         * When the AsyncProcess is executed, the objects will not be available if the relevant Script Engine is closed.
+         * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
+         */
+        Map<String, String> metadataMap = new HashMap<>(metadata);
+        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
+        String contextIdentifier = context.getWrapped().getContextIdentifier();
+
+        String appName = metadataMap.get(PARAM_APP_NAME);
+        String inputStream = metadataMap.get(PARAM_INPUT_STREAM);
+        String targetPath = metadataMap.get(PARAM_EP_URL);
         String epUrl = null;
         try {
             if (appName != null && inputStream != null) {
@@ -64,7 +77,7 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
                 LOG.error("Target path cannot be found.");
                 return;
             }
-            String tenantDomain = context.getContext().getTenantDomain();
+            String tenantDomain = context.getWrapped().getTenantDomain();
             String targetHostUrl = CommonUtils.getConnectorConfig(AnalyticsEngineConfigImpl.RECEIVER, tenantDomain);
             if (targetHostUrl == null) {
                 LOG.error("Target host cannot be found.");
@@ -78,7 +91,7 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
 
             JSONObject jsonObject = new JSONObject();
             JSONObject event = new JSONObject();
-            for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+            for (Map.Entry<String, Object> dataElements : payloadDataMap.entrySet()) {
                 event.put(dataElements.getKey(), dataElements.getValue());
             }
             jsonObject.put("event", event);
@@ -105,11 +118,11 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
                         if (responseCode == 200) {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("Successfully published data to the analytics for session data key: " +
-                                        context.getContext().getContextIdentifier());
+                                        contextIdentifier);
                             }
                         } else {
                             LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                    context.getContext().getContextIdentifier() + ". Request completed successfully. " +
+                                    contextIdentifier + ". Request completed successfully. " +
                                     "But response code was not 200");
                         }
                     }
@@ -118,25 +131,25 @@ public class PublishToAnalyticsFunctionImpl extends AbstractAnalyticsFunction im
                     public void failed(final Exception ex) {
 
                         LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                context.getContext().getContextIdentifier() + ". Request failed with: " + ex);
+                                contextIdentifier + ". Request failed with: " + ex);
                     }
 
                     @Override
                     public void cancelled() {
 
                         LOG.error("Error while publishing data to analytics engine for session data key: " +
-                                context.getContext().getContextIdentifier() + ". Request canceled.");
+                                contextIdentifier + ". Request canceled.");
                     }
                 });
             }
 
         } catch (IOException e) {
-            LOG.error("Error while calling analytics engine for tenant: " + context.getContext().getTenantDomain(), e);
+            LOG.error("Error while calling analytics engine for tenant: " + context.getWrapped().getTenantDomain(), e);
         } catch (IdentityEventException e) {
-            LOG.error("Error while preparing authentication information for tenant: " + context.getContext()
+            LOG.error("Error while preparing authentication information for tenant: " + context.getWrapped()
                     .getTenantDomain(), e);
         } catch (FrameworkException e) {
-            LOG.error("Error while building client to invoke analytics engine for tenant: " + context.getContext()
+            LOG.error("Error while building client to invoke analytics engine for tenant: " + context.getWrapped()
                     .getTenantDomain(), e);
         }
     }

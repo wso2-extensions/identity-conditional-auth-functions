@@ -20,14 +20,18 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
-import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsApplication;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsWrapperFactoryProvider;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Function for retrieving authenticated applications for a given session.
@@ -43,6 +47,7 @@ public class GetAuthenticatedAppsFuncImp implements GetAuthenticatedApplications
      * @return List of already authenticated applications of the given session.
      */
     @Override
+    @HostAccess.Export
     public List<Application> getAuthenticatedApplications(JsAuthenticationContext context) {
 
         String sessionContextKey = context.getWrapped().getSessionIdentifier();
@@ -50,6 +55,7 @@ public class GetAuthenticatedAppsFuncImp implements GetAuthenticatedApplications
             if (sessionContextKey != null) {
                 UserSession userSession = UserFunctionsServiceHolder.getInstance().getUserSessionManagementService()
                         .getUserSessionBySessionId(sessionContextKey).get();
+
                 return userSession.getApplications();
             }
         } catch (SessionManagementException e) {

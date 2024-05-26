@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
@@ -43,6 +44,7 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
     private static final Log LOG = LogFactory.getLog(UpdateUserPasswordFunctionImpl.class);
 
     @Override
+    @HostAccess.Export
     public void updateUserPassword(JsAuthenticatedUser user, Object... parameters) {
 
         if (user == null) {

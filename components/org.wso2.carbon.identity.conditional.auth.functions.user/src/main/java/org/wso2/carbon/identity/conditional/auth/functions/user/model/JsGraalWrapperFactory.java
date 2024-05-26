@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,28 +18,32 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user.model;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
-import org.wso2.carbon.identity.conditional.auth.functions.user.model.nashorn.JsNashornApplication;
-import org.wso2.carbon.identity.conditional.auth.functions.user.model.nashorn.JsNashornUserSession;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.graaljs.JsGraalApplication;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.graaljs.JsGraalUserSession;
 
 /**
- * Factory to create a Javascript Object Wrappers for Nashorn execution.
+ * Factory to create a Javascript Object Wrappers for GraalJS execution.
+ * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing GraalJS engine.
  */
-public class JsWrapperFactory implements JsWrapperBaseFactory {
+public class JsGraalWrapperFactory implements JsWrapperBaseFactory {
 
     @Override
     public JsUserSession createJsUserSession(UserSession userSession) {
-        return new JsNashornUserSession(userSession);
+
+        return new JsGraalUserSession(userSession);
     }
 
+    @Override
     public JsApplication createJsApplication(Application application) {
-        return new JsNashornApplication(application);
+
+        return new JsGraalApplication(application);
     }
 
-    public SerializableJsFunction createJsSerializableFunction(String source, boolean isFunction) {
+    public GraalSerializableJsFunction createJsSerializableFunction(String source, boolean isFunction) {
 
-        return new SerializableJsFunction(source, isFunction);
+        return new GraalSerializableJsFunction(source, isFunction);
     }
 }
