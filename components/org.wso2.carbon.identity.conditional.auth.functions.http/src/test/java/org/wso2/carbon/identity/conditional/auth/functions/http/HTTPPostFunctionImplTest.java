@@ -17,6 +17,16 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -42,12 +52,15 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
+import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.POST;
@@ -68,7 +81,10 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-post-test-sp.xml";
     private static final String TEST_HEADERS = "http-post-test-headers.xml";
-    private static final String TEST_AUTH_CONFIG = "http-post-test-auth-config.xml";
+    private static final String TEST_AUTH_CONFIG_WITH_APIKEY = "http-post-test-auth-config-with-apikey.xml";
+    private static final String TEST_AUTH_CONFIG_WITH_BEARERTOKEN = "http-post-test-auth-config-with-bearertoken.xml";
+    private static final String TEST_AUTH_CONFIG_WITH_BASICAUTH = "http-post-test-auth-config-with-basicauth.xml";
+    private static final String TEST_AUTH_CONFIG_WITH_CLIENTCREDENTIAL = "http-post-test-auth-config-with-clientcredential.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
@@ -116,8 +132,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testHttpPostMethod() throws JsTestException {
 
-        String requestUrl = getRequestUrl("dummy-post");
-        String result = executeHttpPostFunction(requestUrl, TEST_SP_CONFIG);
+        String result = executeHttpPostFunction("dummy-post", TEST_SP_CONFIG);
 
         assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: " + result);
     }
@@ -126,8 +141,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public void testHttpPostMethodUrlValidation() throws JsTestException, NoSuchFieldException, IllegalAccessException {
 
         setAllowedDomain(ALLOWED_DOMAIN);
-        String requestUrl = getRequestUrl("dummy-post");
-        String result = executeHttpPostFunction(requestUrl, TEST_SP_CONFIG);
+        String result = executeHttpPostFunction("dummy-post", TEST_SP_CONFIG);
 
         assertEquals(result, FAILED, "The http post request should fail but it was successful. Result from request: "
                 + result);
@@ -142,25 +156,76 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testHttpPostWithHeaders() throws JsTestException {
 
-        String requestUrl = getRequestUrl("dummy-post-headers");
-        String result = executeHttpPostFunction(requestUrl, TEST_HEADERS);
+        String result = executeHttpPostFunction("dummy-post-with-headers", TEST_HEADERS);
         assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
                 + result);
     }
 
     /**
-     * Test httpPost with auth config.
-     * Check if the auth config is sent with the request.
+     * Test httpPost method with basicauth auth config.
+     * Check if the auth config is applied to the request.
      *
      * @throws JsTestException
      */
     @Test
-    public void testHttpPostWithAuthConfig() throws JsTestException {
+    public void testHttpPostMethodWithBasicAuthAuthConfig() throws JsTestException {
 
-        String requestUrl = getRequestUrl("dummy-post-auth-config");
-        String result = executeHttpPostFunction(requestUrl, TEST_AUTH_CONFIG);
-        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
-                + result);
+        String result = executeHttpPostFunction("dummy-post-with-basicauth-auth-config",
+                TEST_AUTH_CONFIG_WITH_BASICAUTH);
+
+        assertEquals(result, SUCCESS,
+                "The http post request was not successful with basicauth auth config. Result from request: " +
+                        result);
+    }
+
+    /**
+     * Test httpPost method with apikey auth config.
+     * Check if the auth config is applied to the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostMethodWithApiKeyAuthAuthConfig() throws JsTestException {
+
+        String result = executeHttpPostFunction("dummy-post-with-apikey-auth-config", TEST_AUTH_CONFIG_WITH_APIKEY);
+
+        assertEquals(result, SUCCESS,
+                "The http post request was not successful with apikey auth config. Result from request: " +
+                        result);
+    }
+
+    /**
+     * Test httpPost method with bearertoken auth config.
+     * Check if the auth config is applied to the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostMethodWithBearerTokenAuthConfig() throws JsTestException {
+
+        String result = executeHttpPostFunction("dummy-post-with-bearertoken-auth-config",
+                TEST_AUTH_CONFIG_WITH_BEARERTOKEN);
+
+        assertEquals(result, SUCCESS,
+                "The http post request was not successful with bearertoken auth config. Result from request: " +
+                        result);
+    }
+
+    /**
+     * Test httpPost method with clientcredential auth config.
+     * Check if the auth config is applied to the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostMethodWithClientCredentialAuthConfig() throws JsTestException {
+
+        String result = executeHttpPostFunction("dummy-post-with-clientcredential-auth-config",
+                TEST_AUTH_CONFIG_WITH_CLIENTCREDENTIAL);
+
+        assertEquals(result, SUCCESS,
+                "The http post request was not successful with clientcredential auth config. Result from request: " +
+                        result);
     }
 
     /**
@@ -205,10 +270,10 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return "http://localhost:" + microServicePort + "/" + path;
     }
 
-    private String executeHttpPostFunction(String requestUrl, String adaptiveAuthScript) throws JsTestException {
+    private String executeHttpPostFunction(String path, String adaptiveAuthScript) throws JsTestException {
 
         ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(adaptiveAuthScript, this);
-        updateSPAuthScriptRequestUrl(sp, requestUrl);
+        updateSPAuthScriptRequestUrl(sp, path);
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
         SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp);
@@ -225,16 +290,62 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return context.getSelectedAcr();
     }
 
-    private void updateSPAuthScriptRequestUrl(ServiceProvider sp, String url) {
+    private void updateSPAuthScriptRequestUrl(ServiceProvider sp, String path) {
 
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
                 sp.getLocalAndOutBoundAuthenticationConfig();
         AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
                 .getAuthenticationScriptConfig();
         String script = authenticationScriptConfig.getContent();
-        authenticationScriptConfig.setContent(String.format(script, url));
+        authenticationScriptConfig.setContent(getFormattedScript(script, path));
         localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
         sp.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+    }
+
+    private String getFormattedScript(String script, String path) {
+        switch (path) {
+            case "dummy-post":
+                return String.format(script, getRequestUrl("dummy-post"));
+            case "dummy-post-with-headers":
+                return String.format(script, getRequestUrl("dummy-post-with-headers"));
+            case "dummy-post-with-basicauth-auth-config":
+                return String.format(script, getRequestUrl("dummy-post-with-basicauth-auth-config"));
+            case "dummy-post-with-apikey-auth-config":
+                return String.format(script, getRequestUrl("dummy-post-with-apikey-auth-config"));
+            case "dummy-post-with-bearertoken-auth-config":
+                return String.format(script, getRequestUrl("dummy-post-with-bearertoken-auth-config"));
+            case "dummy-post-with-clientcredential-auth-config":
+                return String.format(script, getRequestUrl("dummy-post-with-clientcredential-auth-config"),
+                        getRequestUrl("dummy-token-endpoint"));
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Generates a JSON Web Token for testing purposes.
+     */
+    private String generateTestAccessToken() throws JOSEException {
+
+        Instant instant = Instant.now().plusSeconds(3600);
+        RSAKey senderJWK = new RSAKeyGenerator(2048)
+                .keyID("123")
+                .keyUse(KeyUse.SIGNATURE)
+                .generate();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
+                .type(JOSEObjectType.JWT)
+                .keyID("MWQ5NWUwYWZiMmMzZTIzMzdmMzBhMWM4YjQyMjVhNWM4NjhkMGRmNzFlMGI3ZDlmYmQzNmEyMzhhYjBiNmZhYw_RS256")
+                .build();
+        JWTClaimsSet payload = new JWTClaimsSet.Builder()
+                .issuer("https://test/oauth2/token")
+                .audience("3ENOyHzZtwaP54apEjuV5H31Q_gb")
+                .subject("0aac3d44-b5tf-4641-8902-7af8713364f8")
+                .expirationTime(Date.from(instant))
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(header, payload);
+        signedJWT.sign(new RSASSASigner(senderJWK));
+        return signedJWT.serialize();
     }
 
     @POST
@@ -260,7 +371,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
      * @return
      */
     @POST
-    @Path("/dummy-post-headers")
+    @Path("/dummy-post-with-headers")
     @Produces("application/json")
     @Consumes("application/json")
     public Map<String, String> dummyPostWithHeaders(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
@@ -275,22 +386,105 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Dummy post method to test auth config.
-     * Check if the auth config is sent with the request.
-     * @param apikeyHeader
-     * @param data
-     * @return
+     * Dummy endpoint to test the http post function with basicauth auth config.
+     *
+     * @param authorization Authorization header value.
+     * @return Response.
      */
     @POST
-    @Path("/dummy-post-auth-config")
+    @Path("/dummy-post-with-basicauth-auth-config")
     @Produces("application/json")
-    @Consumes("application/json")
-    public Map<String, String> dummyPostWithAuthConfig(@HeaderParam(API_KEY_HEADER) String apikeyHeader,
-                                                       Map<String, String> data) {
+    public Map<String, String> dummyPostWithBasicAuthAuthConfig(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
+
+        Map<String, String> response = new HashMap<>();
+        if (data.containsKey(EMAIL) && authorization != null) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy endpoint to test the http post function with apikey auth config.
+     *
+     * @param apikeyHeader apikey header value.
+     * @return Response.
+     */
+    @POST
+    @Path("/dummy-post-with-apikey-auth-config")
+    @Produces("application/json")
+    public Map<String, String> dummyPostWithApiKeyAuthConfig(@HeaderParam(API_KEY_HEADER) String apikeyHeader, Map<String, String> data) {
 
         Map<String, String> response = new HashMap<>();
         if (data.containsKey(EMAIL) && apikeyHeader != null) {
             response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy endpoint to test the http post function with bearertoken auth config.
+     *
+     * @param authorization authorization header value.
+     * @return Response.
+     */
+    @POST
+    @Path("/dummy-post-with-bearertoken-auth-config")
+    @Produces("application/json")
+    public Map<String, String> dummyPostWithBearerTokenAuthConfig(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
+
+        Map<String, String> response = new HashMap<>();
+        if (data.containsKey(EMAIL) && authorization.startsWith("Bearer")) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy endpoint to test the http post function with clientcredential auth config.
+     *
+     * @param authorization authorization header value.
+     * @return Response.
+     */
+    @POST
+    @Path("/dummy-post-with-clientcredential-auth-config")
+    @Produces("application/json")
+    public Map<String, String> dummyPostWithClientCredentialAuthConfig(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
+
+        Map<String, String> response = new HashMap<>();
+        if (data.containsKey(EMAIL) && authorization.startsWith("Bearer")) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy token endpoint to test the http post function with clientcredential auth config.
+     *
+     * @param authorization authorization header value.
+     * @return Response.
+     */
+    @POST
+    @Path("/dummy-token-endpoint")
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces("application/json")
+    public Map<String, String> dummyTokenEndpoint(@HeaderParam("Authorization") String authorization,
+                                                  @FormParam("grant_type") String grantType) throws JOSEException {
+
+        Map<String, String> response = new HashMap<>();
+        if (grantType.equals("client_credentials")) {
+            response.put("access_token", generateTestAccessToken());
+            response.put("scope", "default");
+            response.put("token_type", "Bearer");
+            response.put("expires_in", "3600");
+            return response;
         } else {
             response.put(STATUS, FAILED);
         }
