@@ -22,8 +22,6 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSession;
-import org.wso2.carbon.identity.conditional.auth.functions.user.model.nashorn.JsNashornApplication;
-import org.wso2.carbon.identity.conditional.auth.functions.user.model.nashorn.JsNashornUserAgent;
 import org.wso2.carbon.identity.core.model.UserAgent;
 
 import java.util.stream.Collectors;
@@ -72,7 +70,7 @@ public class JsGraalUserSession extends JsUserSession implements ProxyObject {
 
         switch (name) {
             case "userAgent":
-                return new JsNashornUserAgent(userAgent);
+                return new JsGraalUserAgent(userAgent);
             case "ip":
                 return getWrapped().getIp();
             case "loginTime":
@@ -82,7 +80,7 @@ public class JsGraalUserSession extends JsUserSession implements ProxyObject {
             case "id":
                 return getWrapped().getSessionId();
             case "applications":
-                return getWrapped().getApplications().stream().map(JsNashornApplication::new)
+                return getWrapped().getApplications().stream().map(JsGraalApplication::new)
                         .collect(Collectors.toList());
             default:
                 return super.getMember(name);
