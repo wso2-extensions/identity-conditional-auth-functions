@@ -58,9 +58,9 @@ public class HTTPFunctionsServiceComponent {
     protected void activate(ComponentContext ctxt) {
 
         JsFunctionRegistry jsFunctionRegistry = HTTPFunctionsServiceHolder.getInstance().getJsFunctionRegistry();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_SET_COOKIE, new GetCookieFunctionImpl());
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_GET_COOKIE_VALUE, new GetCookieFunctionImpl());
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
-                FUNC_GET_COOKIE_VALUE, new SetCookieFunctionImpl());
+                FUNC_SET_COOKIE, new SetCookieFunctionImpl());
 
         HTTPPostFunction httpPost = new HTTPPostFunctionImpl();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST, httpPost);
