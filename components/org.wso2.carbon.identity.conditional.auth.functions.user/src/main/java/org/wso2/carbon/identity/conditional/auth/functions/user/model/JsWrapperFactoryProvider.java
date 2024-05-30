@@ -34,7 +34,8 @@ public class JsWrapperFactoryProvider {
 
     private JsWrapperFactoryProvider() {
 
-        JsGenericGraphBuilderFactory jsGraphBuilderFactory = FrameworkUtils.createJsGraphBuilderFactoryFromConfig();
+        JsGenericGraphBuilderFactory jsGraphBuilderFactory =
+                FrameworkUtils.createJsGenericGraphBuilderFactoryFromConfig();
         if (jsGraphBuilderFactory instanceof JsOpenJdkNashornGraphBuilderFactory) {
             jsWrapperBaseFactory = new JsOpenJdkNashornWrapperFactory();
         } else if (jsGraphBuilderFactory instanceof JsGraalGraphBuilderFactory) {
