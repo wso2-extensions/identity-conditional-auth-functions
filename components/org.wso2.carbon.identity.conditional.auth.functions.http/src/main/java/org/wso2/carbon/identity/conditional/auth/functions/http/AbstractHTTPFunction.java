@@ -174,6 +174,7 @@ public abstract class AbstractHTTPFunction {
             if (!isRetry.shouldRetry()) {
                 return result;
             }
+            outcome = result.getRight().getLeft();
         }
         return Pair.of(isRetry, Pair.of(outcome, null));
     }
