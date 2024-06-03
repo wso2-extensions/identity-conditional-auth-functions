@@ -292,7 +292,8 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                                     attemptCount + ".")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                    attemptCount++;         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    attemptCount++;
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
                 LOG.info("Retrying token request for session data key: " +
                         this.authenticationContext.getContextIdentifier() + ". Attempt: " + attemptCount);
