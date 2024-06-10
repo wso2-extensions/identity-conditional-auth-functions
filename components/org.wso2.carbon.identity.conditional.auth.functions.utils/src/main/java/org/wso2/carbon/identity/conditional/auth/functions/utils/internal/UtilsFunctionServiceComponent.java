@@ -28,8 +28,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.FilterAuthenticatorsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.FilterAuthenticatorsFunctionImpl;
-import org.wso2.carbon.identity.conditional.auth.functions.utils.GetMaskedContentFunction;
-import org.wso2.carbon.identity.conditional.auth.functions.utils.GetMaskedContentFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.utils.GetMaskedValueFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.utils.GetMaskedValueFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginIdentifierFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginIdentifierFunctionImpl;
 
@@ -56,9 +56,9 @@ public class UtilsFunctionServiceComponent {
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
                 "resolveMultiAttributeLoginIdentifier", resolveMultiAttributeLoginIdentifierFunctionImpl);
 
-        GetMaskedContentFunction getMaskedContentFunctionImpl = new GetMaskedContentFunctionImpl();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getMaskedContent",
-                getMaskedContentFunctionImpl);
+        GetMaskedValueFunction getMaskedValueFunctionImpl = new GetMaskedValueFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getMaskedValue",
+                getMaskedValueFunctionImpl);
     }
 
     @Deactivate
@@ -69,7 +69,7 @@ public class UtilsFunctionServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "filterAuthenticators");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
                     "resolveMultiAttributeLoginIdentifier");
-            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getMaskedContent");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getMaskedValue");
         }
     }
 

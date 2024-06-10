@@ -41,12 +41,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Test class for GetMaskedContentFunctionImpl.
+ * Test class for GetMaskedValueFunctionImplTest.
  */
 @WithCarbonHome
 @WithH2Database(files = "dbscripts/h2.sql")
 @WithRealmService(injectToSingletons = {LoggerUtils.class, FrameworkServiceDataHolder.class})
-public class GetMaskedContentFunctionImplTest extends JsSequenceHandlerAbstractTest {
+public class GetMaskedValueFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @BeforeClass
     @Parameters({"scriptEngine"})
@@ -54,18 +54,18 @@ public class GetMaskedContentFunctionImplTest extends JsSequenceHandlerAbstractT
 
         super.setUp(scriptEngine);
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
-        sequenceHandlerRunner.registerJsFunction("getMaskedContent",
-                new GetMaskedContentFunctionImpl());
+        sequenceHandlerRunner.registerJsFunction("getMaskedValue",
+                new GetMaskedValueFunctionImpl());
     }
 
-    @Test(dataProvider = "maskableContentProvider")
-    public void testGetMaskedContent(boolean isLogMaskingEnabled, String username, String expectedMaskedContent)
+    @Test(dataProvider = "maskableValueProvider")
+    public void testGetMaskedValue(boolean isLogMaskingEnabled, String username, String expectedMaskedValue)
             throws JsTestException {
 
         LoggerUtils.isLogMaskingEnable = isLogMaskingEnabled;
         sequenceHandlerRunner.addSubjectAuthenticator("BasicMockAuthenticator", username, Collections.emptyMap());
 
-        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource("get-masked-content-sp.xml", this);
+        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource("get-masked-value-sp.xml", this);
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
         SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp);
         context.setSequenceConfig(sequenceConfig);
@@ -76,11 +76,11 @@ public class GetMaskedContentFunctionImplTest extends JsSequenceHandlerAbstractT
 
         sequenceHandlerRunner.handle(req, resp, context, "test_domain");
 
-        Assert.assertEquals(context.getSelectedAcr(), expectedMaskedContent);
+        Assert.assertEquals(context.getSelectedAcr(), expectedMaskedValue);
     }
 
-    @DataProvider(name = "maskableContentProvider")
-    public Object[][] loginIdentifierProvider() {
+    @DataProvider(name = "maskableValueProvider")
+    public Object[][] maskableValueProvider() {
 
         return new Object[][]{
                 {true, "johndoe", "j*****e"},

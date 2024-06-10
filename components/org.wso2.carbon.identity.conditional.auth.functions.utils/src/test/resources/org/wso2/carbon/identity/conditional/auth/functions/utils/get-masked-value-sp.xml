@@ -40,7 +40,7 @@ var onLoginRequest = function(context) {
     executeStep(1, {
         onSuccess: function(context) {
             var username = context.currentKnownSubject.username;
-            var maskedUsername = getMaskedContent(username);
+            var maskedUsername = getMaskedValue(username);
             Log.info("Masked username of the logged user: " + maskedUsername);
             context.selectedAcr = maskedUsername;
         },

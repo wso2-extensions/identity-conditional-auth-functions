@@ -18,17 +18,18 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.utils;
 
-/**
- * Function to mask the given content if log masking is enabled.
- */
-@FunctionalInterface
-public interface GetMaskedContentFunction {
+import org.graalvm.polyglot.HostAccess;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
-    /**
-     * Masks the given content if log masking is enabled.
-     *
-     * @param content The content to be masked.
-     * @return The masked content.
-     */
-    String getMaskedContent(String content);
+/**
+ * Implementation of  {@link GetMaskedValueFunction}.
+ */
+public class GetMaskedValueFunctionImpl implements GetMaskedValueFunction {
+
+    @Override
+    @HostAccess.Export
+    public String getMaskedValue(String value) {
+
+        return LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(value) : value;
+    }
 }
