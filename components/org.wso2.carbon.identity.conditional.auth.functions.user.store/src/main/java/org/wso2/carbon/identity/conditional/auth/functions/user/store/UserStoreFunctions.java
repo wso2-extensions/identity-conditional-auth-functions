@@ -124,7 +124,7 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
                     }
                     authenticatedUser.setUserName(username);
                     authenticatedUser.setTenantDomain(tenantDomain);
-                    if (authenticationContext != null) {
+                    if (authenticationContext == null) {
                         return (JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance().getWrapperFactory().
                                 createJsAuthenticatedUser(authenticatedUser);
                     }
