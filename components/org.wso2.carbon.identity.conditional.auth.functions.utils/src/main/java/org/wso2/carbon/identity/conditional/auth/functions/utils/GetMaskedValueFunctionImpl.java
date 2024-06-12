@@ -30,6 +30,6 @@ public class GetMaskedValueFunctionImpl implements GetMaskedValueFunction {
     @HostAccess.Export
     public String getMaskedValue(String value) {
 
-        return LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(value) : value;
+        return  LoggerUtils.getMaskedContent(value);
     }
 }

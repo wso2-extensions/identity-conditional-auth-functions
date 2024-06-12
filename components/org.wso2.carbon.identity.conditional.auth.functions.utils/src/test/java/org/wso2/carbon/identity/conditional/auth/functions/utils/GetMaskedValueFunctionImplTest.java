@@ -82,9 +82,13 @@ public class GetMaskedValueFunctionImplTest extends JsSequenceHandlerAbstractTes
     @DataProvider(name = "maskableValueProvider")
     public Object[][] maskableValueProvider() {
 
+        /*
+        The "getMaskedValue" method should always mask the passed in value
+         irrespective of the server-wide 'isLogMaskingEnable' configuration.
+         */
         return new Object[][]{
                 {true, "johndoe", "j*****e"},
-                {false, "johndoe", "johndoe"},
+                {false, "johndoe", "j*****e"},
         };
     }
 }

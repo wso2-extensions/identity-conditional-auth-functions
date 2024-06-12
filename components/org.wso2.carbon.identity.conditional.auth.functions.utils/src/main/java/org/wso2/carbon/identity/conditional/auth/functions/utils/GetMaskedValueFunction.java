@@ -19,13 +19,13 @@
 package org.wso2.carbon.identity.conditional.auth.functions.utils;
 
 /**
- * Function to mask the given value  if log masking is enabled.
+ * Function to mask the given value.
  */
 @FunctionalInterface
 public interface GetMaskedValueFunction {
 
     /**
-     * Masks the given value if log masking is enabled.
+     * Masks the given value.
      *
      * @param value The value to be masked.
      * @return The masked value.
