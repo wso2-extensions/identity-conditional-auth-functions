@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,6 +28,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.FilterAuthenticatorsFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.FilterAuthenticatorsFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.utils.GetMaskedValueFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.utils.GetMaskedValueFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginIdentifierFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.utils.ResolveMultiAttributeLoginIdentifierFunctionImpl;
 
@@ -53,6 +55,10 @@ public class UtilsFunctionServiceComponent {
                 new ResolveMultiAttributeLoginIdentifierFunctionImpl();
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
                 "resolveMultiAttributeLoginIdentifier", resolveMultiAttributeLoginIdentifierFunctionImpl);
+
+        GetMaskedValueFunction getMaskedValueFunctionImpl = new GetMaskedValueFunctionImpl();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getMaskedValue",
+                getMaskedValueFunctionImpl);
     }
 
     @Deactivate
@@ -63,6 +69,7 @@ public class UtilsFunctionServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "filterAuthenticators");
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
                     "resolveMultiAttributeLoginIdentifier");
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getMaskedValue");
         }
     }
 
