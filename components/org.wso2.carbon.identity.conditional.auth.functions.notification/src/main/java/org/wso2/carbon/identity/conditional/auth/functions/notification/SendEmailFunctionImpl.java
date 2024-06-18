@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.conditional.auth.functions.notification;
@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.notification.internal
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.handler.notification.NotificationConstants;
 import org.wso2.carbon.identity.event.handler.notification.exception.NotificationRuntimeException;
 
 import java.util.HashMap;
@@ -51,6 +52,11 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
         properties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, user.getWrapped().getTenantDomain());
         properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, user.getWrapped().getUserStoreDomain());
         properties.put(TEMPLATE_TYPE, templateId);
+
+        if (user.getWrapped().isFederatedUser()) {
+            properties.put(NotificationConstants.IS_FEDERATED_USER, user.getWrapped().isFederatedUser());
+            properties.put(NotificationConstants.FEDERATED_USER_CLAIMS, user.getWrapped().getUserAttributes());
+        }
 
         Event identityMgtEvent = new Event(eventName, properties);
         try {
