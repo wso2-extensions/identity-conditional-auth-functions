@@ -47,16 +47,14 @@ public class JsGraalUserSession extends JsUserSession implements ProxyObject {
     @Override
     public Object getMemberKeys() {
 
-        return new String[]{"id", "createdTimestamp", "lastAccessTime", "tenantDomain", "user", "application",
-                "userAgent"};
+        return new String[]{"id", "lastAccessTime", "applications", "userAgent", "ip", "loginTime"};
     }
 
     @Override
     public boolean hasMember(String key) {
 
-        return "id".equals(key) || "createdTimestamp".equals(key) || "lastAccessTime".equals(key) ||
-                "tenantDomain".equals(key) || "user".equals(key) || "application".equals(key) ||
-                "userAgent".equals(key);
+        return "id".equals(key) || "lastAccessTime".equals(key) || "applications".equals(key) ||
+                "userAgent".equals(key) || "ip".equals(key) || "loginTime".equals(key);
     }
 
     @Override
