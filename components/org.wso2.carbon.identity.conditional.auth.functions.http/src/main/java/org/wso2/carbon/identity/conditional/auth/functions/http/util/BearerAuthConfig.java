@@ -26,7 +26,7 @@ import java.util.Map;
  * This class is used to configure the bearer token authentication.
  * The bearer token is added to the request header.
  */
-public class BearerTokenAuthConfig implements AuthConfig {
+public class BearerAuthConfig implements AuthConfig {
     private String token;
 
     public void setToken(String token) {

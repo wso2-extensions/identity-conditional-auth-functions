@@ -82,8 +82,8 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String TEST_SP_CONFIG = "http-post-test-sp.xml";
     private static final String TEST_HEADERS = "http-post-test-headers.xml";
     private static final String TEST_AUTH_CONFIG_WITH_APIKEY = "http-post-test-auth-config-with-apikey.xml";
-    private static final String TEST_AUTH_CONFIG_WITH_BEARERTOKEN = "http-post-test-auth-config-with-bearertoken.xml";
-    private static final String TEST_AUTH_CONFIG_WITH_BASICAUTH = "http-post-test-auth-config-with-basicauth.xml";
+    private static final String TEST_AUTH_CONFIG_WITH_BEARER = "http-post-test-auth-config-with-bearer.xml";
+    private static final String TEST_AUTH_CONFIG_WITH_BASIC = "http-post-test-auth-config-with-basic.xml";
     private static final String TEST_AUTH_CONFIG_WITH_CLIENTCREDENTIAL = "http-post-test-auth-config-with-clientcredential.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
@@ -162,7 +162,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Test httpPost method with basicauth auth config.
+     * Test httpPost method with basic auth config.
      * Check if the auth config is applied to the request.
      *
      * @throws JsTestException
@@ -170,11 +170,11 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testHttpPostMethodWithBasicAuthAuthConfig() throws JsTestException {
 
-        String result = executeHttpPostFunction("dummy-post-with-basicauth-auth-config",
-                TEST_AUTH_CONFIG_WITH_BASICAUTH);
+        String result = executeHttpPostFunction("dummy-post-with-basic-auth-config",
+                TEST_AUTH_CONFIG_WITH_BASIC);
 
         assertEquals(result, SUCCESS,
-                "The http post request was not successful with basicauth auth config. Result from request: " +
+                "The http post request was not successful with basic auth config. Result from request: " +
                         result);
     }
 
@@ -195,19 +195,19 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Test httpPost method with bearertoken auth config.
+     * Test httpPost method with bearer auth config.
      * Check if the auth config is applied to the request.
      *
      * @throws JsTestException
      */
     @Test
-    public void testHttpPostMethodWithBearerTokenAuthConfig() throws JsTestException {
+    public void testHttpPostMethodWithBearerAuthConfig() throws JsTestException {
 
-        String result = executeHttpPostFunction("dummy-post-with-bearertoken-auth-config",
-                TEST_AUTH_CONFIG_WITH_BEARERTOKEN);
+        String result = executeHttpPostFunction("dummy-post-with-bearer-auth-config",
+                TEST_AUTH_CONFIG_WITH_BEARER);
 
         assertEquals(result, SUCCESS,
-                "The http post request was not successful with bearertoken auth config. Result from request: " +
+                "The http post request was not successful with bearer auth config. Result from request: " +
                         result);
     }
 
@@ -308,12 +308,12 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 return String.format(script, getRequestUrl("dummy-post"));
             case "dummy-post-with-headers":
                 return String.format(script, getRequestUrl("dummy-post-with-headers"));
-            case "dummy-post-with-basicauth-auth-config":
-                return String.format(script, getRequestUrl("dummy-post-with-basicauth-auth-config"));
+            case "dummy-post-with-basic-auth-config":
+                return String.format(script, getRequestUrl("dummy-post-with-basic-auth-config"));
             case "dummy-post-with-apikey-auth-config":
                 return String.format(script, getRequestUrl("dummy-post-with-apikey-auth-config"));
-            case "dummy-post-with-bearertoken-auth-config":
-                return String.format(script, getRequestUrl("dummy-post-with-bearertoken-auth-config"));
+            case "dummy-post-with-bearer-auth-config":
+                return String.format(script, getRequestUrl("dummy-post-with-bearer-auth-config"));
             case "dummy-post-with-clientcredential-auth-config":
                 return String.format(script, getRequestUrl("dummy-post-with-clientcredential-auth-config"),
                         getRequestUrl("dummy-token-endpoint"));
@@ -386,13 +386,13 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Dummy endpoint to test the http post function with basicauth auth config.
+     * Dummy endpoint to test the http post function with basic auth config.
      *
      * @param authorization Authorization header value.
      * @return Response.
      */
     @POST
-    @Path("/dummy-post-with-basicauth-auth-config")
+    @Path("/dummy-post-with-basic-auth-config")
     @Produces("application/json")
     public Map<String, String> dummyPostWithBasicAuthAuthConfig(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
 
@@ -426,15 +426,15 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Dummy endpoint to test the http post function with bearertoken auth config.
+     * Dummy endpoint to test the http post function with bearer auth config.
      *
      * @param authorization authorization header value.
      * @return Response.
      */
     @POST
-    @Path("/dummy-post-with-bearertoken-auth-config")
+    @Path("/dummy-post-with-bearer-auth-config")
     @Produces("application/json")
-    public Map<String, String> dummyPostWithBearerTokenAuthConfig(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
+    public Map<String, String> dummyPostWithBearerAuthConfig(@HeaderParam(AUTHORIZATION) String authorization, Map<String, String> data) {
 
         Map<String, String> response = new HashMap<>();
         if (data.containsKey(EMAIL) && authorization.startsWith("Bearer")) {

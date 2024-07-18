@@ -55,9 +55,10 @@ function onLoginRequest(context) {
             "Accept": "application/json"
         },
         {
-            "type": "bearertoken",
+            "type": "basic",
             "properties": {
-                "token": "test-token",
+                "username": "admin",
+                "password": "admin"
             }
         },
         {

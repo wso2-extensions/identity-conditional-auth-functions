@@ -25,9 +25,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
  * This class is used to create the authentication configurations based on the authentication type.
  * The supported authentication types are:
  * 1. ClientCredential
- * 2. BearerToken
+ * 2. Bearer
  * 3. ApiKey
- * 4. BasicAuth
+ * 4. Basic
  */
 public class AuthConfigFactory {
 
@@ -48,11 +48,11 @@ public class AuthConfigFactory {
                 clientCredentialAuthConfig.setAuthenticationContext(authenticationContext);
                 clientCredentialAuthConfig.setAsyncReturn(asyncReturn);
                 return clientCredentialAuthConfig;
-            case "bearertoken":
-                return new BearerTokenAuthConfig();
+            case "bearer":
+                return new BearerAuthConfig();
             case "apikey":
                 return new ApiKeyAuthConfig();
-            case "basicauth":
+            case "basic":
                 return new BasicAuthConfig();
             default:
                 throw new IllegalArgumentException("Unsupported authentication type: " + authConfigModel.getType());

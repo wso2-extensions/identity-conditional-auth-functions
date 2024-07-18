@@ -47,12 +47,15 @@
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
 function onLoginRequest(context) {
-    httpGet('%s',
+    httpPost('%s',
+        {
+            "email": 'test@wso2.com',
+        },
         {
             "Accept": "application/json"
         },
         {
-            "type": "bearertoken",
+            "type": "bearer",
             "properties": {
                 "token": "test-token",
             }
