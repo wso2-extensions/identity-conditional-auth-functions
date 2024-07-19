@@ -52,10 +52,9 @@ function onLoginRequest(context) {
             "Accept": "application/json"
         },
         {
-            "type": "basicauth",
+            "type": "bearer",
             "properties": {
-                "username": "admin",
-                "password": "admin"
+                "token": "test-token",
             }
         },
         {

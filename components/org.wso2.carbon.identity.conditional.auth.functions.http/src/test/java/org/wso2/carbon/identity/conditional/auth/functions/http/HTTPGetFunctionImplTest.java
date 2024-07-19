@@ -82,9 +82,9 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private static final String TEST_SP_CONFIG = "http-get-test-sp.xml";
     private static final String TEST_HEADERS = "http-get-test-headers.xml";
-    private static final String TEST_AUTH_CONFIG_WITH_BASICAUTH = "http-get-test-auth-config-with-basicauth.xml";
+    private static final String TEST_AUTH_CONFIG_WITH_BASIC = "http-get-test-auth-config-with-basic.xml";
     private static final String TEST_AUTH_CONFIG_WITH_APIKEY = "http-get-test-auth-config-with-apikey.xml";
-    private static final String TEST_AUTH_CONFIG_WITH_BEARERTOKEN = "http-get-test-auth-config-with-bearertoken.xml";
+    private static final String TEST_AUTH_CONFIG_WITH_BEARER = "http-get-test-auth-config-with-bearer.xml";
     private static final String TEST_AUTH_CONFIG_WITH_CLIENTCREDENTIAL = "http-get-test-auth-config-with" +
             "-clientcredential.xml";
     private static final String TENANT_DOMAIN = "carbon.super";
@@ -166,7 +166,7 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Test httpGet method with basicauth auth config.
+     * Test httpGet method with basic auth config.
      * Check if the auth config is applied to the request.
      *
      * @throws JsTestException
@@ -174,10 +174,10 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testHttpGetMethodWithBasicAuthAuthConfig() throws JsTestException {
 
-        String result = executeHttpGetFunction("dummy-get-with-basicauth-auth-config", TEST_AUTH_CONFIG_WITH_BASICAUTH);
+        String result = executeHttpGetFunction("dummy-get-with-basic-auth-config", TEST_AUTH_CONFIG_WITH_BASIC);
 
         assertEquals(result, SUCCESS,
-                "The http get request was not successful with basicauth auth config. Result from request: " +
+                "The http get request was not successful with basic auth config. Result from request: " +
                         result);
     }
 
@@ -198,18 +198,18 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Test httpGet method with bearertoken auth config.
+     * Test httpGet method with bearer auth config.
      * Check if the auth config is applied to the request.
      *
      * @throws JsTestException
      */
     @Test
-    public void testHttpGetMethodWithBearerTokenAuthConfig() throws JsTestException {
+    public void testHttpGetMethodWithBearerAuthConfig() throws JsTestException {
 
-        String result = executeHttpGetFunction("dummy-get-with-bearertoken-auth-config", TEST_AUTH_CONFIG_WITH_BEARERTOKEN);
+        String result = executeHttpGetFunction("dummy-get-with-bearer-auth-config", TEST_AUTH_CONFIG_WITH_BEARER);
 
         assertEquals(result, SUCCESS,
-                "The http get request was not successful with bearertoken auth config. Result from request: " +
+                "The http get request was not successful with bearer auth config. Result from request: " +
                         result);
     }
 
@@ -305,12 +305,12 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 return String.format(script, getRequestUrl("dummy-get"));
             case "dummy-get-with-headers":
                 return String.format(script, getRequestUrl("dummy-get-with-headers"));
-            case "dummy-get-with-basicauth-auth-config":
-                return String.format(script, getRequestUrl("dummy-get-with-basicauth-auth-config"));
+            case "dummy-get-with-basic-auth-config":
+                return String.format(script, getRequestUrl("dummy-get-with-basic-auth-config"));
             case "dummy-get-with-apikey-auth-config":
                 return String.format(script, getRequestUrl("dummy-get-with-apikey-auth-config"));
-            case "dummy-get-with-bearertoken-auth-config":
-                return String.format(script, getRequestUrl("dummy-get-with-bearertoken-auth-config"));
+            case "dummy-get-with-bearer-auth-config":
+                return String.format(script, getRequestUrl("dummy-get-with-bearer-auth-config"));
             case "dummy-get-with-clientcredential-auth-config":
                 return String.format(script, getRequestUrl("dummy-get-with-clientcredential-auth-config"),
                         getRequestUrl("dummy-token-endpoint"));
@@ -370,15 +370,15 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Dummy endpoint to test the http get function with basicauth auth config.
+     * Dummy endpoint to test the http get function with basic auth config.
      *
      * @param authorization Authorization header value.
      * @return Response.
      */
     @GET
-    @Path("/dummy-get-with-basicauth-auth-config")
+    @Path("/dummy-get-with-basic-auth-config")
     @Produces("application/json")
-    public Map<String, String> dummyGetWithBasicAuthAuthConfig(@HeaderParam(AUTHORIZATION) String authorization) {
+    public Map<String, String> dummyGetWithBasicAuthConfig(@HeaderParam(AUTHORIZATION) String authorization) {
 
         Map<String, String> response = new HashMap<>();
         if (authorization != null) {
@@ -410,15 +410,15 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
-     * Dummy endpoint to test the http get function with bearertoken auth config.
+     * Dummy endpoint to test the http get function with bearer auth config.
      *
      * @param authorization authorization header value.
      * @return Response.
      */
     @GET
-    @Path("/dummy-get-with-bearertoken-auth-config")
+    @Path("/dummy-get-with-bearer-auth-config")
     @Produces("application/json")
-    public Map<String, String> dummyGetWithBearerTokenAuthConfig(@HeaderParam(AUTHORIZATION) String authorization) {
+    public Map<String, String> dummyGetWithBearerAuthConfig(@HeaderParam(AUTHORIZATION) String authorization) {
 
         Map<String, String> response = new HashMap<>();
         if (authorization.startsWith("Bearer")) {

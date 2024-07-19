@@ -47,15 +47,12 @@
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
 function onLoginRequest(context) {
-    httpPost('%s',
-        {
-            "email": 'test@wso2.com',
-        },
+    httpGet('%s',
         {
             "Accept": "application/json"
         },
         {
-            "type": "basicauth",
+            "type": "basic",
             "properties": {
                 "username": "admin",
                 "password": "admin"
