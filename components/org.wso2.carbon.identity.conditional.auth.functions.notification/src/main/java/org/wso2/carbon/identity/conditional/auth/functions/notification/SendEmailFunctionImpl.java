@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.internal.NotificationFunctionServiceHolder;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -62,8 +63,10 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
         try {
             NotificationFunctionServiceHolder.getInstance().getIdentityEventService().handleEvent(identityMgtEvent);
         } catch (IdentityEventException | NotificationRuntimeException e) {
-            LOG.error(String.format("Error when sending notification of template %s to user %s", templateId, user
-                    .getWrapped().toFullQualifiedUsername()), e);
+            String loggableUsername = LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+                    user.getWrapped().toFullQualifiedUsername()) : user.getWrapped().toFullQualifiedUsername();
+            LOG.error(String.format("Error when sending notification of template %s to user %s", templateId,
+                    loggableUsername), e);
             return false;
         }
         return true;
