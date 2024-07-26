@@ -135,7 +135,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
          * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
          */
         Map<String, String> connectionMetaDataMap = new HashMap<>(connectionMetaData);
-        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
+        Map<String, Object> payloadDataMap = getPayloadDataMap(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
             LOG.info("Starting the callChoreo function for session data key: " +
                     authenticationContext.getContextIdentifier());
@@ -179,6 +179,33 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+    }
+
+    private Map<String, Object> getPayloadDataMap(Map<String, Object> payloadData) {
+        Map<String, Object> payloadDataMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : payloadData.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                payloadDataMap.put(entry.getKey(), getPayloadDataMap((Map<String, Object>) value));
+            } else if (value instanceof List) {
+                payloadDataMap.put(entry.getKey(), processList((List<Object>) value));
+            } else {
+                payloadDataMap.put(entry.getKey(), value);
+            }
+        }
+        return payloadDataMap;
+    }
+
+    private List<Object> processList(List<Object> list) {
+        List<Object> resultList = new ArrayList<>();
+        for (Object item : list) {
+            if (item instanceof Map) {
+                resultList.add(getPayloadDataMap((Map<String, Object>) item));
+            } else {
+                resultList.add(item);
+            }
+        }
+        return resultList;
     }
 
     /**
