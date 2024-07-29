@@ -217,6 +217,10 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
     }
 
     private Map<String, Object> getPayloadDataMap(Map<String, Object> payloadData) {
+
+        if (payloadData == null) {
+            return new HashMap<>();
+        }
         Map<String, Object> payloadDataMap = new HashMap<>();
         for (Map.Entry<String, Object> entry : payloadData.entrySet()) {
             Object value = entry.getValue();
@@ -232,10 +236,13 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
     }
 
     private List<Object> processList(List<Object> list) {
+
         List<Object> resultList = new ArrayList<>();
         for (Object item : list) {
             if (item instanceof Map) {
                 resultList.add(getPayloadDataMap((Map<String, Object>) item));
+            } if (item instanceof List) {
+                resultList.add(processList((List<Object>) item));
             } else {
                 resultList.add(item);
             }
