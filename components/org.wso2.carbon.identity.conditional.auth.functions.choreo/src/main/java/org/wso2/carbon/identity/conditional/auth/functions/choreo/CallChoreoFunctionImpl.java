@@ -71,6 +71,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.getPayloadDataMap;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_TIMEOUT;
 
@@ -179,40 +180,6 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
             }
         });
         JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
-    }
-
-    private Map<String, Object> getPayloadDataMap(Map<String, Object> payloadData) {
-
-        if (payloadData == null) {
-            return new HashMap<>();
-        }
-        Map<String, Object> payloadDataMap = new HashMap<>();
-        for (Map.Entry<String, Object> entry : payloadData.entrySet()) {
-            Object value = entry.getValue();
-            if (value instanceof Map) {
-                payloadDataMap.put(entry.getKey(), getPayloadDataMap((Map<String, Object>) value));
-            } else if (value instanceof List) {
-                payloadDataMap.put(entry.getKey(), processList((List<Object>) value));
-            } else {
-                payloadDataMap.put(entry.getKey(), value);
-            }
-        }
-        return payloadDataMap;
-    }
-
-    private List<Object> processList(List<Object> list) {
-
-        List<Object> resultList = new ArrayList<>();
-        for (Object item : list) {
-            if (item instanceof Map) {
-                resultList.add(getPayloadDataMap((Map<String, Object>) item));
-            } if (item instanceof List) {
-                resultList.add(processList((List<Object>) item));
-            } else {
-                resultList.add(item);
-            }
-        }
-        return resultList;
     }
 
     /**

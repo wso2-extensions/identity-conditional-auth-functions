@@ -24,6 +24,11 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class CommonUtils {
 
     public static String getConnectorConfig(String key, String tenantDomain) throws IdentityEventException {
@@ -43,5 +48,39 @@ public class CommonUtils {
         } catch (IdentityGovernanceException e) {
             throw new IdentityEventException("Error while getting connector configurations for property :" + key, e);
         }
+    }
+
+    public static Map<String, Object> getPayloadDataMap(Map<String, Object> payloadData) {
+
+        if (payloadData == null) {
+            return new HashMap<>();
+        }
+        Map<String, Object> payloadDataMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : payloadData.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                payloadDataMap.put(entry.getKey(), getPayloadDataMap((Map<String, Object>) value));
+            } else if (value instanceof List) {
+                payloadDataMap.put(entry.getKey(), processList((List<Object>) value));
+            } else {
+                payloadDataMap.put(entry.getKey(), value);
+            }
+        }
+        return payloadDataMap;
+    }
+
+    private static List<Object> processList(List<Object> list) {
+
+        List<Object> resultList = new ArrayList<>();
+        for (Object item : list) {
+            if (item instanceof Map) {
+                resultList.add(getPayloadDataMap((Map<String, Object>) item));
+            } else if (item instanceof List) {
+                resultList.add(processList((List<Object>) item));
+            } else {
+                resultList.add(item);
+            }
+        }
+        return resultList;
     }
 }
