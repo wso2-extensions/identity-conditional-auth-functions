@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -94,6 +96,8 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String ALLOWED_DOMAIN = "abc";
     private static final String AUTHORIZATION = "Authorization";
     private static final String API_KEY_HEADER = "X-API-KEY";
+    public static final String HTTP_POST_PAYLOAD = "http-post-payload.json";
+    public static final String HTTP_POST_PAYLOAD_TEST_SP = "http-post-payload-test-sp.xml";
     private HTTPPostFunctionImpl httpPostFunction;
 
     @InjectMicroservicePort
@@ -230,6 +234,20 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
+     * Test httpPost method with payload.
+     * Check if the payload data is sent with the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostMethodWithPayload() throws JsTestException {
+
+        String result = executeHttpPostFunction("dummy-post-with-payload", HTTP_POST_PAYLOAD_TEST_SP);
+        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
+                + result);
+    }
+
+    /**
      * Tests the behavior of the httpPost function when provided with null headers.
      *
      * @throws IllegalArgumentException if the provided arguments are not valid.
@@ -291,7 +309,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return context.getSelectedAcr();
     }
 
-    private void updateSPAuthScriptRequestUrl(ServiceProvider sp, String path) {
+    private void updateSPAuthScriptRequestUrl(ServiceProvider sp, String path) throws JsTestException {
 
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
                 sp.getLocalAndOutBoundAuthenticationConfig();
@@ -303,7 +321,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         sp.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
     }
 
-    private String getFormattedScript(String script, String path) {
+    private String getFormattedScript(String script, String path) throws JsTestException {
         switch (path) {
             case "dummy-post":
                 return String.format(script, getRequestUrl("dummy-post"));
@@ -318,6 +336,9 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
             case "dummy-post-with-clientcredential-auth-config":
                 return String.format(script, getRequestUrl("dummy-post-with-clientcredential-auth-config"),
                         getRequestUrl("dummy-token-endpoint"));
+            case "dummy-post-with-payload":
+                JsonObject Payload = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
+                return String.format(script, Payload.toString(), getRequestUrl("dummy-post-with-payload"));
             default:
                 return null;
         }
@@ -464,6 +485,28 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
             response.put(STATUS, FAILED);
         }
         return response;
+    }
+
+    @POST
+    @Path("/dummy-post-with-payload")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Map<String, Object> dummyPostWithPayload(Map<String, Object> data) throws JsTestException {
+
+        JsonObject expectedPayload = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
+        Gson gson = new Gson();
+        String dataStr = gson.toJson(data);
+        JsonObject actualPayload = gson.fromJson(dataStr, JsonObject.class);
+        Map<String, Object> response = new HashMap<>();
+        response.put(STATUS, SUCCESS);
+        response.put("data", dataStr);
+
+        if (expectedPayload.equals(actualPayload)) {
+            return response;
+        } else {
+            throw new JsTestException("Payloads do not match. " +
+                    String.format("Expected payload: %s, Actual payload: %s", expectedPayload, actualPayload));
+        }
     }
 
     /**
