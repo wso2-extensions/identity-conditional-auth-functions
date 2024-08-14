@@ -28,14 +28,12 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONObject;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
@@ -52,6 +50,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.JsUtilsProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.graaljs.JsGraalUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.nashorn.JsNashornUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.MockAuthenticator;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.SubjectCallback;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -141,11 +142,15 @@ public class JsSequenceHandlerRunner {
         FrameworkServiceDataHolder.getInstance().setJsGenericGraphBuilderFactory(graphBuilderFactory);
 
         Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
+        Field jsUtils = JsUtilsProvider.class.getDeclaredField("jsUtils");
         wrapperFactory.setAccessible(true);
+        jsUtils.setAccessible(true);
         if (graphBuilderFactory instanceof JsGraphBuilderFactory) {
             wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsWrapperFactory());
+            jsUtils.set(JsUtilsProvider.getInstance(), new JsNashornUtils());
         } else if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
             wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsGraalWrapperFactory());
+            jsUtils.set(JsUtilsProvider.getInstance(), new JsGraalUtils());
         }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();

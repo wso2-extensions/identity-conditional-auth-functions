@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.common.utils;
 
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.conditional.auth.functions.common.internal.FunctionsDataHolder;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.JsUtilsProvider;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
@@ -58,10 +59,16 @@ public class CommonUtils {
         Map<String, Object> payloadDataMap = new HashMap<>();
         for (Map.Entry<String, Object> entry : payloadData.entrySet()) {
             Object value = entry.getValue();
-            if (value instanceof Map) {
+            if (JsUtilsProvider.getInstance().getJsUtils().isArray(value)) {
+                List<Object> listToProcess;
+                if (value instanceof List) {
+                    listToProcess = (List<Object>) value;
+                } else {
+                    listToProcess = convertToList((Map<String, Object>) value);
+                }
+                payloadDataMap.put(entry.getKey(), processList(listToProcess));
+            } else if (value instanceof Map) {
                 payloadDataMap.put(entry.getKey(), getPayloadDataMap((Map<String, Object>) value));
-            } else if (value instanceof List) {
-                payloadDataMap.put(entry.getKey(), processList((List<Object>) value));
             } else {
                 payloadDataMap.put(entry.getKey(), value);
             }
@@ -73,14 +80,29 @@ public class CommonUtils {
 
         List<Object> resultList = new ArrayList<>();
         for (Object item : list) {
-            if (item instanceof Map) {
+            if (JsUtilsProvider.getInstance().getJsUtils().isArray(item)) {
+                List<Object> listToProcess;
+                if (item instanceof List) {
+                    listToProcess = (List<Object>) item;
+                } else {
+                    listToProcess = convertToList((Map<String, Object>) item);
+                }
+                resultList.add(processList(listToProcess));
+            } else if (item instanceof Map) {
                 resultList.add(getPayloadDataMap((Map<String, Object>) item));
-            } else if (item instanceof List) {
-                resultList.add(processList((List<Object>) item));
             } else {
                 resultList.add(item);
             }
         }
         return resultList;
+    }
+
+    private static List<Object> convertToList(Map<String, Object> map) {
+
+        List<Object> list = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            list.add(entry.getValue());
+        }
+        return list;
     }
 }
