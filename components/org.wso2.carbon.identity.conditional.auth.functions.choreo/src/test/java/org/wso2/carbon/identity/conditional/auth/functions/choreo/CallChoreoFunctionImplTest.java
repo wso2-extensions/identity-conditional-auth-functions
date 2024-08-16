@@ -32,6 +32,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -39,6 +40,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -296,13 +298,24 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     }
 
-    @Test
-    public void testCallChoreoPayload() throws JsTestException,
+    @DataProvider(name = "payloadType")
+    public Object[][] getCookieValues() {
+
+        return new Object[][]{
+                {"serializedComprehensivePayload"},
+                {"nonSerializedComprehensivePayload"}
+        };
+    }
+
+    @Test(dataProvider = "payloadType")
+    public void testCallChoreoPayload(String dataProviderType) throws JsTestException,
             NoSuchFieldException, IllegalAccessException {
 
-        LOG.info("===== Testing callChoreo payload: ");
-        AuthenticationContext context = getAuthenticationContextForPayloadTest(CHOREO_SERVICE_CHECK_PAYLOAD);
+        LOG.info("===== Testing callChoreo payload");
+        AuthenticationContext context =
+                getAuthenticationContextForPayloadTest(CHOREO_SERVICE_CHECK_PAYLOAD, dataProviderType);
 
+        sequenceHandlerRunner.registerJsFunction("validateResponse", new ResponseValidatorImpl());
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
 
@@ -343,7 +356,8 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return context;
     }
 
-    private AuthenticationContext getAuthenticationContextForPayloadTest(String choreoServiceResourcePath)
+    private AuthenticationContext getAuthenticationContextForPayloadTest(String choreoServiceResourcePath,
+                                                                         String dataProviderType)
             throws JsTestException {
 
         ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource(PAYLOAD_TEST_SP, this);
@@ -355,7 +369,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String jsonPayload = sequenceHandlerRunner.loadJson(CHOREO_PAYLOAD_JSON, this).toString();
         String content = authenticationScriptConfig.getContent();
         String newContent = String.format(content, microServicePort, choreoServiceResourcePath,
-                CONSUMER_KEY, CONSUMER_SECRET, jsonPayload);
+                CONSUMER_KEY, CONSUMER_SECRET, jsonPayload, jsonPayload, dataProviderType);
         authenticationScriptConfig.setContent(newContent);
         localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
         sp1.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
@@ -455,7 +469,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         if (expectedPayload.equals(actualPayload)) {
             return Response
                     .ok()
-                    .entity(data).build();
+                    .entity(expectedPayload).build();
         } else {
             throw new JsTestException("Payloads do not match. " +
                     String.format("Expected payload: %s, Actual payload: %s", expectedPayload, actualPayload));
@@ -551,5 +565,33 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 .status(Response.Status.UNAUTHORIZED)
                 .entity(responseBody.toString())
                 .build();
+    }
+
+    @FunctionalInterface
+    public interface ResponseValidator {
+
+        @HostAccess.Export
+        boolean validateResponse(JsParameters response);
+    }
+
+    public class ResponseValidatorImpl implements ResponseValidator {
+
+        @Override
+        @HostAccess.Export
+        public boolean validateResponse(JsParameters response) {
+
+            try {
+                if (response != null) {
+                    JsonObject expectedResponse = sequenceHandlerRunner.loadJson(CHOREO_PAYLOAD_JSON, this);
+                    Gson gson = new Gson();
+                    String dataStr = gson.toJson(response.getWrapped());
+                    JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                    return actualResponse.equals(expectedResponse);
+                }
+                return false;
+            } catch (JsTestException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

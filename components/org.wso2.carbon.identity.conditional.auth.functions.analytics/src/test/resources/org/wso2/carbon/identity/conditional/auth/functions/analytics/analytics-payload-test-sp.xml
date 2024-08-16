@@ -92,14 +92,15 @@
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
-var comprehensivePayload = %s;
+var serializedComprehensivePayload = %s;
 function onLoginRequest(context) {
     executeStep(1, {
         onSuccess: function (context) {
+            var nonSerializedComprehensivePayload = %s;
             var username = context.steps[1].subject.username;
-            callAnalytics({'ReceiverUrl': '%s'}, comprehensivePayload, {
+            callAnalytics({'ReceiverUrl': '%s'}, %s, {
                 onSuccess: function (context, data) {
-                    if (data.event.riskScore > 0) {
+                    if (data.event.riskScore > 0 && validateResponse(data.payload)) {
                         Log.info('data.event.riskScore > 0');
                         context.selectedAcr = ''+ data.event.riskScore;
                     }

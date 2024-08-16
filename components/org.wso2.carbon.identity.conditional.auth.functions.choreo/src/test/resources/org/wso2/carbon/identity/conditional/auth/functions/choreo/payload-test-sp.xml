@@ -98,14 +98,19 @@ var connectionMetaData = {};
 connectionMetaData.url = "http://localhost:%s%s"
 connectionMetaData.consumerKey = "%s";
 connectionMetaData.consumerSecret = "%s";
-var comprehensivePayload = %s;
+var serializedComprehensivePayload = %s;
 function onLoginRequest(context) {
     executeStep(1, {
         onSuccess: function (context) {
-            callChoreo(connectionMetaData, comprehensivePayload, {
+            var nonSerializedComprehensivePayload = %s;
+            callChoreo(connectionMetaData, %s, {
                 onSuccess: function (context, data) {
                     Log.info('Payload is valid');
-                    context.selectedAcr = 'SUCCESS';
+                    if (validateResponse(data)) {
+                        context.selectedAcr = 'SUCCESS';
+                    } else {
+                        context.selectedAcr = 'FAILED'
+                    }
                 }, onFail: function (context, data) {
                     Log.info('Payload is not valid');
                     context.selectedAcr = 'FAILED'

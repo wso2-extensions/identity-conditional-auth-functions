@@ -20,11 +20,14 @@ package org.wso2.carbon.identity.conditional.auth.functions.analytics;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.graalvm.polyglot.HostAccess;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -51,6 +54,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
@@ -136,10 +140,20 @@ public static final String ANALYTICS_SERVICE_CHECK_PAYLOAD = "/analytics-service
         assertEquals(context.getSelectedAcr(), "1", "Expected acr value not found");
     }
 
-    @Test
-    public void testAnalyticsPayload()
+    @DataProvider(name = "payloadType")
+    public Object[][] getCookieValues() {
+
+        return new Object[][]{
+                {"serializedComprehensivePayload"},
+                {"nonSerializedComprehensivePayload"}
+        };
+    }
+
+    @Test(dataProvider = "payloadType")
+    public void testAnalyticsPayload(String payloadType)
             throws JsTestException, IdentityGovernanceException, NoSuchFieldException, IllegalAccessException {
 
+        sequenceHandlerRunner.registerJsFunction("validateResponse", new ResponseValidatorImpl());
         IdentityGovernanceService identityGovernanceService = Mockito.mock(IdentityGovernanceService.class);
         FunctionsDataHolder functionsDataHolder = Mockito.mock(FunctionsDataHolder.class);
         Mockito.when(functionsDataHolder.getIdentityGovernanceService()).thenReturn(identityGovernanceService);
@@ -163,7 +177,7 @@ public static final String ANALYTICS_SERVICE_CHECK_PAYLOAD = "/analytics-service
                 new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
         availableInstance.setLongWaitStatusStoreService(longWaitStatusStoreService);
 
-        AuthenticationContext context = getAuthenticationContextForPayloadTest();
+        AuthenticationContext context = getAuthenticationContextForPayloadTest(payloadType);
 
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
@@ -175,7 +189,7 @@ public static final String ANALYTICS_SERVICE_CHECK_PAYLOAD = "/analytics-service
 
     }
 
-    private AuthenticationContext getAuthenticationContextForPayloadTest()
+    private AuthenticationContext getAuthenticationContextForPayloadTest(String payloadType)
             throws JsTestException {
 
         ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource(ANALYTICS_PAYLOAD_TEST_SP, this);
@@ -186,7 +200,8 @@ public static final String ANALYTICS_SERVICE_CHECK_PAYLOAD = "/analytics-service
 
         String jsonPayload = sequenceHandlerRunner.loadJson(ANALYTICS_PAYLOAD, this).toString();
         String content = authenticationScriptConfig.getContent();
-        String newContent = String.format(content, jsonPayload, ANALYTICS_SERVICE_CHECK_PAYLOAD);
+        String newContent =
+                String.format(content, jsonPayload, jsonPayload, ANALYTICS_SERVICE_CHECK_PAYLOAD, payloadType);
         authenticationScriptConfig.setContent(newContent);
         localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
         sp1.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
@@ -220,7 +235,7 @@ public static final String ANALYTICS_SERVICE_CHECK_PAYLOAD = "/analytics-service
     @Path(ANALYTICS_SERVICE_CHECK_PAYLOAD)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Map<String, String>> analyticsReceiverCheckPayload(Map<String, Object> data) throws JsTestException {
+    public Map<String, Object> analyticsReceiverCheckPayload(Map<String, Object> data) throws JsTestException {
 
         JsonObject expectedPayload = sequenceHandlerRunner.loadJson(ANALYTICS_PAYLOAD_JSON, this);
         Gson gson = new Gson();
@@ -230,12 +245,41 @@ public static final String ANALYTICS_SERVICE_CHECK_PAYLOAD = "/analytics-service
         if (expectedPayload.equals(actualPayload)) {
             Map<String, String> responseEvent = new HashMap<>();
             responseEvent.put("riskScore", "1");
-            Map<String, Map<String, String>> response = new HashMap<>();
+            Map<String, Object> response = new HashMap<>();
             response.put("event", responseEvent);
+            response.put("payload", actualPayload);
             return response;
         } else {
             throw new JsTestException("Payloads do not match. " +
                     String.format("Expected payload: %s, Actual payload: %s", expectedPayload, actualPayload));
+        }
+    }
+
+    @FunctionalInterface
+    public interface ResponseValidator {
+
+        @HostAccess.Export
+        boolean validateResponse(JsParameters response);
+    }
+
+    public class ResponseValidatorImpl implements ResponseValidator {
+
+        @Override
+        @HostAccess.Export
+        public boolean validateResponse(JsParameters response) {
+
+            try {
+                if (response != null) {
+                    JsonObject expectedResponse = sequenceHandlerRunner.loadJson(ANALYTICS_PAYLOAD_JSON, this);
+                    Gson gson = new Gson();
+                    String dataStr = gson.toJson(response.getWrapped());
+                    JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                    return actualResponse.equals(expectedResponse);
+                }
+                return false;
+            } catch (JsTestException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

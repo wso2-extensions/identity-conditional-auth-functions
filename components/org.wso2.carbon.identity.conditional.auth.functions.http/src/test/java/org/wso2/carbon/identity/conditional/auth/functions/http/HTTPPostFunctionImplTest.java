@@ -30,6 +30,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.graalvm.polyglot.HostAccess;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -37,6 +38,7 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -242,6 +244,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Test
     public void testHttpPostMethodWithPayload() throws JsTestException {
 
+        sequenceHandlerRunner.registerJsFunction("validateResponse", new ResponseValidatorImpl());
         String result = executeHttpPostFunction("dummy-post-with-payload", HTTP_POST_PAYLOAD_TEST_SP);
         assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
                 + result);
@@ -338,7 +341,8 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
                         getRequestUrl("dummy-token-endpoint"));
             case "dummy-post-with-payload":
                 JsonObject Payload = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
-                return String.format(script, Payload.toString(), getRequestUrl("dummy-post-with-payload"));
+                String requestUrl = getRequestUrl("dummy-post-with-payload");
+                return String.format(script, Payload.toString(), requestUrl, requestUrl);
             default:
                 return null;
         }
@@ -499,7 +503,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         JsonObject actualPayload = gson.fromJson(dataStr, JsonObject.class);
         Map<String, Object> response = new HashMap<>();
         response.put(STATUS, SUCCESS);
-        response.put("data", dataStr);
+        response.put("data", expectedPayload);
 
         if (expectedPayload.equals(actualPayload)) {
             return response;
@@ -533,5 +537,33 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
             response.put(STATUS, FAILED);
         }
         return response;
+    }
+
+    @FunctionalInterface
+    public interface ResponseValidator {
+
+        @HostAccess.Export
+        boolean validateResponse(JsParameters response);
+    }
+
+    public class ResponseValidatorImpl implements ResponseValidator {
+
+        @Override
+        @HostAccess.Export
+        public boolean validateResponse(JsParameters response) {
+
+            try {
+                if (response != null) {
+                    JsonObject expectedResponse = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
+                    Gson gson = new Gson();
+                    String dataStr = gson.toJson(response.getWrapped());
+                    JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                    return actualResponse.equals(expectedResponse);
+                }
+                return false;
+            } catch (JsTestException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
