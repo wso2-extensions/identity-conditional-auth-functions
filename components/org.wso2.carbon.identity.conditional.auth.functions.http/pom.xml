@@ -191,6 +191,7 @@
                             org.wso2.carbon.identity.conditional.auth.functions.common.utils,
                             com.nimbusds.jwt.*;version="${nimbusds.osgi.version.range}",
                             org.wso2.carbon.identity.conditional.auth.functions.common.auth,
+                            org.wso2.carbon.identity.conditional.auth.functions.common.model,
                             org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                     </instructions>
