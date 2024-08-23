@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,6 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
@@ -107,9 +106,15 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                     .ifPresent(cookie::setPath);
             Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT))
                     .ifPresent(cookie::setComment);
-            Optional.ofNullable((Integer) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE))
+            Optional.ofNullable(properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE))
+                    .filter(Number.class::isInstance)
+                    .map(Number.class::cast)
+                    .map(Number::intValue)
                     .ifPresent(cookie::setMaxAge);
-            Optional.ofNullable((Integer) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_VERSION))
+            Optional.ofNullable(properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_VERSION))
+                    .filter(Number.class::isInstance)
+                    .map(Number.class::cast)
+                    .map(Number::intValue)
                     .ifPresent(cookie::setVersion);
             Optional.ofNullable((Boolean) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY))
                     .ifPresent(cookie::setHttpOnly);
