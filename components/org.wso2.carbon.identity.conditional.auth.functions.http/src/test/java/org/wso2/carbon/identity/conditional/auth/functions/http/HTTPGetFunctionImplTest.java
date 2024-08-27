@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.ResponseValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.Date;
@@ -507,31 +508,29 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return response;
     }
 
-    @FunctionalInterface
-    public interface ResponseValidator {
+    /**
+     * Response validator implementation.
+     */
+    public class ResponseValidatorImpl implements ResponseValidator {
 
-        @HostAccess.Export
-        boolean validateResponse(JsParameters response);
-    }
-
-    public class ResponseValidatorImpl implements HTTPPostFunctionImplTest.ResponseValidator {
-
+        /**
+         * Validate the response.
+         *
+         * @param response JSON Response.
+         * @return True if the JSON response matches the expected response.
+         */
         @Override
         @HostAccess.Export
-        public boolean validateResponse(JsParameters response) {
+        public boolean validateResponse(JsParameters response) throws JsTestException {
 
-            try {
-                if (response != null) {
-                    JsonObject expectedResponse = sequenceHandlerRunner.loadJson(HTTP_GET_RESPONSE, this);
-                    Gson gson = new Gson();
-                    String dataStr = gson.toJson(response.getWrapped());
-                    JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
-                    return actualResponse.equals(expectedResponse);
-                }
-                return false;
-            } catch (JsTestException e) {
-                throw new RuntimeException(e);
+            if (response != null) {
+                JsonObject expectedResponse = sequenceHandlerRunner.loadJson(HTTP_GET_RESPONSE, this);
+                Gson gson = new Gson();
+                String dataStr = gson.toJson(response.getWrapped());
+                JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                return actualResponse.equals(expectedResponse);
             }
+            return false;
         }
     }
 }

@@ -60,6 +60,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.internal.Funct
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.ResponseValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -567,31 +568,29 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 .build();
     }
 
-    @FunctionalInterface
-    public interface ResponseValidator {
-
-        @HostAccess.Export
-        boolean validateResponse(JsParameters response);
-    }
-
+    /**
+     * Response validator implementation.
+     */
     public class ResponseValidatorImpl implements ResponseValidator {
 
+        /**
+         * Validate the response received from the Choreo API.
+         *
+         * @param response The JSON response received from the Choreo API.
+         * @return True if the JSON response matches the expected response, false otherwise.
+         */
         @Override
         @HostAccess.Export
-        public boolean validateResponse(JsParameters response) {
+        public boolean validateResponse(JsParameters response) throws JsTestException {
 
-            try {
-                if (response != null) {
-                    JsonObject expectedResponse = sequenceHandlerRunner.loadJson(CHOREO_PAYLOAD_JSON, this);
-                    Gson gson = new Gson();
-                    String dataStr = gson.toJson(response.getWrapped());
-                    JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
-                    return actualResponse.equals(expectedResponse);
-                }
-                return false;
-            } catch (JsTestException e) {
-                throw new RuntimeException(e);
+            if (response != null) {
+                JsonObject expectedResponse = sequenceHandlerRunner.loadJson(CHOREO_PAYLOAD_JSON, this);
+                Gson gson = new Gson();
+                String dataStr = gson.toJson(response.getWrapped());
+                JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                return actualResponse.equals(expectedResponse);
             }
+            return false;
         }
     }
 }

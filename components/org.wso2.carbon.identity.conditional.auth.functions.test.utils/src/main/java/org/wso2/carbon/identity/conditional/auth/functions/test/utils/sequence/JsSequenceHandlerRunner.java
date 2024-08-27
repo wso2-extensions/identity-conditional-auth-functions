@@ -264,6 +264,7 @@ public class JsSequenceHandlerRunner {
     }
 
     public JsonObject loadJson(String jsonFileName, Object loader) throws JsTestException {
+
         try (InputStream inputStream = loader.getClass().getResourceAsStream(jsonFileName)) {
             if (inputStream == null) {
                 throw new JsTestException("Resource not found: " + jsonFileName);
@@ -281,7 +282,6 @@ public class JsSequenceHandlerRunner {
             throw new JsTestException("Error in reading or parsing JSON file at: " + jsonFileName, e);
         }
     }
-
 
     public AuthenticationContext createAuthenticationContext(ServiceProvider serviceProvider) {
 

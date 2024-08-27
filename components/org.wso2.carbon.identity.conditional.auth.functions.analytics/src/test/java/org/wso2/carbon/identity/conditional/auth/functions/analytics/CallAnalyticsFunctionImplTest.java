@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.common.internal.FunctionsDataHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.ResponseValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
@@ -255,31 +256,29 @@ public static final String ANALYTICS_SERVICE_CHECK_PAYLOAD = "/analytics-service
         }
     }
 
-    @FunctionalInterface
-    public interface ResponseValidator {
-
-        @HostAccess.Export
-        boolean validateResponse(JsParameters response);
-    }
-
+    /**
+     * Response validator implementation.
+     */
     public class ResponseValidatorImpl implements ResponseValidator {
 
+        /**
+         * Validate the response.
+         *
+         * @param response JSON Response from the analytics engine.
+         * @return True if the response matches the expected JSON response.
+         */
         @Override
         @HostAccess.Export
-        public boolean validateResponse(JsParameters response) {
+        public boolean validateResponse(JsParameters response) throws JsTestException {
 
-            try {
-                if (response != null) {
-                    JsonObject expectedResponse = sequenceHandlerRunner.loadJson(ANALYTICS_PAYLOAD_JSON, this);
-                    Gson gson = new Gson();
-                    String dataStr = gson.toJson(response.getWrapped());
-                    JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
-                    return actualResponse.equals(expectedResponse);
-                }
-                return false;
-            } catch (JsTestException e) {
-                throw new RuntimeException(e);
+            if (response != null) {
+                JsonObject expectedResponse = sequenceHandlerRunner.loadJson(ANALYTICS_PAYLOAD_JSON, this);
+                Gson gson = new Gson();
+                String dataStr = gson.toJson(response.getWrapped());
+                JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                return actualResponse.equals(expectedResponse);
             }
+            return false;
         }
     }
 }
