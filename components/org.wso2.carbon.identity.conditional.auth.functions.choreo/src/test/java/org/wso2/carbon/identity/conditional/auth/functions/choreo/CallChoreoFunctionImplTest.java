@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.choreo;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -30,6 +32,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -37,6 +40,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -56,6 +60,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.internal.Funct
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.ResponseValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -92,6 +97,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String TOKEN_ENDPOINT_FAILURE = "failure";
     private static final AtomicInteger requestCount = new AtomicInteger(0);
     private static final String CHOREO_SERVICE_SUCCESS_PATH = "/choreo-service-success";
+    private static final String CHOREO_SERVICE_CHECK_PAYLOAD = "/choreo-service-check-payload";
     private static final String CHOREO_SERVICE_EXPIRE_TOKEN_ONCE = "/choreo-service-token-expired-once";
     private static final String CHOREO_SERVICE_EXPIRE_TOKEN_ALWAYS = "/choreo-service-token-expired-always";
     private static final String CHOREO_TOKEN_FAILURE = "/token-failure";
@@ -99,6 +105,9 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String TENANT_DOMAIN = "test_domain";
     private static final String CONSUMER_KEY = "dummyKey";
     private static final String CONSUMER_SECRET = "dummySecret";
+    private static final String PAYLOAD_TEST_SP = "payload-test-sp.xml";
+    public static final String CHOREO_PAYLOAD_JSON = "choreo-payload.json";
+    public static final String RISK_TEST_SP_XML = "risk-test-sp.xml";
 
     @WithRealmService
     private RealmService realmService;
@@ -290,6 +299,36 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     }
 
+    @DataProvider(name = "payloadType")
+    public Object[][] getCookieValues() {
+
+        return new Object[][]{
+                {"serializedComprehensivePayload"},
+                {"nonSerializedComprehensivePayload"}
+        };
+    }
+
+    @Test(dataProvider = "payloadType")
+    public void testCallChoreoPayload(String dataProviderType) throws JsTestException,
+            NoSuchFieldException, IllegalAccessException {
+
+        LOG.info("===== Testing callChoreo payload");
+        AuthenticationContext context =
+                getAuthenticationContextForPayloadTest(CHOREO_SERVICE_CHECK_PAYLOAD, dataProviderType);
+
+        sequenceHandlerRunner.registerJsFunction("validateResponse", new ResponseValidatorImpl());
+        HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
+        HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
+
+        setChoreoDomain("localhost");
+        setTokenEndpoint(TOKEN_ENDPOINT_SUCCESS);
+        sequenceHandlerRunner.handle(req, resp, context, "carbon.super");
+
+        assertNotNull(context.getSelectedAcr());
+        assertEquals(context.getSelectedAcr(), "SUCCESS", "Payloads do not match. " +
+                "Call Choreo function call failed");
+    }
+
     /**
      * Create and returns an authentication context.
      *
@@ -299,7 +338,7 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
      */
     private AuthenticationContext getAuthenticationContext(String choreoServiceResourcePath) throws JsTestException {
 
-        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("risk-test-sp.xml", this);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource(RISK_TEST_SP_XML, this);
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
                 sp1.getLocalAndOutBoundAuthenticationConfig();
         AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
@@ -307,6 +346,31 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String content = authenticationScriptConfig.getContent();
         String newContent = String.format(content, microServicePort, choreoServiceResourcePath,
                 CONSUMER_KEY, CONSUMER_SECRET);
+        authenticationScriptConfig.setContent(newContent);
+        localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
+        sp1.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
+        SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp1);
+        context.setSequenceConfig(sequenceConfig);
+        context.initializeAnalyticsData();
+        return context;
+    }
+
+    private AuthenticationContext getAuthenticationContextForPayloadTest(String choreoServiceResourcePath,
+                                                                         String dataProviderType)
+            throws JsTestException {
+
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource(PAYLOAD_TEST_SP, this);
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
+                sp1.getLocalAndOutBoundAuthenticationConfig();
+        AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
+                .getAuthenticationScriptConfig();
+
+        String jsonPayload = sequenceHandlerRunner.loadJson(CHOREO_PAYLOAD_JSON, this).toString();
+        String content = authenticationScriptConfig.getContent();
+        String newContent = String.format(content, microServicePort, choreoServiceResourcePath,
+                CONSUMER_KEY, CONSUMER_SECRET, jsonPayload, jsonPayload, dataProviderType);
         authenticationScriptConfig.setContent(newContent);
         localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
         sp1.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
@@ -384,11 +448,33 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @Path(CHOREO_SERVICE_SUCCESS_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, String> choreoReceiver(Map<String, String> data) {
+    public Map<String, String> choreoReceiver(Map<String, Object> data) {
 
         Map<String, String> response = new HashMap<>();
         response.put("riskScore", "1");
         return response;
+    }
+
+    @POST
+    @Path(CHOREO_SERVICE_CHECK_PAYLOAD)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response choreoReceiverCheckPayload(Map<String, Object> data) throws JsTestException {
+
+        JsonObject expectedPayload = sequenceHandlerRunner.loadJson(CHOREO_PAYLOAD_JSON, this);
+        Gson gson = new Gson();
+        String dataStr = gson.toJson(data);
+        JsonObject actualPayload = gson.fromJson(dataStr, JsonObject.class);
+
+
+        if (expectedPayload.equals(actualPayload)) {
+            return Response
+                    .ok()
+                    .entity(expectedPayload).build();
+        } else {
+            throw new JsTestException("Payloads do not match. " +
+                    String.format("Expected payload: %s, Actual payload: %s", expectedPayload, actualPayload));
+        }
     }
 
     /**
@@ -480,5 +566,31 @@ public class CallChoreoFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 .status(Response.Status.UNAUTHORIZED)
                 .entity(responseBody.toString())
                 .build();
+    }
+
+    /**
+     * Response validator implementation.
+     */
+    public class ResponseValidatorImpl implements ResponseValidator {
+
+        /**
+         * Validate the response received from the Choreo API.
+         *
+         * @param response The JSON response received from the Choreo API.
+         * @return True if the JSON response matches the expected response, false otherwise.
+         */
+        @Override
+        @HostAccess.Export
+        public boolean validateResponse(JsParameters response) throws JsTestException {
+
+            if (response != null) {
+                JsonObject expectedResponse = sequenceHandlerRunner.loadJson(CHOREO_PAYLOAD_JSON, this);
+                Gson gson = new Gson();
+                String dataStr = gson.toJson(response.getWrapped());
+                JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                return actualResponse.equals(expectedResponse);
+            }
+            return false;
+        }
     }
 }

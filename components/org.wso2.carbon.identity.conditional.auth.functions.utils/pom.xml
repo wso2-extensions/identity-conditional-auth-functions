@@ -61,6 +61,12 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
             <artifactId>org.wso2.carbon.identity.conditional.auth.functions.test.utils</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.governance</groupId>
+                    <artifactId>org.wso2.carbon.identity.governance</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>test</scope>
         </dependency>
         <dependency>

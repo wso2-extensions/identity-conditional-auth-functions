@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.getPayloadDataMap;
 
 /**
  * Implementation of the {@link HTTPPostFunction}
@@ -111,20 +111,22 @@ public class HTTPPostFunctionImpl extends AbstractHTTPFunction implements HTTPPo
         setHeaders(request, headers);
 
         if (MapUtils.isNotEmpty(payloadData)) {
+
+            Map<String, Object> payloadDataMap = getPayloadDataMap(payloadData);
             /*
             For the header "Content-Type : application/x-www-form-urlencoded" request body data is set to
             UrlEncodedFormEntity format. For the other cases request body data is set to StringEntity format.
              */
             if (TYPE_APPLICATION_FORM_URLENCODED.equals(headers.get(CONTENT_TYPE))) {
                 List<NameValuePair> entities = new ArrayList<>();
-                for (Map.Entry<String, Object> dataElements : payloadData.entrySet()) {
+                for (Map.Entry<String, Object> dataElements : payloadDataMap.entrySet()) {
                     String value = (dataElements.getValue() != null) ? dataElements.getValue().toString() : null;
                     entities.add(new BasicNameValuePair(dataElements.getKey(), value));
                 }
                 request.setEntity(new UrlEncodedFormEntity(entities, StandardCharsets.UTF_8));
             } else {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.putAll(payloadData);
+                jsonObject.putAll(payloadDataMap);
                 request.setEntity(new StringEntity(jsonObject.toJSONString(), StandardCharsets.UTF_8));
             }
         }

@@ -71,6 +71,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.getPayloadDataMap;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_TIMEOUT;
 
@@ -135,7 +136,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
          * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
          */
         Map<String, String> connectionMetaDataMap = new HashMap<>(connectionMetaData);
-        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
+        Map<String, Object> payloadDataMap = getPayloadDataMap(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
             LOG.info("Starting the callChoreo function for session data key: " +
                     authenticationContext.getContextIdentifier());

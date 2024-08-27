@@ -18,6 +18,12 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.logging.Log;
@@ -28,7 +34,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.buil
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
@@ -45,6 +50,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.JsUtilsProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.graaljs.JsGraalUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.nashorn.JsNashornUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.MockAuthenticator;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.SubjectCallback;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -56,12 +64,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,6 +80,7 @@ import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -104,6 +115,7 @@ public class JsSequenceHandlerRunner {
     private JsFunctionRegistryImpl jsFunctionRegistry;
     private URL applicationAuthenticatorConfigFileLocation;
 
+    protected static Gson gson = new GsonBuilder().create();
     public static final int THREAD_COUNT = 1;
     public static final long SUPERVISOR_TIMEOUT = 500000L;
 
@@ -130,11 +142,15 @@ public class JsSequenceHandlerRunner {
         FrameworkServiceDataHolder.getInstance().setJsGenericGraphBuilderFactory(graphBuilderFactory);
 
         Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
+        Field jsUtils = JsUtilsProvider.class.getDeclaredField("jsUtils");
         wrapperFactory.setAccessible(true);
+        jsUtils.setAccessible(true);
         if (graphBuilderFactory instanceof JsGraphBuilderFactory) {
             wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsWrapperFactory());
+            jsUtils.set(JsUtilsProvider.getInstance(), new JsNashornUtils());
         } else if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
             wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsGraalWrapperFactory());
+            jsUtils.set(JsUtilsProvider.getInstance(), new JsGraalUtils());
         }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
@@ -245,6 +261,26 @@ public class JsSequenceHandlerRunner {
             throw new JsTestException("Error in reading Service Provider file at : " + spFileName, e);
         }
         return ServiceProvider.build(documentElement);
+    }
+
+    public JsonObject loadJson(String jsonFileName, Object loader) throws JsTestException {
+
+        try (InputStream inputStream = loader.getClass().getResourceAsStream(jsonFileName)) {
+            if (inputStream == null) {
+                throw new JsTestException("Resource not found: " + jsonFileName);
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                String jsonString = reader.lines().collect(Collectors.joining());
+                JsonElement jsonElement = JsonParser.parseString(jsonString);
+                if (jsonElement.isJsonObject()) {
+                    return jsonElement.getAsJsonObject();
+                } else {
+                    throw new JsTestException("The JSON file does not contain a valid JSON object: " + jsonFileName);
+                }
+            }
+        } catch (IOException | JsonSyntaxException e) {
+            throw new JsTestException("Error in reading or parsing JSON file at: " + jsonFileName, e);
+        }
     }
 
     public AuthenticationContext createAuthenticationContext(ServiceProvider serviceProvider) {
