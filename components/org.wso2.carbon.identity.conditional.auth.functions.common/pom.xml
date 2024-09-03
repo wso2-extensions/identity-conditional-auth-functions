@@ -39,6 +39,7 @@
         <dependency>
             <groupId>org.openjdk.nashorn</groupId>
             <artifactId>nashorn-core</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.ops4j.pax.logging</groupId>
@@ -105,6 +106,11 @@
                             !org.wso2.carbon.identity.conditional.auth.functions.common.internal,
                             org.wso2.carbon.identity.conditional.auth.functions.common.*
                         </Export-Package>
+                        <DynamicImport-Package>
+                            org.apache.http.auth,
+                            jdk.nashorn.api.scripting,
+                            org.openjdk.nashorn.api.scripting
+                        </DynamicImport-Package>
                         <Import-Package>
                             org.osgi.framework,
                             org.apache.commons.lang,
