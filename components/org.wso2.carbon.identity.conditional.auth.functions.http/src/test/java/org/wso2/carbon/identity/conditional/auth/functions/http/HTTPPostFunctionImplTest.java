@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.InjectMicroservicePort;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -57,6 +58,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.ResponseValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 
 import java.util.Date;
 import java.time.Instant;
@@ -73,6 +75,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.doNothing;
@@ -123,12 +126,15 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         // Mocking the executeHttpMethod method to avoid actual http calls.
         httpPostFunction = spy(new HTTPPostFunctionImpl());
         doNothing().when(httpPostFunction).executeHttpMethod(any(), any(), any());
+        IdentityEventService identityEventService = mock(IdentityEventService.class);
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @AfterClass
     protected void tearDown() {
 
         unsetAllowedDomains();
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
     }
 
     @AfterMethod

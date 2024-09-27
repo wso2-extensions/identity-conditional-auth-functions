@@ -136,7 +136,7 @@
                             org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.services; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.handler.notification.exception;
-                            version="${identity.event.handler.notification.version}",
+                            version="${identity.event.handler.notification.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}"
                         </Import-Package>
