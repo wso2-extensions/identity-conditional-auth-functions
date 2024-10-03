@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
 import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,6 +47,7 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 
 /**
@@ -87,10 +89,11 @@ public class ChoreoFunctionServiceComponent {
         String keyStoreType = config.getFirstProperty("Security.TrustStore.Type");
         String password = config.getFirstProperty("Security.TrustStore.Password");
         try (InputStream keyStoreStream = new FileInputStream(filePath)) {
-            KeyStore keyStore = KeyStore.getInstance(keyStoreType); // or "PKCS12"
+            KeyStore keyStore = KeystoreUtils.getKeystoreInstance(keyStoreType); // or "PKCS12"
             keyStore.load(keyStoreStream, password.toCharArray());
             ChoreoFunctionServiceHolder.getInstance().setTrustStore(keyStore);
-        } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
+        } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException |
+                 NoSuchProviderException e) {
             LOG.error("Error while loading truststore.", e);
             throw new FrameworkException("Error while trying to load Key Store.", e);
         }

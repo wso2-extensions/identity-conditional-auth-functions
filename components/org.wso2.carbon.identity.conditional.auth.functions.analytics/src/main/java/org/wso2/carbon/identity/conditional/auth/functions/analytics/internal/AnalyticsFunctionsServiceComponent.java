@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
 import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -91,7 +92,7 @@ public class AnalyticsFunctionsServiceComponent {
             String keyStoreType = config.getFirstProperty("Security.TrustStore.Type");
             String password = config.getFirstProperty("Security.TrustStore.Password");
             try (InputStream keyStoreStream = new FileInputStream(filePath)) {
-                KeyStore keyStore = KeyStore.getInstance(keyStoreType); // or "PKCS12"
+                KeyStore keyStore = KeystoreUtils.getKeystoreInstance(keyStoreType); // or "PKCS12"
                 keyStore.load(keyStoreStream, password.toCharArray());
                 AnalyticsFunctionsServiceHolder.getInstance().setTrustStore(keyStore);
             } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
