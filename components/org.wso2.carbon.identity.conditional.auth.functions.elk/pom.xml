@@ -154,6 +154,7 @@
                             org.wso2.carbon.identity.governance; version="${identity.governance.import.version.range}",
                             org.wso2.carbon.identity.governance.common; version="${identity.governance.import.version.range}",
                             org.wso2.carbon.utils.*;version="${carbon.kernel.package.import.version.range}",
+                            org.graalvm.polyglot.*,
                         </Import-Package>
                     </instructions>
                 </configuration>

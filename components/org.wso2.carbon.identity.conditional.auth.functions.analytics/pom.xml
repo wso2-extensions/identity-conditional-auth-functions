@@ -186,6 +186,7 @@
                             org.apache.axis2.context,
                             org.wso2.carbon.utils,
                             org.wso2.carbon.context,
+                            org.graalvm.polyglot.*,
                         </Import-Package>
                     </instructions>
                 </configuration>
