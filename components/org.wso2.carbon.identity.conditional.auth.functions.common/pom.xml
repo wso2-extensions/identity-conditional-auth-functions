@@ -120,6 +120,7 @@
                             org.apache.http.impl.client,
                             org.apache.http.impl.conn,
                             org.apache.http.message,
+                            org.graalvm.polyglot.*,
                             org.json.simple,
                             org.json.simple.parser,
                             org.apache.http,

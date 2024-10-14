@@ -107,6 +107,7 @@
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging,
                             org.apache.commons.collections,
+                            org.graalvm.polyglot.*,
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon.identity.application.authentication.framework; version="${carbon.identity.package.import.version.range}",

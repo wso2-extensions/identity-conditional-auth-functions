@@ -120,6 +120,7 @@
                         <Import-Package>
                             org.apache.commons.lang,
                             org.apache.commons.logging,
+                            org.graalvm.polyglot.*,
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
