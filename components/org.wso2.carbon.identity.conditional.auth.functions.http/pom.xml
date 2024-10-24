@@ -187,7 +187,7 @@
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.core; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.utils;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.conditional.auth.functions.common.utils,
                             com.nimbusds.jwt.*;version="${nimbusds.osgi.version.range}",
                             org.wso2.carbon.identity.conditional.auth.functions.common.auth,

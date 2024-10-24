@@ -184,7 +184,7 @@
                             org.apache.http.concurrent,
                             org.apache.http.nio.*,
                             org.apache.axis2.context,
-                            org.wso2.carbon.utils,
+                            org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context,
                         </Import-Package>
                     </instructions>
