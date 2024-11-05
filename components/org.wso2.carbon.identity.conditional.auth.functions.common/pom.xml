@@ -107,6 +107,7 @@
                             org.wso2.carbon.identity.conditional.auth.functions.common.*
                         </Export-Package>
                         <DynamicImport-Package>
+                            org.graalvm.polyglot.*,
                             org.apache.http.auth,
                             jdk.nashorn.api.scripting,
                             org.openjdk.nashorn.api.scripting

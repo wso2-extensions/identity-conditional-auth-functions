@@ -169,6 +169,7 @@
                             org.wso2.carbon.identity.conditional.auth.functions.user.*
                         </Export-Package>
                         <Import-Package>
+                            org.apache.commons.codec.binary,
                             org.apache.commons.lang,
                             org.apache.commons.logging,
                             org.osgi.service.component,
@@ -200,6 +201,8 @@
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model;
                             version="${carbon.identity.package.import.version.range}",
@@ -236,6 +239,9 @@
                             org.wso2.carbon.identity.conditional.auth.functions.common.utils,
                             org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}"
                         </Import-Package>
+                        <DynamicImport-Package>
+                            org.graalvm.polyglot.*
+                        </DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
