@@ -109,8 +109,13 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private String getGroupsClaimURI(JsAuthenticatedUser user) {
 
         String groupsClaimURI = getGroupsClaimURIByClaimMappings(user);
-        if (groupsClaimURI == null && user.getContext().getCurrentAuthenticator() != null &&
-                OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) {
+        if ((groupsClaimURI == null && user.getContext().getCurrentAuthenticator() != null &&
+                OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) ||
+                (user.getContext().getPreviousAuthenticatedIdPs().containsKey(user.getContext()
+                        .getLastAuthenticatedUser().getFederatedIdPName()) && user.getContext()
+                        .getPreviousAuthenticatedIdPs().get(
+                                user.getContext().getLastAuthenticatedUser().getFederatedIdPName()).getAuthenticators()
+                        .get(0).getName().equals(OPENIDCONNECT_AUTHENTICATOR_NAME))) {
             groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
         }
         return groupsClaimURI;
