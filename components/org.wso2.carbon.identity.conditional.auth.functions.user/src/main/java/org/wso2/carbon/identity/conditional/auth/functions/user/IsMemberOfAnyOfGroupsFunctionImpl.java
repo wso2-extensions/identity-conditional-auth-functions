@@ -115,7 +115,8 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
         if (groupsClaimURI == null && (user.getContext().getCurrentAuthenticator() != null &&
                 OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) ||
-                (previousAuthenticatedIdPs != null && previousAuthenticatedIdPs.containsKey(federatedIdPName) &&
+                (federatedIdPName != null && previousAuthenticatedIdPs != null &&
+                        previousAuthenticatedIdPs.containsKey(federatedIdPName) &&
                         previousAuthenticatedIdPs.get(federatedIdPName).getAuthenticators().get(0).getName()
                                 .equals(OPENIDCONNECT_AUTHENTICATOR_NAME))) {
             groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
