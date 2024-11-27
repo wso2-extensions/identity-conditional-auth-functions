@@ -26,6 +26,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -109,13 +110,14 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private String getGroupsClaimURI(JsAuthenticatedUser user) {
 
         String groupsClaimURI = getGroupsClaimURIByClaimMappings(user);
-        if ((groupsClaimURI == null && user.getContext().getCurrentAuthenticator() != null &&
+        String federatedIdPName = user.getContext().getLastAuthenticatedUser().getFederatedIdPName();
+        Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = user.getContext().getPreviousAuthenticatedIdPs();
+
+        if (groupsClaimURI == null && (user.getContext().getCurrentAuthenticator() != null &&
                 OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) ||
-                (user.getContext().getPreviousAuthenticatedIdPs().containsKey(user.getContext()
-                        .getLastAuthenticatedUser().getFederatedIdPName()) && user.getContext()
-                        .getPreviousAuthenticatedIdPs().get(
-                                user.getContext().getLastAuthenticatedUser().getFederatedIdPName()).getAuthenticators()
-                        .get(0).getName().equals(OPENIDCONNECT_AUTHENTICATOR_NAME))) {
+                (previousAuthenticatedIdPs != null && previousAuthenticatedIdPs.containsKey(federatedIdPName) &&
+                        previousAuthenticatedIdPs.get(federatedIdPName).getAuthenticators().get(0).getName()
+                                .equals(OPENIDCONNECT_AUTHENTICATOR_NAME))) {
             groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
         }
         return groupsClaimURI;
