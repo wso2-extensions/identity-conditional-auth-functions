@@ -110,18 +110,38 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private String getGroupsClaimURI(JsAuthenticatedUser user) {
 
         String groupsClaimURI = getGroupsClaimURIByClaimMappings(user);
-        String federatedIdPName = user.getContext().getLastAuthenticatedUser().getFederatedIdPName();
-        Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = user.getContext().getPreviousAuthenticatedIdPs();
 
-        if (groupsClaimURI == null && (user.getContext().getCurrentAuthenticator() != null &&
-                OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) ||
-                (federatedIdPName != null && previousAuthenticatedIdPs != null &&
-                        previousAuthenticatedIdPs.containsKey(federatedIdPName) &&
-                        previousAuthenticatedIdPs.get(federatedIdPName).getAuthenticators().get(0).getName()
-                                .equals(OPENIDCONNECT_AUTHENTICATOR_NAME))) {
+        if (groupsClaimURI == null && isUserAuthenticatedFromOpenIdConnectAuthenticator(user)) {
             groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
         }
         return groupsClaimURI;
+    }
+
+    /**
+     * Checks if the federated user is authenticated through OpenIDConnectAuthenticator.
+     *
+     * @param user The authenticated user.
+     * @return true if the federated user is authenticated through OpenIDConnectAuthenticator, false otherwise.
+     */
+    private boolean isUserAuthenticatedFromOpenIdConnectAuthenticator(JsAuthenticatedUser user) {
+
+        String federatedIdPName = user.getContext().getLastAuthenticatedUser().getFederatedIdPName();
+        Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = user.getContext().getPreviousAuthenticatedIdPs();
+
+        if (user.getContext().getCurrentAuthenticator() != null &&
+                OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) {
+            return true;
+        }
+
+        // Upon SSO, the authenticator will persist in previousAuthenticatedIdPs.
+        if (user.getContext().getCurrentAuthenticator() == null &&
+                federatedIdPName != null && previousAuthenticatedIdPs != null &&
+                previousAuthenticatedIdPs.containsKey(federatedIdPName) &&
+                previousAuthenticatedIdPs.get(federatedIdPName).getAuthenticators().get(0).getName()
+                        .equals(OPENIDCONNECT_AUTHENTICATOR_NAME)) {
+            return true;
+        }
+        return false;
     }
 
     /**
