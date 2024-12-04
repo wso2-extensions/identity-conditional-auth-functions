@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.core.util.CryptoException;
@@ -34,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -71,7 +73,8 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
             boolean encrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.ENCRYPT)).orElse(false);
             if (sign) {
                 try {
-                    signature = Base64.encode(SignatureUtil.doSignature(value));
+                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                    signature = Base64.encode(IdentityUtil.signWithTenantKey(value, tenantDomain));
                 } catch (Exception e) {
                     log.error("Error occurred when signing the cookie value.", e);
                     return;
@@ -180,7 +183,14 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                     if (validateSignature) {
                         byte[] signature = Base64.decode((String) cookieValueJSON.get(HTTPConstants.SIGNATURE));
                         try {
-                            boolean isValid = SignatureUtil.validateSignature(valueString, signature);
+                            String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .getTenantDomain();
+                            boolean isValid = IdentityUtil.validateSignatureFromTenant(valueString, signature,
+                                    tenantDomain);
+                            // Fallback mechanism for already signed cookies.
+                            if (!isValid) {
+                                isValid = SignatureUtil.validateSignature(valueString, signature);
+                            }
                             if (!isValid) {
                                 log.error("Cookie signature didn't matched with the cookie value.");
                                 return null;
