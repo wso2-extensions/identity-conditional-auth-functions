@@ -24,14 +24,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -66,7 +67,8 @@ public class SetCookieFunctionImpl implements SetCookieFunction {
             boolean encrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.ENCRYPT)).orElse(false);
             if (sign) {
                 try {
-                    signature = Base64.encode(SignatureUtil.doSignature(value));
+                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                    signature = Base64.encode(IdentityUtil.signWithTenantKey(value, tenantDomain));
                 } catch (Exception e) {
                     log.error("Error occurred when signing the cookie value.", e);
                     return;
