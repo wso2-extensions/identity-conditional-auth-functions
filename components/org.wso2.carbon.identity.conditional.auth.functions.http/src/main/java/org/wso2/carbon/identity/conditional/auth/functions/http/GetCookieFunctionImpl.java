@@ -104,10 +104,6 @@ public class GetCookieFunctionImpl implements GetCookieFunction {
                             String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                     .getTenantDomain();
                             boolean isValid = IdentityUtil.validateSignatureFromTenant(valueString, signature, tenantDomain);
-                            // Fallback mechanism for already signed cookies.
-                            if (!isValid) {
-                                isValid = SignatureUtil.validateSignature(valueString, signature);
-                            }
                             if (!isValid) {
                                 log.error("Cookie signature didn't matched with the cookie value.");
                                 return null;
