@@ -34,6 +34,7 @@ import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.conditional.auth.functions.http.internal.HTTPFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -42,6 +43,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.Cookie;
+
+import static org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants.KEY_STORE_CONTEXT;
 
 /**
  * Implementation of the setCookie and getCookieValue functions.
@@ -185,12 +188,12 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                         try {
                             String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                     .getTenantDomain();
+                            // For getCookie, setCookie functionalities tenant shouldn't use its tenanted keystore.
+                            // Hence, below code will create a keystore for this context if not exists.
+                            HTTPFunctionsServiceHolder.getInstance().getIdentityKeyStoreGenerator()
+                                    .generateKeyStoreIfNotExists(tenantDomain, KEY_STORE_CONTEXT);
                             boolean isValid = IdentityUtil.validateSignatureFromTenant(valueString, signature,
-                                    tenantDomain);
-                            // Fallback mechanism for already signed cookies.
-                            if (!isValid) {
-                                isValid = SignatureUtil.validateSignature(valueString, signature);
-                            }
+                                    tenantDomain, KEY_STORE_CONTEXT);
                             if (!isValid) {
                                 log.error("Cookie signature didn't matched with the cookie value.");
                                 return null;
