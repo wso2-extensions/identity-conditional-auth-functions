@@ -19,12 +19,14 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http.internal;
 
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.security.keystore.service.IdentityKeyStoreGenerator;
 
 public class HTTPFunctionsServiceHolder {
 
     private static HTTPFunctionsServiceHolder instance = new HTTPFunctionsServiceHolder();
 
     private JsFunctionRegistry jsFunctionRegistry;
+    private IdentityKeyStoreGenerator identityKeyStoreGenerator;
 
     public static HTTPFunctionsServiceHolder getInstance() {
 
@@ -43,5 +45,15 @@ public class HTTPFunctionsServiceHolder {
     public void setJsFunctionRegistry(JsFunctionRegistry jsFunctionRegistry) {
 
         this.jsFunctionRegistry = jsFunctionRegistry;
+    }
+
+    public IdentityKeyStoreGenerator getIdentityKeyStoreGenerator() {
+
+        return identityKeyStoreGenerator;
+    }
+
+    public void setIdentityKeyStoreGenerator(IdentityKeyStoreGenerator identityKeyStoreGenerator) {
+
+        this.identityKeyStoreGenerator = identityKeyStoreGenerator;
     }
 }
