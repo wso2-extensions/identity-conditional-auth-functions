@@ -112,6 +112,10 @@
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.security.mgt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.crypto</groupId>
             <artifactId>org.wso2.carbon.crypto.impl</artifactId>
             <scope>test</scope>
@@ -182,6 +186,8 @@
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.security.keystore.service.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",

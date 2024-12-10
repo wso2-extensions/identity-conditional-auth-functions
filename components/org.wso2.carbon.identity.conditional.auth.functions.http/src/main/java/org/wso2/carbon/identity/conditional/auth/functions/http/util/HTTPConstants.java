@@ -30,4 +30,5 @@ public class HTTPConstants {
     public static final String DECRYPT = "decrypt";
     public static final String VALUE = "value";
     public static final String SIGNATURE = "signature";
+    public static final String KEY_STORE_CONTEXT = "cookie";
 }
