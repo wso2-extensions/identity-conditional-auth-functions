@@ -106,10 +106,6 @@ public class GetCookieFunctionImpl implements GetCookieFunction {
                         try {
                             String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                     .getTenantDomain();
-                            // For getCookie, setCookie functionalities tenant shouldn't use its tenanted keystore.
-                            // Hence, below code will create a keystore for this context if not exists.
-                            HTTPFunctionsServiceHolder.getInstance().getIdentityKeyStoreGenerator()
-                                    .generateKeyStoreIfNotExists(tenantDomain, KEY_STORE_CONTEXT);
                             boolean isValid = IdentityUtil.validateSignatureFromTenant(valueString, signature,
                                     tenantDomain, KEY_STORE_CONTEXT);
                             if (!isValid) {

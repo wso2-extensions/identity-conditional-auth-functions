@@ -74,7 +74,7 @@ public class SetCookieFunctionImpl implements SetCookieFunction {
                     // For getCookie, setCookie functionalities tenant shouldn't use its tenanted keystore.
                     // Hence, below code will create a keystore for this context if not exists.
                     HTTPFunctionsServiceHolder.getInstance().getIdentityKeyStoreGenerator()
-                            .generateKeyStoreIfNotExists(tenantDomain, KEY_STORE_CONTEXT);
+                            .generateKeyStore(tenantDomain, KEY_STORE_CONTEXT);
                     signature = Base64.encode(IdentityUtil.signWithTenantKey(value, tenantDomain, KEY_STORE_CONTEXT));
                 } catch (Exception e) {
                     log.error("Error occurred when signing the cookie value.", e);
