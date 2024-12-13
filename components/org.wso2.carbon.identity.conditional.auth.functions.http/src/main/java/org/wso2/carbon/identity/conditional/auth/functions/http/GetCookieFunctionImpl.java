@@ -31,6 +31,7 @@ import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
+import org.wso2.carbon.identity.conditional.auth.functions.http.internal.HTTPFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -39,6 +40,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.Cookie;
+
+import static org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants.KEY_STORE_CONTEXT;
 
 /**
  * Implementation of GetCookieFunction.
@@ -103,11 +106,8 @@ public class GetCookieFunctionImpl implements GetCookieFunction {
                         try {
                             String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                     .getTenantDomain();
-                            boolean isValid = IdentityUtil.validateSignatureFromTenant(valueString, signature, tenantDomain);
-                            // Fallback mechanism for already signed cookies.
-                            if (!isValid) {
-                                isValid = SignatureUtil.validateSignature(valueString, signature);
-                            }
+                            boolean isValid = IdentityUtil.validateSignatureFromTenant(valueString, signature,
+                                    tenantDomain, KEY_STORE_CONTEXT);
                             if (!isValid) {
                                 log.error("Cookie signature didn't matched with the cookie value.");
                                 return null;

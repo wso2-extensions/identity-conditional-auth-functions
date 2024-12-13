@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunction
 import org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.http.SetCookieFunctionImpl;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.security.keystore.service.IdentityKeyStoreGenerator;
 
 /**
  * OSGi declarative services component which handle cookie related conditional auth functions.
@@ -111,5 +112,21 @@ public class HTTPFunctionsServiceComponent {
 
     /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
+    }
+
+    @Reference(
+            service = IdentityKeyStoreGenerator.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityKeyStoreGenerator"
+    )
+    public void setIdentityKeyStoreGenerator(IdentityKeyStoreGenerator identityKeyStoreGenerator) {
+
+        HTTPFunctionsServiceHolder.getInstance().setIdentityKeyStoreGenerator(identityKeyStoreGenerator);
+    }
+
+    public void unsetIdentityKeyStoreGenerator(IdentityKeyStoreGenerator identityKeyStoreGenerator) {
+
+        HTTPFunctionsServiceHolder.getInstance().setIdentityKeyStoreGenerator(null);
     }
 }
