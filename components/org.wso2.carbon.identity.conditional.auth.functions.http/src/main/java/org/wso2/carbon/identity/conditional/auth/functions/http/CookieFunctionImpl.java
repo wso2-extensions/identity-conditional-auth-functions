@@ -77,7 +77,11 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
             if (sign) {
                 try {
                     String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-                    signature = Base64.encode(IdentityUtil.signWithTenantKey(value, tenantDomain));
+                    // getCookie, setCookie functionalities uses a functionality specific keystore.
+                    // The below code will create the keystore for this context on-demand if it does not exist.
+                    HTTPFunctionsServiceHolder.getInstance().getIdentityKeyStoreGenerator()
+                            .generateKeyStore(tenantDomain, KEY_STORE_CONTEXT);
+                    signature = Base64.encode(IdentityUtil.signWithTenantKey(value, tenantDomain, KEY_STORE_CONTEXT));
                 } catch (Exception e) {
                     log.error("Error occurred when signing the cookie value.", e);
                     return;

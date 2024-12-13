@@ -127,6 +127,6 @@ public class HTTPFunctionsServiceComponent {
 
     public void unsetIdentityKeyStoreGenerator(IdentityKeyStoreGenerator identityKeyStoreGenerator) {
 
-        HTTPFunctionsServiceHolder.getInstance().setIdentityKeyStoreGenerator(identityKeyStoreGenerator);
+        HTTPFunctionsServiceHolder.getInstance().setIdentityKeyStoreGenerator(null);
     }
 }
