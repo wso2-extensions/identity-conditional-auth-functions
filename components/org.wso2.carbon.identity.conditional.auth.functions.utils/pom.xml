@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -118,6 +118,7 @@
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang,
+                            org.apache.commons.logging,
                             org.osgi.framework; version="${org.osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${org.osgi.service.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework; version="${carbon.identity.package.import.version.range}",
@@ -125,7 +126,8 @@
                             org.wso2.carbon.identity.central.log.mgt.utils; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.multi.attribute.login.mgt; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.core.common; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>

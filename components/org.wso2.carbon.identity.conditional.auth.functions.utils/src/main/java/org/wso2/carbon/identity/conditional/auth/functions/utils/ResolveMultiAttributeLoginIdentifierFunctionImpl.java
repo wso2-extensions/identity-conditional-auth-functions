@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.utils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 
 /**
@@ -27,10 +30,18 @@ import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
  */
 public class ResolveMultiAttributeLoginIdentifierFunctionImpl implements ResolveMultiAttributeLoginIdentifierFunction {
 
+    private static final Log log = LogFactory.getLog(ResolveMultiAttributeLoginIdentifierFunctionImpl.class);
+
     @Override
     @HostAccess.Export
     public String resolveMultiAttributeLoginIdentifier(String loginIdentifier, String tenantDomain) {
 
+        if (!IdentityTenantUtil.resolveTenantDomain().equals(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cross-tenant multi attribute login identifier lookup is not allowed.");
+            }
+            return null;
+        }
         ResolvedUserResult resolvedUserResult = FrameworkUtils.processMultiAttributeLoginIdentification(
                 loginIdentifier, tenantDomain);
 
