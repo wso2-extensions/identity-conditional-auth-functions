@@ -343,7 +343,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
             boolean isFailure = false;
             try {
-                LOG.debug("Access token response received.");
+                LOG.info("Access token response received. Session data key: " +
+                        authenticationContext.getContextIdentifier());
                 int responseCode = httpResponse.getStatusLine().getStatusCode();
                 if (responseCode == HTTP_STATUS_OK) {
                     Type responseBodyType = new TypeToken<Map<String, String>>() { }.getType();
@@ -372,6 +373,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 LOG.error("Error occurred while handling the token response from Choreo. Session data key: " +
                         authenticationContext.getContextIdentifier(), e);
                 isFailure = true;
+            } finally {
+                EntityUtils.consumeQuietly(httpResponse.getEntity());
             }
 
             if (isFailure) {
