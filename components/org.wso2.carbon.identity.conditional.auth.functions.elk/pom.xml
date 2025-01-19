@@ -157,7 +157,7 @@
                             org.wso2.carbon.utils.*;version="${carbon.kernel.package.import.version.range}",
                         </Import-Package>
                         <DynamicImport-Package>
-                            org.graalvm.polyglot.*
+                            org.graalvm.polyglot
                         </DynamicImport-Package>
                     </instructions>
                 </configuration>

@@ -188,7 +188,7 @@
                             org.wso2.carbon.context,
                         </Import-Package>
                         <DynamicImport-Package>
-                            org.graalvm.polyglot.*
+                            org.graalvm.polyglot
                         </DynamicImport-Package>
                     </instructions>
                 </configuration>
