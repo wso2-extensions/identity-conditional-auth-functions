@@ -101,6 +101,9 @@
                             com.nimbusds.jose.*;version="${nimbusds.osgi.version.range}",
                             net.minidev.json; version="${net.minidev.json.imp.pkg.version.range}"
                         </Import-Package>
+                        <DynamicImport-Package>
+                            org.graalvm.polyglot
+                        </DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
