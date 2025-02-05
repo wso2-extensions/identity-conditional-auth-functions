@@ -33,6 +33,7 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.DiagnosticLog;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -50,16 +51,16 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
         if (user == null) {
             throw new IllegalArgumentException("User is not defined.");
         }
-        if (parameters == null || parameters.length == 0) {
+        if (parameters == null || parameters.length == 0 || parameters[0] == null) {
             throw new IllegalArgumentException("Password is not defined.");
         }
 
-        String newPassword = null;
+        char [] newPassword = null;
         Map<String, Object> eventHandlers = null;
 
         if (parameters.length == 2) {
             LOG.debug("Both password and event handlers are provided.");
-            newPassword = (String) parameters[0];
+            newPassword = ((String) parameters[0]).toCharArray();
 
             if (parameters[1] instanceof Map) {
                 eventHandlers = (Map<String, Object>) parameters[1];
@@ -69,34 +70,39 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
             }
         } else {
             LOG.debug("Only the password is provided.");
-            newPassword = (String) parameters[0];
+            newPassword = ((String) parameters[0]).toCharArray();
         }
 
-        if (StringUtils.isBlank(newPassword)) {
+        if (newPassword.length == 0) {
             throw new IllegalArgumentException("The provided password is empty.");
         }
 
         if (eventHandlers != null) {
-            String finalNewPassword = newPassword;
+            char[] finalNewPassword = Arrays.copyOf(newPassword, newPassword.length);
             AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
                 try {
                     doUpdatePassword(user, finalNewPassword);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_SUCCESS);
                 } catch (FrameworkException e) {
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
+                } finally {
+                    clearPassword(finalNewPassword);
                 }
             });
             JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+            clearPassword(newPassword);
         } else {
             try {
                 doUpdatePassword(user, newPassword);
             } catch (FrameworkException e) {
                 // Ignore FrameworkException as the function is not expected to throw any.
+            } finally {
+                clearPassword(newPassword);
             }
         }
     }
 
-    private void doUpdatePassword(JsAuthenticatedUser user, String newPassword) throws FrameworkException {
+    private void doUpdatePassword(JsAuthenticatedUser user, char[] newPassword) throws FrameworkException {
 
         try {
             if (user.getWrapped() != null) {
@@ -187,4 +193,11 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
             throw new FrameworkException(message, e);
         }
     }
+
+    private void clearPassword(char[] password) {
+
+        // Clear the sensitive information stored in the char array
+        Arrays.fill(password, '\0');
+    }
+
 }
