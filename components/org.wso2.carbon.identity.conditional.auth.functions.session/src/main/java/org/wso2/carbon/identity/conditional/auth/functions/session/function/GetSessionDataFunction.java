@@ -35,7 +35,10 @@ import java.util.Map;
 /**
  * Represents javascript function provided in conditional authentication to retrieve active session data for given user.
  * The purpose is to perform dynamic authentication selection based on the active session count.
+ *
+ * @deprecated
  */
+@Deprecated
 public class GetSessionDataFunction implements GetUserSessionDataFunction {
 
     private static final Log log = LogFactory.getLog(GetSessionDataFunction.class);
