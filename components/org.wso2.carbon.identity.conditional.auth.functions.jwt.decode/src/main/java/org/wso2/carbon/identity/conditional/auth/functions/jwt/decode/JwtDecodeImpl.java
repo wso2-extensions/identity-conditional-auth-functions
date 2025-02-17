@@ -26,6 +26,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.text.ParseException;
+import java.util.Map;
 
 /**
  * Represents javascript function provided in conditional authentication to decode a jwt assertion and retrieve
@@ -68,12 +69,28 @@ public class JwtDecodeImpl implements JwtDecode {
     public JSONObject getDecodedAssertion(String encodedAssertion, boolean isParameterInPayload) throws ParseException {
 
         JWSObject plainObject;
+        Map<String, Object> resultMap;
 
         plainObject = JWSObject.parse(encodedAssertion);
         if (isParameterInPayload) {
-            return plainObject.getPayload().toJSONObject();
+            resultMap = plainObject.getPayload().toJSONObject();
         } else {
-            return plainObject.getHeader().toJSONObject();
+            resultMap = plainObject.getHeader().toJSONObject();
+        }
+        JSONObject jsonObject = new JSONObject(resultMap);
+        recursivelyConvertToJson(jsonObject);
+        return jsonObject;
+    }
+
+    private void recursivelyConvertToJson(JSONObject jsonObject) {
+
+        for (String key : jsonObject.keySet()) {
+            Object value = jsonObject.get(key);
+            if (value instanceof Map) {
+                // Recursively convert any Map to JSONObject
+                jsonObject.put(key, new JSONObject((Map<String, Object>) value));
+                recursivelyConvertToJson((JSONObject) jsonObject.get(key));
+            }
         }
     }
 
