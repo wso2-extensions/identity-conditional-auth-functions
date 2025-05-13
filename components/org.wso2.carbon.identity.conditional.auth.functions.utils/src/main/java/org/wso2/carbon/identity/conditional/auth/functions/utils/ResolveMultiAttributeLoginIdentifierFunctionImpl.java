@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,9 +37,7 @@ public class ResolveMultiAttributeLoginIdentifierFunctionImpl implements Resolve
     public String resolveMultiAttributeLoginIdentifier(String loginIdentifier, String tenantDomain) {
 
         if (!IdentityTenantUtil.resolveTenantDomain().equals(tenantDomain)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Cross-tenant multi attribute login identifier lookup is not allowed.");
-            }
+            log.debug("Cross-tenant multi attribute login identifier lookup is not allowed.");
             return null;
         }
         ResolvedUserResult resolvedUserResult = FrameworkUtils.processMultiAttributeLoginIdentification(
