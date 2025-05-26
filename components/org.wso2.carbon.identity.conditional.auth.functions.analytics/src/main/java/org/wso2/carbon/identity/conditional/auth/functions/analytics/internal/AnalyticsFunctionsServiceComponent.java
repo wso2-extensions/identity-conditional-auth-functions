@@ -103,6 +103,44 @@ public class AnalyticsFunctionsServiceComponent {
         }
     }
 
+    @Activate
+    protected void activate(ComponentContext context) {
+
+        try {
+            JsFunctionRegistry jsFunctionRegistry = AnalyticsFunctionsServiceHolder.getInstance()
+                    .getJsFunctionRegistry();
+            CallAnalyticsFunction callSiddhi = new CallAnalyticsFunctionImpl();
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_CALL_SIDDHI, callSiddhi);
+
+            PublishToAnalyticsFunction publishSiddhi = new PublishToAnalyticsFunctionImpl();
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_PUBLISH_SIDDHI,
+                    publishSiddhi);
+
+            BundleContext bundleContext = context.getBundleContext();
+            AnalyticsEngineConfigImpl analyticsFunctionConfig = new AnalyticsEngineConfigImpl();
+            bundleContext.registerService(IdentityConnectorConfig.class.getName(), analyticsFunctionConfig, null);
+
+            AnalyticsAxis2ConfigurationContextObserver observer = new AnalyticsAxis2ConfigurationContextObserver();
+            bundleContext.registerService(Axis2ConfigurationContextObserver.class.getName(), observer, null);
+
+            ServerConfigurationService config = AnalyticsFunctionsServiceHolder.getInstance()
+                    .getServerConfigurationService();
+
+            String filePath = config.getFirstProperty("Security.TrustStore.Location");
+            String keyStoreType = config.getFirstProperty("Security.TrustStore.Type");
+            String password = config.getFirstProperty("Security.TrustStore.Password");
+            try (InputStream keyStoreStream = new FileInputStream(filePath)) {
+                KeyStore keyStore = KeystoreUtils.getKeystoreInstance(keyStoreType); // or "PKCS12"
+                keyStore.load(keyStoreStream, password.toCharArray());
+                AnalyticsFunctionsServiceHolder.getInstance().setTrustStore(keyStore);
+            } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
+                LOG.error("Error while loading truststore.", e);
+            }
+        } catch (Throwable e) {
+            LOG.error("Error while activating AnalyticsFunctionsServiceComponent");
+        }
+    }
+
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
 
@@ -145,6 +183,29 @@ public class AnalyticsFunctionsServiceComponent {
 
     /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
+    }
+
+    @Reference(
+            name = "server.configuration.service",
+            service = ServerConfigurationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetServerConfigurationService"
+    )
+    protected void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting the serverConfigurationService");
+        }
+        AnalyticsFunctionsServiceHolder.getInstance().setServerConfigurationService(serverConfigurationService);
+    }
+
+    protected void unsetServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting the ServerConfigurationService");
+        }
+        AnalyticsFunctionsServiceHolder.getInstance().setServerConfigurationService(null);
     }
 
     @Reference(
