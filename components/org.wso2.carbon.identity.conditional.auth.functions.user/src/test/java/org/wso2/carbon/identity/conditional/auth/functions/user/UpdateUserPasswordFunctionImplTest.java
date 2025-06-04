@@ -177,22 +177,29 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
         JsAuthenticatedUser jsAuthenticatedUser = new JsOpenJdkNashornAuthenticatedUser(authenticatedUser);
 
         return new Object[][]{
-                {null, "newPassword", null, "User is not defined."},
-                {jsAuthenticatedUser, null, null, "Password is not defined."},
-                {jsAuthenticatedUser, "", null, "The provided password is empty."},
-                {jsAuthenticatedUser, "newPassword", Collections.EMPTY_LIST, "Invalid argument type. " +
-                        "Expected eventHandlers (Map<String, Object>)."}
+                // user, newPassword, eventHandlers, skipPasswordValidation, expectedError
+                {null, "newPassword", null, null, "User is not defined."},
+                {jsAuthenticatedUser, null, null, null, "Password is not defined."},
+                {jsAuthenticatedUser, "", null, null, "The provided password is empty."},
+                {jsAuthenticatedUser, "newPassword", Collections.EMPTY_LIST, true, "Invalid argument type. " +
+                        "Expected eventHandlers (Map<String, Object>) or skipPasswordValidation(Boolean)."},
+                {jsAuthenticatedUser, "newPassword", Collections.EMPTY_LIST, null,
+                        "Invalid argument type. Expected eventHandlers (Map<String, Object>) or " +
+                                "skipPasswordValidation(Boolean)."}
         };
     }
 
     @Test(dataProvider = "updateUserPasswordWithEmptyInputDataProvider")
     public void testUpdateUserPasswordWithEmptyInput(JsAuthenticatedUser user, String password,
-                                                     List<Object> eventHandlers, String errorMessage)
+                                                     List<Object> eventHandlers, Boolean skipPasswordValidation,
+                                                     String errorMessage)
             throws UserStoreException {
 
         try {
             if (password == null) {
                 testFunction.updateUserPassword(user);
+            } else if (eventHandlers != null && skipPasswordValidation != null) {
+                testFunction.updateUserPassword(user, password, eventHandlers, skipPasswordValidation);
             } else if (eventHandlers != null) {
                 testFunction.updateUserPassword(user, password, eventHandlers);
             } else {

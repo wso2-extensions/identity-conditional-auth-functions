@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constant
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.Arrays;
@@ -57,29 +58,46 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
 
         char [] newPassword = null;
         Map<String, Object> eventHandlers = null;
+        boolean skipPasswordValidation = false;
 
-        if (parameters.length == 2) {
-            LOG.debug("Both password and event handlers are provided.");
-            newPassword = ((String) parameters[0]).toCharArray();
-
-            if (parameters[1] instanceof Map) {
-                eventHandlers = (Map<String, Object>) parameters[1];
-            } else {
-                throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
-                        "(Map<String, Object>).");
-            }
-        } else {
+        if (parameters.length == 1) {
             LOG.debug("Only the password is provided.");
             newPassword = ((String) parameters[0]).toCharArray();
+        } else {
+            LOG.debug("Password is provided.");
+            newPassword = ((String) parameters[0]).toCharArray();
+
+            for (int i = 1; i < parameters.length; i++) {
+                Object parameter = parameters[i];
+                if (parameter instanceof Map) {
+                    LOG.debug("Event handlers are provided.");
+                    eventHandlers = (Map<String, Object>) parameter;
+                } else if (parameter instanceof Boolean) {
+                    LOG.debug("SkipPasswordValidation flag are provided.");
+                    skipPasswordValidation = (Boolean) parameter;
+                } else {
+                    throw new IllegalArgumentException(
+                            "Invalid argument type. Expected eventHandlers (Map<String, Object>) or skipPasswordValidation(Boolean)."
+                    );
+                }
+            }
         }
 
         if (newPassword.length == 0) {
             throw new IllegalArgumentException("The provided password is empty.");
         }
 
+        if (skipPasswordValidation) {
+            UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+        }
+
         if (eventHandlers != null) {
             char[] finalNewPassword = Arrays.copyOf(newPassword, newPassword.length);
+            boolean finalSkipPasswordValidation = skipPasswordValidation;
             AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
+                if (finalSkipPasswordValidation) {
+                    UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+                }
                 try {
                     doUpdatePassword(user, finalNewPassword);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_SUCCESS);
