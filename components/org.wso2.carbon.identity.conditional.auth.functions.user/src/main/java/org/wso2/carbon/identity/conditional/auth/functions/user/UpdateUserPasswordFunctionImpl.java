@@ -60,29 +60,35 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
         Map<String, Object> eventHandlers = null;
         boolean skipPasswordValidation = false;
 
-        if (parameters.length >= 3) {
-            LOG.debug("Both password and event handlers are provided.");
-            newPassword = ((String) parameters[0]).toCharArray();
-
-            if (parameters[1] instanceof Map) {
-                eventHandlers = (Map<String, Object>) parameters[1];
-            } else {
-                throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
-                        "(Map<String, Object>).");
-            }
-
-            if (parameters[2] instanceof Boolean) {
-                skipPasswordValidation = (Boolean) parameters[2];
-            } else {
-                throw new IllegalArgumentException("Invalid argument type. Expected skipPasswordValidation flag.");
-            }
-        } else {
+        if (parameters.length == 1) {
             LOG.debug("Only the password is provided.");
             newPassword = ((String) parameters[0]).toCharArray();
+        } else {
+            LOG.debug("Password is provided.");
+            newPassword = ((String) parameters[0]).toCharArray();
+
+            for (int i = 1; i < parameters.length; i++) {
+                Object parameter = parameters[i];
+                if (parameter instanceof Map) {
+                    LOG.debug("Event handlers are provided.");
+                    eventHandlers = (Map<String, Object>) parameter;
+                } else if (parameter instanceof Boolean) {
+                    LOG.debug("SkipPasswordValidation flag are provided.");
+                    skipPasswordValidation = (Boolean) parameter;
+                } else {
+                    throw new IllegalArgumentException(
+                            "Invalid argument type. Expected eventHandlers (Map<String, Object>) or skipPasswordValidation(Boolean)."
+                    );
+                }
+            }
         }
 
         if (newPassword.length == 0) {
             throw new IllegalArgumentException("The provided password is empty.");
+        }
+
+        if (skipPasswordValidation) {
+            UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
         }
 
         if (eventHandlers != null) {
