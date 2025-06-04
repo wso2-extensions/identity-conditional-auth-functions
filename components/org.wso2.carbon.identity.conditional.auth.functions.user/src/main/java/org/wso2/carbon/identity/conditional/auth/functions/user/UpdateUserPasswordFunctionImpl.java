@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constant
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.Arrays;
@@ -57,8 +58,9 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
 
         char [] newPassword = null;
         Map<String, Object> eventHandlers = null;
+        boolean skipPasswordValidation = false;
 
-        if (parameters.length == 2) {
+        if (parameters.length >= 3) {
             LOG.debug("Both password and event handlers are provided.");
             newPassword = ((String) parameters[0]).toCharArray();
 
@@ -67,6 +69,12 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
             } else {
                 throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
                         "(Map<String, Object>).");
+            }
+
+            if (parameters[2] instanceof Boolean) {
+                skipPasswordValidation = (Boolean) parameters[2];
+            } else {
+                throw new IllegalArgumentException("Invalid argument type. Expected skipPasswordValidation flag.");
             }
         } else {
             LOG.debug("Only the password is provided.");
@@ -79,7 +87,11 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
 
         if (eventHandlers != null) {
             char[] finalNewPassword = Arrays.copyOf(newPassword, newPassword.length);
+            boolean finalSkipPasswordValidation = skipPasswordValidation;
             AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
+                if (finalSkipPasswordValidation) {
+                    UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+                }
                 try {
                     doUpdatePassword(user, finalNewPassword);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_SUCCESS);
