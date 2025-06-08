@@ -45,6 +45,19 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
 
     private static final Log LOG = LogFactory.getLog(UpdateUserPasswordFunctionImpl.class);
 
+    /**
+     * Updates the password of the user.
+     *
+     * The varargs passed as parameters will be processed in the following order.
+     * <ol>
+     *     <li> newPassword (String): New password to be updated. </li>
+     *     <li> eventHandlers (Map<String, Object>): Optional map of event handlers.</li>
+     *     <li> skipPasswordValidation (Boolean): Optional flag to skip password validation rules.</li>
+     * </ol>
+     * @param user       User subjected to the password update.
+     * @param parameters Optional details required for password update.
+     * @throws IllegalArgumentException If an error occurred while updating the password of the user.
+     */
     @Override
     @HostAccess.Export
     public void updateUserPassword(JsAuthenticatedUser user, Object... parameters) {
@@ -56,7 +69,7 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
             throw new IllegalArgumentException("Password is not defined.");
         }
 
-        // Parse optional parameters list to extract required details to update user password.
+        // Parse optional parameters list to extract necessary details to update user password.
         UserPasswordUpdateModel parsedParams = parseParameters(parameters);
         char[] newPassword = parsedParams.getNewPassword();
         Map<String, Object> eventHandlers = parsedParams.getEventHandlers();
