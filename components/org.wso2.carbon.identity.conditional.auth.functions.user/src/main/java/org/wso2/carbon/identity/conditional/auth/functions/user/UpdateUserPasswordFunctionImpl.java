@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
@@ -28,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
+import org.wso2.carbon.identity.conditional.auth.functions.user.model.utils.UserPasswordUpdateModel;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -56,32 +56,11 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
             throw new IllegalArgumentException("Password is not defined.");
         }
 
-        char [] newPassword = null;
-        Map<String, Object> eventHandlers = null;
-        boolean skipPasswordValidation = false;
-
-        if (parameters.length == 1) {
-            LOG.debug("Only the password is provided.");
-            newPassword = ((String) parameters[0]).toCharArray();
-        } else {
-            LOG.debug("Password is provided.");
-            newPassword = ((String) parameters[0]).toCharArray();
-
-            for (int i = 1; i < parameters.length; i++) {
-                Object parameter = parameters[i];
-                if (parameter instanceof Map) {
-                    LOG.debug("Event handlers are provided.");
-                    eventHandlers = (Map<String, Object>) parameter;
-                } else if (parameter instanceof Boolean) {
-                    LOG.debug("SkipPasswordValidation flag are provided.");
-                    skipPasswordValidation = (Boolean) parameter;
-                } else {
-                    throw new IllegalArgumentException(
-                            "Invalid argument type. Expected eventHandlers (Map<String, Object>) or skipPasswordValidation(Boolean)."
-                    );
-                }
-            }
-        }
+        // Parse optional parameters list to extract required details to update user password.
+        UserPasswordUpdateModel parsedParams = parseParameters(parameters);
+        char[] newPassword = parsedParams.getNewPassword();
+        Map<String, Object> eventHandlers = parsedParams.getEventHandlers();
+        boolean skipPasswordValidation = parsedParams.isSkipPasswordValidation();
 
         if (newPassword.length == 0) {
             throw new IllegalArgumentException("The provided password is empty.");
@@ -91,11 +70,10 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
             UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
         }
 
-        if (eventHandlers != null) {
+        if (eventHandlers!= null) {
             char[] finalNewPassword = Arrays.copyOf(newPassword, newPassword.length);
-            boolean finalSkipPasswordValidation = skipPasswordValidation;
             AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
-                if (finalSkipPasswordValidation) {
+                if (skipPasswordValidation) {
                     UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
                 }
                 try {
@@ -118,6 +96,56 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                 clearPassword(newPassword);
             }
         }
+    }
+
+    /**
+     * Parses parameters required to update user password.
+     *
+     * @param parameters An array of objects containing the parameters:
+     * @return A `UserPasswordUpdateModel` containing the parsed parameters.
+     * @throws IllegalArgumentException If an error occurred while parsing parameters.
+     */
+    private UserPasswordUpdateModel parseParameters(Object[] parameters) {
+
+        char[] newPassword;
+        Map<String, Object> eventHandlers = null;
+        boolean skipPasswordValidation = false;
+
+        if (parameters.length == 2) {
+            LOG.debug("Both password and event handlers are provided.");
+            newPassword = ((String) parameters[0]).toCharArray();
+
+            if (parameters[1] instanceof Map) {
+                eventHandlers = (Map<String, Object>) parameters[1];
+            } else {
+                throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
+                        "(Map<String, Object>).");
+            }
+        } else if (parameters.length == 3) {
+            LOG.debug("Password, event handlers and skipPasswordValidation flag are provided.");
+            newPassword = ((String) parameters[0]).toCharArray();
+
+            if (parameters[1] instanceof Map) {
+                eventHandlers = (Map<String, Object>) parameters[1];
+            } else {
+                throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
+                        "(Map<String, Object>).");
+            }
+
+            if (parameters[2] instanceof Boolean) {
+                skipPasswordValidation = (Boolean) parameters[2];
+            } else {
+                throw new IllegalArgumentException("Invalid argument type. Expected skipPasswordValidation(Boolean).");
+            }
+        } else {
+            LOG.debug("Only the password is provided.");
+            newPassword = ((String) parameters[0]).toCharArray();
+        }
+
+        return new UserPasswordUpdateModel.UserPasswordUpdateModelBuilder(newPassword).
+                eventHandlers(eventHandlers).
+                skipPasswordValidation(skipPasswordValidation).
+                build();
     }
 
     private void doUpdatePassword(JsAuthenticatedUser user, char[] newPassword) throws FrameworkException {

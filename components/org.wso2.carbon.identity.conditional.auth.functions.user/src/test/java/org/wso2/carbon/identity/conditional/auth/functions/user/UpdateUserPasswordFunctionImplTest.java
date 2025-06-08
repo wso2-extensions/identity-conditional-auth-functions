@@ -182,10 +182,7 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
                 {jsAuthenticatedUser, null, null, null, "Password is not defined."},
                 {jsAuthenticatedUser, "", null, null, "The provided password is empty."},
                 {jsAuthenticatedUser, "newPassword", Collections.EMPTY_LIST, true, "Invalid argument type. " +
-                        "Expected eventHandlers (Map<String, Object>) or skipPasswordValidation(Boolean)."},
-                {jsAuthenticatedUser, "newPassword", Collections.EMPTY_LIST, null,
-                        "Invalid argument type. Expected eventHandlers (Map<String, Object>) or " +
-                                "skipPasswordValidation(Boolean)."}
+                        "Expected eventHandlers (Map<String, Object>)."}
         };
     }
 
