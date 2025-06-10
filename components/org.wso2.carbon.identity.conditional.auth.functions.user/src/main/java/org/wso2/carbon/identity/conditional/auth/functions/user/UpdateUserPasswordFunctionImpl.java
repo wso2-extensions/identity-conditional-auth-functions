@@ -69,8 +69,9 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
             throw new IllegalArgumentException("Password is not defined.");
         }
 
-        // Parse optional parameters list to extract necessary details to update user password.
+        // Parses the optional parameters list to extract necessary data for updating the user password.
         UserPasswordUpdateModel parsedParams = parseParameters(parameters);
+
         char[] newPassword = parsedParams.getNewPassword();
         Map<String, Object> eventHandlers = parsedParams.getEventHandlers();
         boolean skipPasswordValidation = parsedParams.isSkipPasswordValidation();
