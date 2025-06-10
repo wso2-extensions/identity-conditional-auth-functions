@@ -120,45 +120,35 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
      */
     private UserPasswordUpdateModel parseParameters(Object[] parameters) {
 
-        char[] newPassword;
-        Map<String, Object> eventHandlers = null;
-        boolean skipPasswordValidation = false;
+        char[] newPassword = ((String) parameters[0]).toCharArray();
+        UserPasswordUpdateModel.UserPasswordUpdateModelBuilder passwordUpdateModelBuilder = new
+                UserPasswordUpdateModel.UserPasswordUpdateModelBuilder(newPassword);
+
+        if (parameters.length == 1) {
+            LOG.debug("Only the password is provided.");
+            return passwordUpdateModelBuilder.build();
+        }
+
+        if (parameters[1] instanceof Map) {
+            passwordUpdateModelBuilder.eventHandlers((Map<String, Object>) parameters[1]);
+        } else {
+            throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
+                    "(Map<String, Object>).");
+        }
 
         if (parameters.length == 2) {
             LOG.debug("Both password and event handlers are provided.");
-            newPassword = ((String) parameters[0]).toCharArray();
-
-            if (parameters[1] instanceof Map) {
-                eventHandlers = (Map<String, Object>) parameters[1];
-            } else {
-                throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
-                        "(Map<String, Object>).");
-            }
-        } else if (parameters.length == 3) {
-            LOG.debug("Password, event handlers and skipPasswordValidation flag are provided.");
-            newPassword = ((String) parameters[0]).toCharArray();
-
-            if (parameters[1] instanceof Map) {
-                eventHandlers = (Map<String, Object>) parameters[1];
-            } else {
-                throw new IllegalArgumentException("Invalid argument type. Expected eventHandlers " +
-                        "(Map<String, Object>).");
-            }
-
-            if (parameters[2] instanceof Boolean) {
-                skipPasswordValidation = (Boolean) parameters[2];
-            } else {
-                throw new IllegalArgumentException("Invalid argument type. Expected skipPasswordValidation(Boolean).");
-            }
-        } else {
-            LOG.debug("Only the password is provided.");
-            newPassword = ((String) parameters[0]).toCharArray();
+            return passwordUpdateModelBuilder.build();
         }
 
-        return new UserPasswordUpdateModel.UserPasswordUpdateModelBuilder(newPassword).
-                eventHandlers(eventHandlers).
-                skipPasswordValidation(skipPasswordValidation).
-                build();
+        if (parameters[2] instanceof Boolean) {
+            passwordUpdateModelBuilder.skipPasswordValidation((Boolean) parameters[2]);
+        } else {
+            throw new IllegalArgumentException("Invalid argument type. Expected skipPasswordValidation(Boolean).");
+        }
+
+        LOG.debug("Password, event handlers and skipPasswordValidation flag are provided.");
+        return passwordUpdateModelBuilder.build();
     }
 
     private void doUpdatePassword(JsAuthenticatedUser user, char[] newPassword) throws FrameworkException {

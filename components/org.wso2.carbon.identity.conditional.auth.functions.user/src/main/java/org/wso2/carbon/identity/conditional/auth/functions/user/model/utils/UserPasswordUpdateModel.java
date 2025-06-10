@@ -70,6 +70,7 @@ public class UserPasswordUpdateModel {
             this.eventHandlers = handlers;
             return this;
         }
+
         public UserPasswordUpdateModelBuilder skipPasswordValidation(boolean skip) {
 
             this.skipPasswordValidation = skip;
