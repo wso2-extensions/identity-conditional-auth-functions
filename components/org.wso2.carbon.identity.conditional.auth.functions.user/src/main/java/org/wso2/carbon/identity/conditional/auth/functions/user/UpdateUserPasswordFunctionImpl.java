@@ -48,15 +48,16 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
     /**
      * Updates the password of the user.
      *
-     * The varargs passed as parameters will be processed in the following order.
+     * <p>The varargs passed as parameters will be processed in the following order:</p>
      * <ol>
-     *     <li> newPassword (String): New password to be updated. </li>
-     *     <li> eventHandlers (Map<String, Object>): Optional map of event handlers.</li>
-     *     <li> skipPasswordValidation (Boolean): Optional flag to skip password validation rules.</li>
+     *   <li>{@code String newPassword}: New password to be updated.</li>
+     *   <li>{@code Map<String, Object> eventHandlers}: Optional map of event handlers.</li>
+     *   <li>{@code Boolean skipPasswordValidation}: Optional flag to skip password validation rules.</li>
      * </ol>
-     * @param user       User subjected to the password update.
-     * @param parameters Optional details required for password update.
-     * @throws IllegalArgumentException If an error occurred while updating the password of the user.
+     *
+     * @param user the user whose password is to be updated
+     * @param parameters optional details required for password update
+     * @throws IllegalArgumentException if an error occurs during password update
      */
     @Override
     @HostAccess.Export
