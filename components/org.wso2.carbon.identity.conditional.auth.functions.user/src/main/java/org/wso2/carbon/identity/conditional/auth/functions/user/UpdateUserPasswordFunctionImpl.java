@@ -98,6 +98,7 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 } finally {
                     clearPassword(finalNewPassword);
+                    UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
                 }
             });
             JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
@@ -109,6 +110,7 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
                 // Ignore FrameworkException as the function is not expected to throw any.
             } finally {
                 clearPassword(newPassword);
+                UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
             }
         }
     }
