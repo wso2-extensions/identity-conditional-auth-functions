@@ -51,6 +51,8 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsAnyOfTheRolesAssignedToUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveAssociatedLocalUserFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveAssociatedLocalUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesV2Function;
@@ -90,6 +92,7 @@ public class UserFunctionsServiceComponent {
             RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
             GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
             SetAccountAssociationToLocalUser setAccountAssociationToLocalUserImpl = new SetAccountAssociationToLocalUserImpl();
+            RemoveAssociatedLocalUserFunction removeAssociatedLocalUserFunctionImpl = new RemoveAssociatedLocalUserFunctionImpl();
             MicrosoftEmailVerificationFunction microsoftEmailVerificationFunction = new MicrosoftEmailVerificationFunctionImpl();
             UpdateUserPasswordFunction updateUserPasswordFunction = new UpdateUserPasswordFunctionImpl();
 
@@ -129,6 +132,8 @@ public class UserFunctionsServiceComponent {
                     microsoftEmailVerificationFunction);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "updateUserPassword",
                     updateUserPasswordFunction);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeAssociatedLocalUser",
+                    removeAssociatedLocalUserFunctionImpl);
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }
