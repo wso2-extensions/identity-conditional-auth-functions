@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
     <artifactId>identity-conditional-auth-functions</artifactId>
-    <version>1.2.81-SNAPSHOT</version>
+    <version>1.2.82-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - IAM Conditional Authentication Functions</name>
     <url>http://wso2.org</url>
