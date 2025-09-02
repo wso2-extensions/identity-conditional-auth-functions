@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
@@ -161,7 +162,7 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
         try {
             if (user.getWrapped() != null) {
                 String tenantDomain = user.getWrapped().getTenantDomain();
-                if (!user.getWrapped().getTenantDomain().equalsIgnoreCase(
+                if (!StringUtils.equalsIgnoreCase(user.getWrapped().getTenantDomain(),
                         PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain())) {
                     throw new FrameworkException("Invalid user provided.");
                 }
