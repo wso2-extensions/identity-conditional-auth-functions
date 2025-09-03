@@ -156,7 +156,8 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
 
     private AuthenticationContext getAuthenticationContextForSP(String spFileName) throws JsTestException {
 
-        sequenceHandlerRunner.addSubjectAuthenticator("BasicMockAuthenticator", "test_user", Collections.emptyMap());
+        sequenceHandlerRunner.addSubjectAuthenticator("BasicMockAuthenticator",
+                "test_user@test_domain", Collections.emptyMap());
         ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(spFileName, this);
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
         SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp);
