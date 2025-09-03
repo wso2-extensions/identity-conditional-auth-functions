@@ -162,7 +162,7 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
         try {
             if (user.getWrapped() != null) {
                 String tenantDomain = user.getWrapped().getTenantDomain();
-                if (!StringUtils.equalsIgnoreCase(user.getWrapped().getTenantDomain(),
+                if (!StringUtils.equalsIgnoreCase(tenantDomain,
                         PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain())) {
                     throw new FrameworkException("Invalid user provided.");
                 }
