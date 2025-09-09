@@ -27,8 +27,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -121,4 +124,21 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
         };
     }
 
+    @Test
+    public void testCrossTenantScenarioReturnsFalse() {
+
+        SendEmailFunctionImpl sendEmailFunction = new SendEmailFunctionImpl();
+
+        // Create authenticated user with tenant domain
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserName("testUser");
+        authenticatedUser.setTenantDomain("tenant1.com");
+        authenticatedUser.setUserStoreDomain("PRIMARY");
+        JsAuthenticatedUser jsUser = new JsOpenJdkNashornAuthenticatedUser(authenticatedUser);
+
+        boolean result = sendEmailFunction.sendMail(jsUser, "templateId", null);
+
+        // Should return false for cross-tenant operation
+        assertFalse(result, "Should return false for cross-tenant operation");
+    }
 }
