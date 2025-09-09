@@ -49,7 +49,7 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
     public boolean sendMail(JsAuthenticatedUser user, String templateId, Map<String, String> paramMap) {
 
         String tenantDomainFromContext = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        if (StringUtils.equals(user.getWrapped().getTenantDomain(), tenantDomainFromContext)) {
+        if (!StringUtils.equals(user.getWrapped().getTenantDomain(), tenantDomainFromContext)) {
             LOG.warn("Send Emails in cross tenants is not allowed.");
             return false;
         }

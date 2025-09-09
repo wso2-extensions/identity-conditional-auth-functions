@@ -123,6 +123,7 @@
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
+                            org.wso2.carbon.context,
                             org.wso2.carbon.core.util,
                             org.wso2.carbon.identity.application.authentication.framework;
                             version="${carbon.identity.package.import.version.range}",

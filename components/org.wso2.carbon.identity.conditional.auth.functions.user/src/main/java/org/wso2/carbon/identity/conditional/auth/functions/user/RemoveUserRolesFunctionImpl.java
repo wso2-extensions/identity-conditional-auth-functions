@@ -67,7 +67,7 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
                 if (userRealm != null) {
                     String tenantDomainFromContext = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                             .getTenantDomain();
-                    if (StringUtils.equals(user.getWrapped().getTenantDomain(), tenantDomainFromContext)) {
+                    if (!StringUtils.equals(user.getWrapped().getTenantDomain(), tenantDomainFromContext)) {
                         LOG.warn("Removing roles in cross tenants is not allowed.");
                         return false;
                     }
