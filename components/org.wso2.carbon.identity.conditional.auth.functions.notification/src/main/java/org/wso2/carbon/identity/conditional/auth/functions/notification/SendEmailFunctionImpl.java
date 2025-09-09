@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.notification;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.internal.NotificationFunctionServiceHolder;
@@ -45,6 +47,12 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
     @Override
     @HostAccess.Export
     public boolean sendMail(JsAuthenticatedUser user, String templateId, Map<String, String> paramMap) {
+
+        String tenantDomainFromContext = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        if (StringUtils.equals(user.getWrapped().getTenantDomain(), tenantDomainFromContext)) {
+            LOG.warn("Send Emails in cross tenants is not allowed.");
+            return false;
+        }
 
         String eventName = IdentityEventConstants.Event.TRIGGER_NOTIFICATION;
 
