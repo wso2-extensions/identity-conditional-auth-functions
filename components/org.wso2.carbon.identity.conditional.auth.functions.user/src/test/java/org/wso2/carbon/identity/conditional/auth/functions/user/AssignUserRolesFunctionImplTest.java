@@ -29,6 +29,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Test class for AssignUserRolesFunctionImpl.
+ */
 public class AssignUserRolesFunctionImplTest {
 
     @BeforeMethod
