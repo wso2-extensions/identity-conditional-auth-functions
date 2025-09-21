@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.user.core.UserRealm;
@@ -65,9 +63,7 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
                 String username = user.getWrapped().getUserName();
                 UserRealm userRealm = Utils.getUserRealm(tenantDomain);
                 if (userRealm != null) {
-                    String tenantDomainFromContext = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                            .getTenantDomain();
-                    if (!StringUtils.equals(user.getWrapped().getTenantDomain(), tenantDomainFromContext)) {
+                    if (!Utils.isUserInCurrentTenant(user.getWrapped().getTenantDomain())) {
                         LOG.warn("Removing roles in cross tenants is not allowed.");
                         return false;
                     }
