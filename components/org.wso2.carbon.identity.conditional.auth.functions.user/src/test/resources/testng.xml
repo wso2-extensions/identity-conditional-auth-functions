@@ -28,6 +28,7 @@
             <class name="org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.user.IsAnyOfTheRolesAssignedToUserTest"/>
         </classes>
     </test>
     <test name="user-functions-graaljs" parallel="false">
@@ -39,6 +40,7 @@
             <class name="org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.user.AssignUserRolesFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunctionImplTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.user.IsAnyOfTheRolesAssignedToUserTest"/>
         </classes>
     </test>
 </suite>

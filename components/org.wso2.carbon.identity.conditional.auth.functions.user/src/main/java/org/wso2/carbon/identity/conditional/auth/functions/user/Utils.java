@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -147,4 +148,15 @@ public class Utils {
         return userIdClaimURI;
     }
 
+    /**
+     * Check whether the user belongs to the current tenant domain.
+     *
+     * @param userTenantDomain Tenant domain of the user.
+     * @return true if the user belongs to the current tenant domain. Else false.
+     */
+    public static boolean isUserInCurrentTenant(String userTenantDomain) {
+
+        String tenantDomainFromContext = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return StringUtils.equals(userTenantDomain, tenantDomainFromContext);
+    }
 }
