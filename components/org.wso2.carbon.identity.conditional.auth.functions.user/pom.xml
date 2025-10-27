@@ -238,7 +238,9 @@
                             net.minidev.json; version="${net.minidev.json.imp.pkg.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.conditional.auth.functions.common.utils,
-                            org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service;version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception;version="${org.wso2.carbon.identity.organization.management.core.version.range}"
                         </Import-Package>
                         <DynamicImport-Package>
                             org.graalvm.polyglot,

@@ -246,6 +246,11 @@
                 <artifactId>nimbus-jose-jwt</artifactId>
                 <version>${nimbusds.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+                <version>${identity.organization.management.core.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.jacoco</groupId>
@@ -320,12 +325,6 @@
                 <groupId>org.wso2.carbon.crypto</groupId>
                 <artifactId>org.wso2.carbon.crypto.impl</artifactId>
                 <version>${carbon.crypto.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
-                <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
-                <version>${identity.organization.management.core.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.jacoco</groupId>
@@ -530,6 +529,8 @@
         <carbon.user.package.import.version.range>[1.0.1, 2.0.0)</carbon.user.package.import.version.range>
         <carbon.identity.framework.version>7.7.34</carbon.identity.framework.version>
         <identity.organization.management.core.version>1.0.89</identity.organization.management.core.version>
+        <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
+        </org.wso2.carbon.identity.organization.management.core.version.range>
         <carbon.identity.framework.testutils.version>5.20.447</carbon.identity.framework.testutils.version>
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
         <identity.governance.version>1.1.17</identity.governance.version>

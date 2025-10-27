@@ -62,6 +62,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssoci
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUser;
 import org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunctionImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -289,5 +290,22 @@ public class UserFunctionsServiceComponent {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Role management service is unset in the conditional authentication user functions bundle");
         }
+    }
+
+    @Reference(name = "identity.organization.management.component",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        UserFunctionsServiceHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("Organization manager service is set in the conditional authentication user functions bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        UserFunctionsServiceHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("Organization manager service is unset in the conditional authentication user functions bundle.");
     }
 }
