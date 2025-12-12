@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import java.util.Collections;
 
@@ -50,7 +51,9 @@ import static org.mockito.Mockito.mock;
  */
 @WithCarbonHome
 @WithH2Database(files = "dbscripts/h2.sql")
-@WithRealmService(injectToSingletons = {LoggerUtils.class, FrameworkServiceDataHolder.class})
+@WithRealmService(injectToSingletons = {LoggerUtils.class, FrameworkServiceDataHolder.class,
+        OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class GetMaskedValueFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @BeforeClass

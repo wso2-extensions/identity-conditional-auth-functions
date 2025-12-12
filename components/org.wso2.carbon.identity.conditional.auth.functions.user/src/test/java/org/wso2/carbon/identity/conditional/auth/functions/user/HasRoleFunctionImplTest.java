@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -58,7 +59,8 @@ import static org.testng.Assert.assertTrue;
 @WithCarbonHome
 @WithH2Database(files = "dbscripts/h2.sql")
 @WithRealmService(injectToSingletons = {UserFunctionsServiceHolder.class, IdentityTenantUtil.class,
-        FrameworkServiceDataHolder.class})
+        FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class HasRoleFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @WithRealmService

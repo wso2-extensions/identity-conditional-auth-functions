@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.notification;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -43,21 +42,24 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
-import java.lang.ref.Reference;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 
 /**
  * Test for sentMail in javascript
  */
 @WithCarbonHome
 @WithH2Database(files = "dbscripts/h2.sql")
-@WithRealmService(injectToSingletons = FrameworkServiceDataHolder.class)
+@WithRealmService(injectToSingletons = {FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @BeforeClass
@@ -86,7 +88,7 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
         AtomicBoolean hasEmailSent = new AtomicBoolean(false);
         IdentityEventService mockIdentityEventService = Mockito.mock(IdentityEventService.class);
         Mockito.doAnswer(invocationOnMock -> {
-            Event event = invocationOnMock.getArgumentAt(0, Event.class);
+            Event event = invocationOnMock.getArgument(0, Event.class);
             System.out.println("Event " + event.getEventName());
             if(shouldThrowException) {
                 throw new IdentityEventException("Mock throws shouldThrowException");
@@ -95,7 +97,7 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 hasEmailSent.set(true);
             }
             return null;
-        }).when(mockIdentityEventService).handleEvent(Matchers.any(Event.class));
+        }).when(mockIdentityEventService).handleEvent(any(Event.class));
 
         NotificationFunctionServiceHolder.getInstance().setIdentityEventService(mockIdentityEventService);
         ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("sendEmail-test-sp.xml", this);

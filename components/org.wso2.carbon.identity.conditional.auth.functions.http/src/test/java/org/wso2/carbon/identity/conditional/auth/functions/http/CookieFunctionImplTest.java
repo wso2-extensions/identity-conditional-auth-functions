@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerRunner;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -67,7 +68,8 @@ import static org.mockito.Mockito.verify;
  */
 @WithCarbonHome
 @WithH2Database(files = {"dbscripts/h2.sql"})
-@WithRealmService(injectToSingletons = FrameworkServiceDataHolder.class)
+@WithRealmService(injectToSingletons = {FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @BeforeClass
