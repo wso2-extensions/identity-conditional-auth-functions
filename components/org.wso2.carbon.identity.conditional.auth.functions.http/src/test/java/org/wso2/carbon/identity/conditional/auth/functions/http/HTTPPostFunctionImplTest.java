@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -39,6 +40,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -54,11 +56,13 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithMicroService;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.serialize.JsGraalWritableParametersSerializer;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.ResponseValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import java.util.Date;
 import java.time.Instant;
@@ -74,7 +78,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -83,8 +87,10 @@ import static org.testng.Assert.assertEquals;
 
 @WithCarbonHome
 @WithMicroService
-@WithH2Database(files = {"dbscripts/h2_http.sql"})
-@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
+@WithH2Database(files = {"dbscripts/h2.sql"})
+@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class,
+        OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 @Path("/")
 public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
@@ -563,8 +569,15 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
             if (response != null) {
                 JsonObject expectedResponse = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
-                Gson gson = new Gson();
-                String dataStr = gson.toJson(response.getWrapped());
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(JsGraalWritableParameters.class, new JsGraalWritableParametersSerializer())
+                        .create();
+                String dataStr;
+                if (response instanceof JsGraalWritableParameters) {
+                    dataStr = gson.toJson(response);
+                } else {
+                    dataStr = gson.toJson(response.getWrapped());
+                }
                 JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
                 return actualResponse.equals(expectedResponse);
             }

@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsUserSess
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {UserFunctionsServiceHolder.class, IdentityTenantUtil.class,
-        FrameworkServiceDataHolder.class})
+        FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class GetUserSessionsFunctionImplTest {
 
     private static final String TEST_USER_NAME = "testUser";

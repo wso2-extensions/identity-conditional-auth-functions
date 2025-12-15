@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.user.core.common.User;
 
 import java.lang.reflect.Field;
@@ -50,13 +51,15 @@ import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @WithCarbonHome
-@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
+@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class,
+        OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 @WithH2Database(files = "dbscripts/h2.sql")
 public class ResolveMultiAttributeLoginIdentifierFunctionImplTest extends JsSequenceHandlerAbstractTest {
 

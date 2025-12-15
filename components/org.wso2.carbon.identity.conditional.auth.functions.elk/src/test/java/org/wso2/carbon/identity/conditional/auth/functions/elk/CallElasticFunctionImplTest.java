@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.msf4j.Response;
 
 import javax.servlet.http.HttpServletRequest;
@@ -66,7 +67,9 @@ import static org.testng.Assert.assertNotNull;
 @WithCarbonHome
 @WithMicroService
 @WithH2Database(files = {"dbscripts/h2_http.sql"})
-@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
+@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class,
+        OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 @Path("/")
 public class CallElasticFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
