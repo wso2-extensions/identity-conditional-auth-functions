@@ -95,7 +95,7 @@
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging,
-                            org.osgi.service.component;version="${org.osgi.service.imp.pkg.version}",
+                            org.osgi.service.component;version="${org.osgi.service.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework;version="${carbon.identity.framework.version}",
                             org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.framework.version}",
                             com.nimbusds.jose.*;version="${nimbusds.osgi.version.range}",

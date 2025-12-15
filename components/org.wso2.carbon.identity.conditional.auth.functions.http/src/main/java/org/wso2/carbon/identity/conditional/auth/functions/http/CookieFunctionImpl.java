@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstan
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.Cookie;
