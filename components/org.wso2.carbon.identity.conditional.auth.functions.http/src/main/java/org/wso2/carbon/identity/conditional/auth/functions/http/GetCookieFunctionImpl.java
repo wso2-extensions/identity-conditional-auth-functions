@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.axiom.om.util.Base64;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
@@ -75,7 +74,7 @@ public class GetCookieFunctionImpl implements GetCookieFunction {
                 try {
                     JSONParser jsonParser = new JSONParser();
                     cookieValueJSON = (JSONObject) jsonParser.parse(new String(Base64.decode(cookie.getValue()),
-                            Charsets.UTF_8));
+                            StandardCharsets.UTF_8));
                 } catch (ParseException e) {
                     log.error("Error occurred when converting cookie value to JSON.", e);
                     return null;

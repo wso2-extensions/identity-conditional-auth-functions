@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.axiom.om.util.Base64;
-import org.apache.commons.io.Charsets;
 import org.json.simple.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -57,6 +56,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -122,7 +122,8 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         ArgumentCaptor<Cookie> argumentCaptor = ArgumentCaptor.forClass(Cookie.class);
         verify(resp).addCookie(argumentCaptor.capture());
-        Assert.assertEquals(argumentCaptor.getValue().getValue(), Base64.encode(cookieValue.getBytes(Charsets.UTF_8)));
+        Assert.assertEquals(argumentCaptor.getValue().getValue(), 
+                Base64.encode(cookieValue.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
@@ -140,7 +141,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         cookieValueJson.put(HTTPConstants.VALUE, "test");
         cookieValueJson.put(HTTPConstants.SIGNATURE, null);
         String cookieValue = cookieValueJson.toString();
-        Cookie cookie = new Cookie("name", Base64.encode(cookieValue.getBytes(Charsets.UTF_8)));
+        Cookie cookie = new Cookie("name", Base64.encode(cookieValue.getBytes(StandardCharsets.UTF_8)));
         Cookie mockCookie = Mockito.spy(cookie);
         Cookie[] cookies = {mockCookie};
 
