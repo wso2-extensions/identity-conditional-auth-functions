@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.axiom.om.util.Base64;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
@@ -101,7 +100,7 @@ public class SetCookieFunctionImpl implements SetCookieFunction {
 
         String cookieValue = cookieValueJson.toString();
 
-        cookieValue = Base64.encode((cookieValue.getBytes(Charsets.UTF_8)));
+        cookieValue = Base64.encode((cookieValue.getBytes(StandardCharsets.UTF_8)));
         ServletCookie cookie = new ServletCookie(name, cookieValue);
         if (properties != null) {
             Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN))

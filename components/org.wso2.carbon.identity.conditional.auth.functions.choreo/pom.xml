@@ -149,7 +149,6 @@
                         </Export-Package>
                         <Import-Package>
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
-                            org.apache.commons.io,
                             org.apache.commons.lang3,
                             org.apache.commons.logging,
                             org.apache.http.entity,

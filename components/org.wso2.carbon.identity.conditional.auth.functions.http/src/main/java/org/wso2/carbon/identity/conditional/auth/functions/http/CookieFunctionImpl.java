@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.axiom.om.util.Base64;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONObject;
@@ -30,7 +29,6 @@ import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -107,7 +105,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
 
         String cookieValue = cookieValueJson.toString();
 
-        cookieValue = Base64.encode((cookieValue.getBytes(Charsets.UTF_8)));
+        cookieValue = Base64.encode((cookieValue.getBytes(StandardCharsets.UTF_8)));
         ServletCookie cookie = new ServletCookie(name, cookieValue);
         if (properties != null) {
             Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN))
@@ -161,7 +159,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                 try {
                     JSONParser jsonParser = new JSONParser();
                     cookieValueJSON = (JSONObject) jsonParser.parse(new String(Base64.decode(cookie.getValue()),
-                            Charsets.UTF_8));
+                            StandardCharsets.UTF_8));
                 } catch (ParseException e) {
                     log.error("Error occurred when converting cookie value to JSON.", e);
                     return null;
