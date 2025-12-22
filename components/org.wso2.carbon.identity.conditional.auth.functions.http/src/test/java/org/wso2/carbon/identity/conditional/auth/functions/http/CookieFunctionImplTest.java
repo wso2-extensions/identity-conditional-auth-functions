@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.axiom.om.util.Base64;
-import org.apache.commons.io.Charsets;
 import org.json.simple.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -51,11 +50,13 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerRunner;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,7 +68,8 @@ import static org.mockito.Mockito.verify;
  */
 @WithCarbonHome
 @WithH2Database(files = {"dbscripts/h2.sql"})
-@WithRealmService(injectToSingletons = FrameworkServiceDataHolder.class)
+@WithRealmService(injectToSingletons = {FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @BeforeClass
@@ -120,7 +122,8 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         ArgumentCaptor<Cookie> argumentCaptor = ArgumentCaptor.forClass(Cookie.class);
         verify(resp).addCookie(argumentCaptor.capture());
-        Assert.assertEquals(argumentCaptor.getValue().getValue(), Base64.encode(cookieValue.getBytes(Charsets.UTF_8)));
+        Assert.assertEquals(argumentCaptor.getValue().getValue(), 
+                Base64.encode(cookieValue.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
@@ -138,7 +141,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         cookieValueJson.put(HTTPConstants.VALUE, "test");
         cookieValueJson.put(HTTPConstants.SIGNATURE, null);
         String cookieValue = cookieValueJson.toString();
-        Cookie cookie = new Cookie("name", Base64.encode(cookieValue.getBytes(Charsets.UTF_8)));
+        Cookie cookie = new Cookie("name", Base64.encode(cookieValue.getBytes(StandardCharsets.UTF_8)));
         Cookie mockCookie = Mockito.spy(cookie);
         Cookie[] cookies = {mockCookie};
 

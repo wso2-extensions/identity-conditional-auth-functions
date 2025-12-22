@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>1.2.82-SNAPSHOT</version>
+        <version>1.2.88-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -93,16 +93,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
@@ -159,7 +149,6 @@
                         </Export-Package>
                         <Import-Package>
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
-                            org.apache.commons.io,
                             org.apache.commons.lang3,
                             org.apache.commons.logging,
                             org.apache.http.entity,

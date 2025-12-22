@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -59,9 +60,9 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -70,7 +71,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {UserFunctionsServiceHolder.class, IdentityTenantUtil.class,
-        FrameworkServiceDataHolder.class})
+        FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 @WithH2Database(files = "dbscripts/h2.sql")
 public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
@@ -156,7 +158,8 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
 
     private AuthenticationContext getAuthenticationContextForSP(String spFileName) throws JsTestException {
 
-        sequenceHandlerRunner.addSubjectAuthenticator("BasicMockAuthenticator", "test_user", Collections.emptyMap());
+        sequenceHandlerRunner.addSubjectAuthenticator("BasicMockAuthenticator",
+                "test_user@test_domain", Collections.emptyMap());
         ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(spFileName, this);
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
         SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp);

@@ -44,6 +44,10 @@ public class HasAnyOfTheRolesFunctionImpl implements HasAnyOfTheRolesFunction {
         boolean result = false;
 
         String tenantDomain = user.getWrapped().getTenantDomain();
+        if (!Utils.isUserInCurrentTenant(tenantDomain)) {
+            LOG.warn("Cross-tenant roles checks are not allowed.");
+            return false;
+        }
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
         String username = user.getWrapped().getUserName();
         try {

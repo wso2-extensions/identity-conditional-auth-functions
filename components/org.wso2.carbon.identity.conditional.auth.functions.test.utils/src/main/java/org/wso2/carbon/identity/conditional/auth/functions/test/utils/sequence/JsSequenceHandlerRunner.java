@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -295,16 +296,20 @@ public class JsSequenceHandlerRunner {
 
     protected void resetAuthenticators() {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().clear();
-        FrameworkServiceDataHolder.getInstance().getAuthenticators()
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators().clear();
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()
                 .add(new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()
+                .add(new MockAuthenticator("HwkMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()
+                .add(new MockAuthenticator("FptMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()
+                .add(new MockAuthenticator("MockFallbackAuthenticator"));
     }
 
     public void addSubjectAuthenticator(String authenticatorName, String subject, Map<String, String> claims) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().removeIf(
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators().removeIf(
                 applicationAuthenticator -> applicationAuthenticator.getName().equals(authenticatorName));
         MockAuthenticator authenticator = new MockAuthenticator(authenticatorName,
                 (SubjectCallback) context1 -> {
@@ -317,8 +322,7 @@ public class JsSequenceHandlerRunner {
                     }
                     return user;
                 });
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
-
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators().add(authenticator);
     }
 
     private static AuthenticatedUser createLocalAuthenticatedUserFromSubjectIdentifier

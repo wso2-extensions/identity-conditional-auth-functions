@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>1.2.82-SNAPSHOT</version>
+        <version>1.2.88-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -67,13 +67,8 @@
             <artifactId>org.wso2.carbon.identity.user.profile</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -145,6 +140,11 @@
             <artifactId>org.wso2.carbon.identity.event</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.multitenancy</groupId>
+            <artifactId>org.wso2.carbon.tenant.mgt</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -175,6 +175,7 @@
                             org.osgi.service.component,
                             org.osgi.service.component.annotations,
                             org.wso2.carbon,
+                            org.wso2.carbon.context,
                             org.wso2.carbon.core.util.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework;
                             version="${carbon.identity.package.import.version.range}",
@@ -237,7 +238,9 @@
                             net.minidev.json; version="${net.minidev.json.imp.pkg.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.conditional.auth.functions.common.utils,
-                            org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service;version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception;version="${org.wso2.carbon.identity.organization.management.core.version.range}"
                         </Import-Package>
                         <DynamicImport-Package>
                             org.graalvm.polyglot,

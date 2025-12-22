@@ -58,6 +58,10 @@ public class AssignUserRolesFunctionImpl implements AssignUserRolesFunction {
         }
         try {
             if (user.getWrapped() != null) {
+                if (!Utils.isUserInCurrentTenant(user.getWrapped().getTenantDomain())) {
+                    LOG.warn("Assigning roles in cross tenants is not allowed.");
+                    return false;
+                }
                 String tenantDomain = user.getWrapped().getTenantDomain();
                 String userStoreDomain = user.getWrapped().getUserStoreDomain();
                 String username = user.getWrapped().getUserName();

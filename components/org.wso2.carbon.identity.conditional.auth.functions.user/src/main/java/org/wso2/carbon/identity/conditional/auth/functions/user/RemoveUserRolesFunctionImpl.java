@@ -63,6 +63,10 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
                 String username = user.getWrapped().getUserName();
                 UserRealm userRealm = Utils.getUserRealm(tenantDomain);
                 if (userRealm != null) {
+                    if (!Utils.isUserInCurrentTenant(user.getWrapped().getTenantDomain())) {
+                        LOG.warn("Removing roles in cross tenants is not allowed.");
+                        return false;
+                    }
                     UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                     userStore.updateRoleListOfUser(
                             username,

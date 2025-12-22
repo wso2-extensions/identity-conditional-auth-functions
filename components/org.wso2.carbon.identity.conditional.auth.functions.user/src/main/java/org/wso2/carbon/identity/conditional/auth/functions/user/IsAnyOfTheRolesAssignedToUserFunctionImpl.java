@@ -47,6 +47,10 @@ public class IsAnyOfTheRolesAssignedToUserFunctionImpl implements IsAnyOfTheRole
 
         boolean result = false;
         String username = user.getWrapped().getUserName();
+        if (!Utils.isUserInCurrentTenant(user.getWrapped().getTenantDomain())) {
+            LOG.warn("Cross-tenant role-assignment checks are not allowed.");
+            return false;
+        }
 
         try {
             UserStoreManager userStore = getUserStore(user.getWrapped());

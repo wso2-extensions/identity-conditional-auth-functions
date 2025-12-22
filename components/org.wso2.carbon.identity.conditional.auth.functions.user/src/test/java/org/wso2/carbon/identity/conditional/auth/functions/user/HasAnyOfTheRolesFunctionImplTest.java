@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -25,9 +26,13 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -37,10 +42,14 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.J
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -51,7 +60,8 @@ import static org.testng.Assert.assertNotNull;
 @WithCarbonHome
 @WithH2Database(files = "dbscripts/h2.sql")
 @WithRealmService(injectToSingletons = {UserFunctionsServiceHolder.class, IdentityTenantUtil.class,
-        FrameworkServiceDataHolder.class})
+        FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class HasAnyOfTheRolesFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @WithRealmService
@@ -62,12 +72,14 @@ public class HasAnyOfTheRolesFunctionImplTest extends JsSequenceHandlerAbstractT
 
         IdentityEventService identityEventService = mock(IdentityEventService.class);
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain("carbon.super", true);
     }
 
     @AfterClass
     public void tearDown() {
 
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+        PrivilegedCarbonContext.destroyCurrentContext();
     }
 
     @BeforeMethod
@@ -119,5 +131,24 @@ public class HasAnyOfTheRolesFunctionImplTest extends JsSequenceHandlerAbstractT
                 {"test_user3", true},
                 {"test_user4", false},
         };
+    }
+
+    @Test
+    public void testCrossTenantScenarioReturnsFalse() {
+
+        // Create authenticated user with tenant domain
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserName("testUser");
+        authenticatedUser.setTenantDomain("tenant1.com");
+        authenticatedUser.setUserStoreDomain("PRIMARY");
+        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(authenticatedUser);
+        List<String> roles = Arrays.asList("role1", "role2");
+
+        // Create a custom implementation that simulates cross-tenant scenario
+        HasAnyOfTheRolesFunctionImpl hasAnyOfTheRolesFunction = new HasAnyOfTheRolesFunctionImpl();
+        boolean result = hasAnyOfTheRolesFunction.hasAnyOfTheRoles(jsUser, roles);
+
+        // Should return false for cross-tenant operation
+        Assert.assertFalse(result, "Should return false for cross-tenant operation");
     }
 }

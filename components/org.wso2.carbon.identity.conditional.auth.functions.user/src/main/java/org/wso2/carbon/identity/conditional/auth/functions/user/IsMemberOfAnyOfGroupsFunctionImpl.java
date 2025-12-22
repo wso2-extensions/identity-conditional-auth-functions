@@ -59,6 +59,10 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
         boolean result = false;
         String tenantDomain = user.getWrapped().getTenantDomain();
+        if (!Utils.isUserInCurrentTenant(tenantDomain)) {
+            LOG.warn("Cross-tenant group membership checks are not allowed.");
+            return false;
+        }
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
         String username = user.getWrapped().getUserName();
 
