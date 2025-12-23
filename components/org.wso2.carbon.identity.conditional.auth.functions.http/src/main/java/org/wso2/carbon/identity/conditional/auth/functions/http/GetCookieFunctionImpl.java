@@ -28,9 +28,7 @@ import org.json.simple.parser.ParseException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
-import org.wso2.carbon.identity.conditional.auth.functions.http.internal.HTTPFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 

@@ -34,8 +34,8 @@ import org.wso2.carbon.crypto.impl.DefaultCryptoService;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornServletRequest;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -194,7 +194,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String name = "test";
 
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
-        JsServletResponse jsServletResponse = new JsNashornServletResponse(new TransientObjectWrapper(resp));
+        JsServletResponse jsServletResponse = new JsGraalServletResponse(new TransientObjectWrapper(resp));
         Map<String, Object> setCookieParams = new HashMap<>();
         setCookieParams.put(HTTPConstants.ENCRYPT, shouldEncrypt);
         setCookieParams.put(HTTPConstants.SIGN, shouldSign);
@@ -209,7 +209,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         Cookie[] cookies = {mockCookie};
 
         HttpServletRequest req = new MockServletRequestWithCookie(cookies);
-        JsServletRequest jsServletRequest = new JsNashornServletRequest(new TransientObjectWrapper(req));
+        JsServletRequest jsServletRequest = new JsGraalServletRequest(new TransientObjectWrapper(req));
         Map<String, Object> getCookieParams = new HashMap<>();
         getCookieParams.put(HTTPConstants.DECRYPT, shouldDecrypt);
         // Get the cookie value
