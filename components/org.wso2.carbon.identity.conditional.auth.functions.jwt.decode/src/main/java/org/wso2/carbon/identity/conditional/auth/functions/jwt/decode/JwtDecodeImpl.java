@@ -27,8 +27,11 @@ import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents javascript function provided in conditional authentication to decode a jwt assertion and retrieve
@@ -37,6 +40,7 @@ import java.util.Map;
 public class JwtDecodeImpl implements JwtDecode {
 
     private static final Log log = LogFactory.getLog(JwtDecodeImpl.class);
+    private static final Set<String> RESERVED_HEADER_ARRAY_PARAMS = new HashSet<>(Arrays.asList("crit", "x5c"));
 
     /**
      * @param clientAssertion      jwt assertion
@@ -83,19 +87,23 @@ public class JwtDecodeImpl implements JwtDecode {
             return null;
         }
         JSONObject jsonObject = new JSONObject(resultMap);
-        recursivelyConvertToJSONObject(jsonObject);
+        recursivelyConvertToJSONObject(jsonObject, !isParameterInPayload);
         return jsonObject;
     }
 
-    private void recursivelyConvertToJSONObject(JSONObject jsonObject) {
+    private void recursivelyConvertToJSONObject(JSONObject jsonObject, boolean hasReservedParams) {
 
         for (String key : jsonObject.keySet()) {
             Object value = jsonObject.get(key);
             if (value instanceof Map) {
                 JSONObject child = new JSONObject((Map<String, Object>) value);
-                recursivelyConvertToJSONObject(child);
+                recursivelyConvertToJSONObject(child, false);
                 jsonObject.put(key, child);
             } else if (value instanceof List) {
+                // Skip conversion for reserved header array params
+                if (hasReservedParams && RESERVED_HEADER_ARRAY_PARAMS.contains(key)) {
+                    continue;
+                }
                 JSONArray jsonArray = new JSONArray();
                 jsonArray.addAll((List<?>) value);
                 recursivelyConvertToJSONArray(jsonArray);
@@ -110,7 +118,7 @@ public class JwtDecodeImpl implements JwtDecode {
             Object element = jsonArray.get(i);
             if (element instanceof Map) {
                 JSONObject child = new JSONObject((Map<String, Object>) element);
-                recursivelyConvertToJSONObject(child);
+                recursivelyConvertToJSONObject(child, false);
                 jsonArray.set(i, child);
             } else if (element instanceof List) {
                 JSONArray childArray = new JSONArray();
