@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.jwt.decode;
 
 import com.nimbusds.jose.JWSObject;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,7 +27,11 @@ import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents javascript function provided in conditional authentication to decode a jwt assertion and retrieve
@@ -35,6 +40,7 @@ import java.util.Map;
 public class JwtDecodeImpl implements JwtDecode {
 
     private static final Log log = LogFactory.getLog(JwtDecodeImpl.class);
+    private static final Set<String> RESERVED_HEADER_ARRAY_PARAMS = new HashSet<>(Arrays.asList("crit", "x5c"));
 
     /**
      * @param clientAssertion      jwt assertion
@@ -77,19 +83,48 @@ public class JwtDecodeImpl implements JwtDecode {
         } else {
             resultMap = plainObject.getHeader().toJSONObject();
         }
+        if (resultMap == null) {
+            return null;
+        }
         JSONObject jsonObject = new JSONObject(resultMap);
-        recursivelyConvertToJson(jsonObject);
+        recursivelyConvertToJSONObject(jsonObject, !isParameterInPayload);
         return jsonObject;
     }
 
-    private void recursivelyConvertToJson(JSONObject jsonObject) {
+    private void recursivelyConvertToJSONObject(JSONObject jsonObject, boolean hasReservedParams) {
 
         for (String key : jsonObject.keySet()) {
             Object value = jsonObject.get(key);
             if (value instanceof Map) {
-                // Recursively convert any Map to JSONObject
-                jsonObject.put(key, new JSONObject((Map<String, Object>) value));
-                recursivelyConvertToJson((JSONObject) jsonObject.get(key));
+                JSONObject child = new JSONObject((Map<String, Object>) value);
+                recursivelyConvertToJSONObject(child, false);
+                jsonObject.put(key, child);
+            } else if (value instanceof List) {
+                // Skip conversion for reserved header array params
+                if (hasReservedParams && RESERVED_HEADER_ARRAY_PARAMS.contains(key)) {
+                    continue;
+                }
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.addAll((List<?>) value);
+                recursivelyConvertToJSONArray(jsonArray);
+                jsonObject.put(key, jsonArray);
+            }
+        }
+    }
+
+    private void recursivelyConvertToJSONArray(JSONArray jsonArray) {
+
+        for (int i = 0; i < jsonArray.size(); i++) {
+            Object element = jsonArray.get(i);
+            if (element instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) element);
+                recursivelyConvertToJSONObject(child, false);
+                jsonArray.set(i, child);
+            } else if (element instanceof List) {
+                JSONArray childArray = new JSONArray();
+                childArray.addAll((List<?>) element);
+                recursivelyConvertToJSONArray(childArray);
+                jsonArray.set(i, childArray);
             }
         }
     }
