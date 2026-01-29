@@ -330,19 +330,6 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-scr-plugin</artifactId>
-                    <version>${maven.scr.plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>generate-scr-scrdescriptor</id>
-                            <goals>
-                                <goal>scr</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>${maven.bundle.plugin.version}</version>
                     <extensions>true</extensions>
@@ -477,8 +464,8 @@
                 <inherited>true</inherited>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -542,11 +529,9 @@
         <org.wso2.carbon.identity.conditional.auth.functions.version.range>[1.2,2.0)</org.wso2.carbon.identity.conditional.auth.functions.version.range>
 
         <org.json.version.range>[3.0,4)</org.json.version.range>
-        <maven.scr.plugin.version>1.26.0</maven.scr.plugin.version>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
-        <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
-        <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
-        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <jacoco.version>0.8.12</jacoco.version>
         <org.apache.axis2.transport.version.range>[1.6,2)</org.apache.axis2.transport.version.range>
