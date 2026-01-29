@@ -517,7 +517,7 @@
         <carbon.kernel.version>4.10.113</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.user.package.import.version.range>[1.0.1, 2.0.0)</carbon.user.package.import.version.range>
-        <carbon.identity.framework.version>7.8.643-SNAPSHOT</carbon.identity.framework.version>
+        <carbon.identity.framework.version>7.8.669-SNAPSHOT</carbon.identity.framework.version>
         <identity.organization.management.core.version>1.1.60</identity.organization.management.core.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
