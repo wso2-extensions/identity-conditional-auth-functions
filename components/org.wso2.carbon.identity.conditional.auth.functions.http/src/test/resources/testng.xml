@@ -19,15 +19,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.conditional.auth.functions.http.test">
-    <test name="http-functions-nashorn" parallel="false">
-        <parameter name="scriptEngine" value="nashorn"/>
-        <classes>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.CookieFunctionImplTest"/>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImplTest"/>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImplTest"/>
-            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.SimpleCryptoProviderTest"/>
-        </classes>
-    </test>
     <test name="http-functions-graaljs" parallel="false">
         <parameter name="scriptEngine" value="graaljs"/>
         <classes>

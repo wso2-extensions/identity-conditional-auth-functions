@@ -76,10 +76,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
@@ -95,9 +91,9 @@
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging,
-                            org.osgi.service.component;version="${org.osgi.service.imp.pkg.version}",
-                            org.wso2.carbon.identity.application.authentication.framework;version="${carbon.identity.framework.version}",
-                            org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.framework.version}",
+                            org.osgi.service.component;version="${org.osgi.service.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.package.import.version.range}",
                             com.nimbusds.jose.*;version="${nimbusds.osgi.version.range}",
                             net.minidev.json; version="${net.minidev.json.imp.pkg.version.range}"
                         </Import-Package>
