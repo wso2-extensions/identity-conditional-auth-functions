@@ -36,8 +36,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalWrapperFactory;
@@ -53,7 +51,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.model.JsUtilsProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.model.graaljs.JsGraalUtils;
-import org.wso2.carbon.identity.conditional.auth.functions.common.model.nashorn.JsNashornUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.MockAuthenticator;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.SubjectCallback;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -128,9 +125,7 @@ public class JsSequenceHandlerRunner {
         this.applicationAuthenticatorConfigFileLocation = applicationAuthenticatorConfigFileLocation;
         configurationLoader = new UIBasedConfigurationLoader();
 
-        if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.NASHORN)) {
-            graphBuilderFactory = new JsGraphBuilderFactory();
-        } else if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
+        if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
             graphBuilderFactory = new JsGraalGraphBuilderFactory();
         }
         jsFunctionRegistry = new JsFunctionRegistryImpl();
@@ -146,10 +141,7 @@ public class JsSequenceHandlerRunner {
         Field jsUtils = JsUtilsProvider.class.getDeclaredField("jsUtils");
         wrapperFactory.setAccessible(true);
         jsUtils.setAccessible(true);
-        if (graphBuilderFactory instanceof JsGraphBuilderFactory) {
-            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsWrapperFactory());
-            jsUtils.set(JsUtilsProvider.getInstance(), new JsNashornUtils());
-        } else if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
+        if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
             wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsGraalWrapperFactory());
             jsUtils.set(JsUtilsProvider.getInstance(), new JsGraalUtils());
         }
