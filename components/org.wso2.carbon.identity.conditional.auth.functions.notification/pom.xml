@@ -54,6 +54,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
         <!--Test Dependencies-->
@@ -118,12 +122,15 @@
                             org.wso2.carbon.core.util,
                             org.wso2.carbon.identity.application.authentication.framework;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.context;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.exception;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.model;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.services; version="${carbon.identity.package.import.version.range}",

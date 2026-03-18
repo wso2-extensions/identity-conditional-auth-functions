@@ -1,7 +1,7 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License.
  *  You may obtain a copy of the License at
@@ -46,7 +46,7 @@ public class HasRoleFunctionImpl implements HasRoleFunction {
         boolean result = false;
 
         String tenantDomain = user.getWrapped().getTenantDomain();
-        if (!Utils.isUserInCurrentTenant(tenantDomain)) {
+        if (!Utils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
             LOG.warn("Cross-tenant role checks are not allowed.");
             return false;
         }

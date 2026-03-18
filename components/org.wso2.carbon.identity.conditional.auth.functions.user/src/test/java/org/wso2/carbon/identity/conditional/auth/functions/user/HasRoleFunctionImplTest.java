@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.testng.Assert;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -52,9 +53,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 @WithCarbonHome
 @WithH2Database(files = "dbscripts/h2.sql")
@@ -99,6 +100,7 @@ public class HasRoleFunctionImplTest extends JsSequenceHandlerAbstractTest {
         ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("hasRole-test-sp.xml", this);
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
+        context.setTenantDomain("carbon.super");
 
         SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, sp1);
@@ -130,21 +132,37 @@ public class HasRoleFunctionImplTest extends JsSequenceHandlerAbstractTest {
         };
     }
 
-    @Test
-    public void testCrossTenantScenarioReturnsFalse() {
+    @DataProvider(name = "isUserInCurrentTenantDataProvider")
+    public Object[][] getIsUserInCurrentTenantData() {
 
-        // Create authenticated user with tenant domain
+        return new Object[][]{
+                {true, "t2.com", "t1.com", "t2.com", false},
+                {false, "t2.com", "t1.com", "carbon.super", false},
+        };
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test(dataProvider = "isUserInCurrentTenantDataProvider")
+    public void testCrossTenantScenarioReturnsFalse(boolean isTenantQualified, String authContextTenantDomain,
+            String userTenantDomain, String carbonContextTenantDomain, boolean expected) throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setUserName("testUser");
-        authenticatedUser.setTenantDomain("tenant1.com");
+        authenticatedUser.setTenantDomain(userTenantDomain);
         authenticatedUser.setUserStoreDomain("PRIMARY");
-        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(authenticatedUser);
 
-        // Create a custom implementation that simulates cross-tenant scenario
-        HasRoleFunctionImpl hasRoleFunction = new HasRoleFunctionImpl();
-        boolean result = hasRoleFunction.hasRole(jsUser, "role1");
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(authContextTenantDomain);
 
-        // Should return false for cross-tenant operation
-        Assert.assertFalse(result, "Should return false for cross-tenant operation");
+        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+            HasRoleFunctionImpl hasRoleFunction = new HasRoleFunctionImpl();
+            boolean result = hasRoleFunction.hasRole(jsUser, "role1");
+            Assert.assertEquals(result, expected, "Cross-tenant role check should return " + expected);
+        }
     }
 }
