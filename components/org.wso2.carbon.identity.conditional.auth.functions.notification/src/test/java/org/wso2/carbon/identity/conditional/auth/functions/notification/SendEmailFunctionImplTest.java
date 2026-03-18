@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.notification;
 
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -25,9 +26,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -39,6 +41,7 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.internal.NotificationFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -50,8 +53,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 
 /**
  * Test for sentMail in javascript
@@ -107,6 +110,7 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
         SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, sp1);
         context.setSequenceConfig(sequenceConfig);
+        context.setTenantDomain("carbon.super");
         context.initializeAnalyticsData();
 
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
@@ -126,21 +130,36 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
         };
     }
 
-    @Test
-    public void testCrossTenantScenarioReturnsFalse() {
+    @DataProvider(name = "isUserInCurrentTenantDataProvider")
+    public Object[][] getIsUserInCurrentTenantData() {
 
-        SendEmailFunctionImpl sendEmailFunction = new SendEmailFunctionImpl();
+        return new Object[][]{
+                {true, "t2.com", "t1.com", "t2.com", false},
+                {false, "t2.com", "t1.com", "carbon.super", false},
+        };
+    }
 
-        // Create authenticated user with tenant domain
+    @Test(dataProvider = "isUserInCurrentTenantDataProvider")
+    public void testCrossTenantScenarioReturnsFalse(boolean isTenantQualified, String authContextTenantDomain,
+            String userTenantDomain, String carbonContextTenantDomain, boolean expected) throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setUserName("testUser");
-        authenticatedUser.setTenantDomain("tenant1.com");
+        authenticatedUser.setTenantDomain(userTenantDomain);
         authenticatedUser.setUserStoreDomain("PRIMARY");
-        JsAuthenticatedUser jsUser = new JsOpenJdkNashornAuthenticatedUser(authenticatedUser);
 
-        boolean result = sendEmailFunction.sendMail(jsUser, "templateId", null);
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(authContextTenantDomain);
 
-        // Should return false for cross-tenant operation
-        assertFalse(result, "Should return false for cross-tenant operation");
+        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+            SendEmailFunctionImpl sendEmailFunction = new SendEmailFunctionImpl();
+            boolean result = sendEmailFunction.sendMail(jsUser, "templateId", null);
+            assertEquals(result, expected, "Cross-tenant send email check should return " + expected);
+        }
     }
 }

@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,10 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -39,6 +42,7 @@ import java.util.Arrays;
  */
 public class Utils {
 
+    private static final Log LOG = LogFactory.getLog(Utils.class);
     private static final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
 
     /**
@@ -153,10 +157,42 @@ public class Utils {
      *
      * @param userTenantDomain Tenant domain of the user.
      * @return true if the user belongs to the current tenant domain. Else false.
+     * @deprecated This method always checks against "carbon.super" when tenant-qualified URLs are disabled,
+     *             which returns an incorrect value. Use {@link #isUserInCurrentTenant(String, AuthenticationContext)}
+     *             instead, passing the SP tenant domain from AuthenticationContext.getTenantDomain().
      */
+    @Deprecated
     public static boolean isUserInCurrentTenant(String userTenantDomain) {
 
         String tenantDomainFromContext = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         return StringUtils.equals(userTenantDomain, tenantDomainFromContext);
+    }
+
+    /**
+     * Check whether the user belongs to the SP tenant domain.
+     *
+     * When tenant-qualified URLs are enabled, the Tomcat valve sets the correct tenant on
+     * PrivilegedCarbonContext from the URL path so that context is authoritative.
+     * When tenant-qualified URLs are disabled, PrivilegedCarbonContext always returns carbon.super
+     * during adaptive script execution, so the SP tenant domain from AuthenticationContext is used instead.
+     * Returns false if context is null.
+     *
+     * @param userTenantDomain Tenant domain of the user.
+     * @param context          AuthenticationContext of the current authentication flow.
+     * @return true if the user belongs to the SP tenant domain. Else false.
+     */
+    public static boolean isUserInCurrentTenant(String userTenantDomain, AuthenticationContext context) {
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return StringUtils.equals(userTenantDomain,
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        }
+
+        if (context == null || StringUtils.isBlank(context.getTenantDomain())) {
+            LOG.warn("Unable to determine the tenant domain from the authentication context. " +
+                    "Hence user tenant domain validation is considered as failed.");
+            return false;
+        }
+        return StringUtils.equals(userTenantDomain, context.getTenantDomain());
     }
 }

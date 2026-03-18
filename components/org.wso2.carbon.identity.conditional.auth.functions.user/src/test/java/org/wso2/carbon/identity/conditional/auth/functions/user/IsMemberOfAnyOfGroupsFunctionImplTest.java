@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
+import org.mockito.MockedStatic;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
@@ -54,6 +55,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
@@ -104,6 +106,7 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
                 this);
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
+        context.setTenantDomain("carbon.super");
 
         SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, sp1);
@@ -130,22 +133,38 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
         };
     }
 
-    @Test
-    public void testCrossTenantScenarioReturnsFalse() {
+    @DataProvider(name = "isUserInCurrentTenantDataProvider")
+    public Object[][] getIsUserInCurrentTenantData() {
 
-        // Create authenticated user with tenant domain
+        return new Object[][]{
+                {true, "t2.com", "t1.com", "t2.com", false},
+                {false, "t2.com", "t1.com", "carbon.super", false},
+        };
+    }
+
+    @Test(dataProvider = "isUserInCurrentTenantDataProvider")
+    public void testCrossTenantScenarioReturnsFalse(boolean isTenantQualified, String authContextTenantDomain,
+            String userTenantDomain, String carbonContextTenantDomain, boolean expected) throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setUserName("testUser");
-        authenticatedUser.setTenantDomain("tenant1.com");
+        authenticatedUser.setTenantDomain(userTenantDomain);
         authenticatedUser.setUserStoreDomain("PRIMARY");
-        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(authenticatedUser);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(authContextTenantDomain);
+
+        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
         List<String> groups = Arrays.asList("group1", "group2");
 
-        // Create a custom implementation that simulates cross-tenant scenario
-        IsMemberOfAnyOfGroupsFunctionImpl isMemberOfAnyOfGroupsFunction = new IsMemberOfAnyOfGroupsFunctionImpl();
-        boolean result = isMemberOfAnyOfGroupsFunction.isMemberOfAnyOfGroups(jsUser, groups);
-
-        // Should return false for cross-tenant operation
-        Assert.assertFalse(result, "Should return false for cross-tenant operation");
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+            IsMemberOfAnyOfGroupsFunctionImpl isMemberOfAnyOfGroupsFunction =
+                    new IsMemberOfAnyOfGroupsFunctionImpl();
+            boolean result = isMemberOfAnyOfGroupsFunction.isMemberOfAnyOfGroups(jsUser, groups);
+            Assert.assertEquals(result, expected, "Cross-tenant group membership check should return " + expected);
+        }
     }
 }

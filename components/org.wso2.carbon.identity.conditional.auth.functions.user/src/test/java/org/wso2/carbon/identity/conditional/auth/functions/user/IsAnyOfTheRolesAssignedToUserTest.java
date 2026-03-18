@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,21 +18,29 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static org.mockito.Mockito.mockStatic;
+
 /**
  * Test class for IsAnyOfTheRolesAssignedToUserFunctionImpl.
  */
+@WithCarbonHome
 public class IsAnyOfTheRolesAssignedToUserTest {
 
     @BeforeClass
@@ -47,23 +55,38 @@ public class IsAnyOfTheRolesAssignedToUserTest {
         PrivilegedCarbonContext.destroyCurrentContext();
     }
 
-    @Test
-    public void testCrossTenantScenarioReturnsFalse() {
+    @DataProvider(name = "isUserInCurrentTenantDataProvider")
+    public Object[][] getIsUserInCurrentTenantData() {
 
-        // Create authenticated user with tenant domain
+        return new Object[][]{
+                {true, "t2.com", "t1.com", "t2.com", false},
+                {false, "t2.com", "t1.com", "carbon.super", false},
+        };
+    }
+
+    @Test(dataProvider = "isUserInCurrentTenantDataProvider")
+    public void testCrossTenantScenarioReturnsFalse(boolean isTenantQualified, String authContextTenantDomain,
+            String userTenantDomain, String carbonContextTenantDomain, boolean expected) throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setUserName("testUser");
-        authenticatedUser.setTenantDomain("tenant1.com");
+        authenticatedUser.setTenantDomain(userTenantDomain);
         authenticatedUser.setUserStoreDomain("PRIMARY");
-        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(authenticatedUser);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(authContextTenantDomain);
+
+        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
         List<String> roles = Arrays.asList("role1", "role2");
 
-        // Create a custom implementation that simulates cross-tenant scenario
-        IsAnyOfTheRolesAssignedToUserFunctionImpl isAnyOfTheRolesAssignedToUserFunction =
-                new IsAnyOfTheRolesAssignedToUserFunctionImpl();
-        boolean result = isAnyOfTheRolesAssignedToUserFunction.IsAnyOfTheRolesAssignedToUser(jsUser, roles);
-
-        // Should return false for cross-tenant operation
-        Assert.assertFalse(result, "Should return false for cross-tenant operation");
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+            IsAnyOfTheRolesAssignedToUserFunctionImpl isAnyOfTheRolesAssignedToUserFunction =
+                    new IsAnyOfTheRolesAssignedToUserFunctionImpl();
+            boolean result = isAnyOfTheRolesAssignedToUserFunction.IsAnyOfTheRolesAssignedToUser(jsUser, roles);
+            Assert.assertEquals(result, expected, "Cross-tenant role-assignment check should return " + expected);
+        }
     }
 }

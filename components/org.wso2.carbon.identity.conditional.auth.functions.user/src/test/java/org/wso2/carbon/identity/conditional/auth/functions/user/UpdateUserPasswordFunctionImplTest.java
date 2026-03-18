@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.testng.Assert;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -29,6 +30,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
@@ -64,6 +66,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -162,6 +165,7 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
                 "test_user@test_domain", Collections.emptyMap());
         ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(spFileName, this);
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp);
+        context.setTenantDomain("test_domain");
         SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp);
         context.setSequenceConfig(sequenceConfig);
         context.initializeAnalyticsData();
@@ -238,5 +242,38 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
 
         // Assert that updateCredentialByAdmin method is invoked.
         verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(anyString(), any());
+    }
+
+    @DataProvider(name = "isUserInCurrentTenantDataProvider")
+    public Object[][] getIsUserInCurrentTenantData() {
+
+        return new Object[][]{
+                {true, "t2.com", "t1.com", "t2.com", false},
+                {false, "t2.com", "t1.com", "carbon.super", false},
+        };
+    }
+
+    @Test(dataProvider = "isUserInCurrentTenantDataProvider")
+    public void testCrossTenantUpdatePasswordBlocked(boolean isTenantQualified, String authContextTenantDomain,
+            String userTenantDomain, String carbonContextTenantDomain, boolean expected)
+            throws Exception {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserName("testUser");
+        authenticatedUser.setTenantDomain(userTenantDomain);
+        authenticatedUser.setUserStoreDomain("PRIMARY");
+        authenticatedUser.setUserId("123456");
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain(authContextTenantDomain);
+
+        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+            testFunction.updateUserPassword(jsUser, "newPassword");
+            // Assert that updateCredentialByAdmin is never invoked for cross-tenant operations.
+            verify(userStoreManagerMock, times(0)).updateCredentialByAdmin(anyString(), any());
+        }
     }
 }

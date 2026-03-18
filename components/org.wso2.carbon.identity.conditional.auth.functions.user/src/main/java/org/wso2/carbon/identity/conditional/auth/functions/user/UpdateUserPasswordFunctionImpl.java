@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
@@ -162,8 +160,7 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
         try {
             if (user.getWrapped() != null) {
                 String tenantDomain = user.getWrapped().getTenantDomain();
-                if (!StringUtils.equalsIgnoreCase(tenantDomain,
-                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain())) {
+                if (!Utils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
                     throw new FrameworkException("Invalid user provided.");
                 }
                 String userStoreDomain = user.getWrapped().getUserStoreDomain();
