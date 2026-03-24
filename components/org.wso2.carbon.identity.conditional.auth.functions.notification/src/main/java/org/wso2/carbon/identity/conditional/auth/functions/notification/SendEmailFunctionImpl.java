@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.SaasUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.internal.NotificationFunctionServiceHolder;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -34,6 +35,7 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.notification.NotificationConstants;
 import org.wso2.carbon.identity.event.handler.notification.exception.NotificationRuntimeException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,7 +59,7 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
 
         String eventName = IdentityEventConstants.Event.TRIGGER_NOTIFICATION;
 
-        HashMap<String, Object> properties = new HashMap<>(paramMap);
+        HashMap<String, Object> properties = new HashMap<>(paramMap != null ? paramMap : Collections.emptyMap());
         properties.put(IdentityEventConstants.EventProperty.USER_NAME, user.getWrapped().getUserName());
         properties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, user.getWrapped().getTenantDomain());
         properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, user.getWrapped().getUserStoreDomain());
@@ -83,8 +85,12 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
 
     private boolean isUserInCurrentTenant(JsAuthenticatedUser user) {
 
-        String userTenantDomain = user.getWrapped().getTenantDomain();
         AuthenticationContext context = user.getContext();
+        if (SaasUtils.isSaasApp(context) && SaasUtils.isSaaSCrossTenantOperationsEnabled()) {
+            return true;
+        }
+
+        String userTenantDomain = user.getWrapped().getTenantDomain();
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             return StringUtils.equals(userTenantDomain,
                     PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
@@ -97,4 +103,5 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
         }
         return StringUtils.equals(userTenantDomain, context.getTenantDomain());
     }
+
 }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 import org.testng.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -28,6 +29,8 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
@@ -44,10 +47,12 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.common.internal.FunctionsDataHolder;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -120,6 +125,12 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
         serverConfiguration.setAccessible(true);
         ServerConfiguration serverConfigurationInstance = (ServerConfiguration) serverConfiguration.get(null);
         serverConfigurationInstance.setConfigurationProperty("DiagnosticLogMode", "full");
+    }
+
+    @AfterMethod
+    public void tearDownMethod() {
+
+        PrivilegedCarbonContext.destroyCurrentContext();
     }
 
     @AfterClass
@@ -244,19 +255,40 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
         verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(anyString(), any());
     }
 
-    @DataProvider(name = "isUserInCurrentTenantDataProvider")
-    public Object[][] getIsUserInCurrentTenantData() {
+    /**
+     * Data provider for cross-tenant password update scenarios.
+     *
+     * Columns: isSaas, isCrossTenantEnabled, isTenantQualified,
+     *          userTenantDomain, authContextTenantDomain, carbonContextTenantDomain, shouldSucceed
+     */
+    @DataProvider(name = "crossTenantScenarioDataProvider")
+    public Object[][] getCrossTenantScenarioData() {
 
         return new Object[][]{
-                {true, "t2.com", "t1.com", "t2.com", false},
-                {false, "t2.com", "t1.com", "carbon.super", false},
+                // Non-SaaS, tenant-qualified=false: validated against authCtx tenant.
+                {false, false, false, "t2.com", "t2.com", "carbon.super", true},  // Same tenant - should succeed
+                {false, false, false, "t1.com", "t2.com", "carbon.super", false}, // Cross-tenant - should fail
+                // Non-SaaS, tenant-qualified=true: validated against PCC tenant.
+                {false, false, true,  "t2.com", "t3.com", "t2.com", true},  // Same tenant - should succeed
+                {false, false, true,  "t1.com", "t3.com", "t2.com", false}, // Cross-tenant - should fail
+                // SaaS + cross-tenant enabled: bypass tenant check.
+                {true,  true,  false, "t2.com", "t1.com", "carbon.super", true},  // SaaS bypass - should succeed
+                {true,  true,  false, "t1.com", "t1.com", "carbon.super", true},  // SaaS bypass - should succeed
+                // SaaS + cross-tenant disabled: falls through to normal check.
+                {true,  false, false, "t2.com", "t1.com", "carbon.super", false}, // Cross-tenant - should fail
         };
     }
 
-    @Test(dataProvider = "isUserInCurrentTenantDataProvider")
-    public void testCrossTenantUpdatePasswordBlocked(boolean isTenantQualified, String authContextTenantDomain,
-            String userTenantDomain, String carbonContextTenantDomain, boolean expected)
-            throws Exception {
+    /**
+     * Verifies cross-tenant behaviour of {@link UpdateUserPasswordFunctionImpl#updateUserPassword} across
+     * non-SaaS and SaaS scenarios, including the SaaS.EnableCrossTenantOperations config check.
+     */
+    @Test(dataProvider = "crossTenantScenarioDataProvider")
+    public void testCrossTenantUpdatePasswordInSaaSApp(boolean isSaas, boolean isCrossTenantEnabled,
+            boolean isTenantQualified, String userTenantDomain, String authContextTenantDomain,
+            String carbonContextTenantDomain, boolean shouldSucceed) throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setUserName("testUser");
@@ -264,16 +296,40 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
         authenticatedUser.setUserStoreDomain("PRIMARY");
         authenticatedUser.setUserId("123456");
 
+        // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.isSaasApp()).thenReturn(isSaas);
+
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+
+        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+        when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
+
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(authContextTenantDomain);
+        context.setSequenceConfig(sequenceConfig);
 
         JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+                MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
             identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+            identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
+                    .thenReturn(String.valueOf(isCrossTenantEnabled));
+
+            // Call updateUserPassword (exceptions are caught internally and not re-thrown)
             testFunction.updateUserPassword(jsUser, "newPassword");
-            // Assert that updateCredentialByAdmin is never invoked for cross-tenant operations.
-            verify(userStoreManagerMock, times(0)).updateCredentialByAdmin(anyString(), any());
+            
+            // Verify whether updateCredentialByAdmin was called based on expected outcome
+            if (shouldSucceed) {
+                // For same-tenant or SaaS cross-tenant enabled scenarios, operation should succeed.
+                verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(anyString(), any());
+            } else {
+                // For cross-tenant operations without SaaS bypass, operation should be blocked.
+                verify(userStoreManagerMock, times(0)).updateCredentialByAdmin(anyString(), any());
+            }
         }
     }
 }
