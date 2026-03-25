@@ -24,6 +24,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -47,7 +48,7 @@ public class IsAnyOfTheRolesAssignedToUserFunctionImpl implements IsAnyOfTheRole
 
         boolean result = false;
         String username = user.getWrapped().getUserName();
-        if (!Utils.isUserInCurrentTenant(user.getWrapped().getTenantDomain(), user.getContext())) {
+        if (!AdaptiveAuthUtils.isUserInCurrentTenant(user.getWrapped().getTenantDomain(), user.getContext())) {
             LOG.warn("Cross-tenant role-assignment checks are not allowed.");
             return false;
         }

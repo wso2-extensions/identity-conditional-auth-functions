@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.utils.UserPasswordUpdateModel;
 import org.wso2.carbon.user.core.UserRealm;
@@ -160,7 +161,7 @@ public class UpdateUserPasswordFunctionImpl implements UpdateUserPasswordFunctio
         try {
             if (user.getWrapped() != null) {
                 String tenantDomain = user.getWrapped().getTenantDomain();
-                if (!Utils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
+                if (!AdaptiveAuthUtils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
                     throw new FrameworkException("Invalid user provided.");
                 }
                 String userStoreDomain = user.getWrapped().getUserStoreDomain();

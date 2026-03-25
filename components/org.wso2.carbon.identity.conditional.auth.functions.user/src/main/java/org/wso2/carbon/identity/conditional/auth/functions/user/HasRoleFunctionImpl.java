@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -46,7 +47,7 @@ public class HasRoleFunctionImpl implements HasRoleFunction {
         boolean result = false;
 
         String tenantDomain = user.getWrapped().getTenantDomain();
-        if (!Utils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
+        if (!AdaptiveAuthUtils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
             LOG.warn("Cross-tenant role checks are not allowed.");
             return false;
         }

@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -59,7 +60,7 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
         boolean result = false;
         String tenantDomain = user.getWrapped().getTenantDomain();
-        if (!Utils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
+        if (!AdaptiveAuthUtils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
             LOG.warn("Cross-tenant group membership checks are not allowed.");
             return false;
         }

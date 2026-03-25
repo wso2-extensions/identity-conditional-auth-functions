@@ -18,16 +18,12 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.notification;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.conditional.auth.functions.common.utils.SaasUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.internal.NotificationFunctionServiceHolder;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -52,7 +48,7 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
     @HostAccess.Export
     public boolean sendMail(JsAuthenticatedUser user, String templateId, Map<String, String> paramMap) {
 
-        if (!isUserInCurrentTenant(user)) {
+        if (!AdaptiveAuthUtils.isUserInCurrentTenant(user.getWrapped().getTenantDomain(), user.getContext())) {
             LOG.warn("Send Emails in cross tenants is not allowed.");
             return false;
         }
@@ -81,27 +77,6 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
             return false;
         }
         return true;
-    }
-
-    private boolean isUserInCurrentTenant(JsAuthenticatedUser user) {
-
-        AuthenticationContext context = user.getContext();
-        if (SaasUtils.isSaasApp(context) && SaasUtils.isSaaSCrossTenantOperationsEnabled()) {
-            return true;
-        }
-
-        String userTenantDomain = user.getWrapped().getTenantDomain();
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            return StringUtils.equals(userTenantDomain,
-                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-        }
-
-        if (context == null || StringUtils.isBlank(context.getTenantDomain())) {
-            LOG.warn("Unable to determine the tenant domain from the authentication context. " +
-                    "Hence user tenant domain validation is considered as failed.");
-            return false;
-        }
-        return StringUtils.equals(userTenantDomain, context.getTenantDomain());
     }
 
 }
