@@ -50,6 +50,8 @@ public class Constants {
     public static final String CHOREO_DOMAINS = "AdaptiveAuth.ChoreoDomains.Domain";
     public static final String CHOREO_TOKEN_ENDPOINT = "AdaptiveAuth.ChoreoTokenEndpoint";
 
+    public static final String SAAS_ENABLE_CROSS_TENANT_OPERATIONS = "SaaS.EnableCrossTenantOperations";
+
     /**
      * Define logging constants.
      */

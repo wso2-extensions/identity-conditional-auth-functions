@@ -21,12 +21,14 @@ package org.wso2.carbon.identity.conditional.auth.functions.notification;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
@@ -41,12 +43,15 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.internal.NotificationFunctionServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,6 +59,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 /**
@@ -76,6 +82,12 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
     protected void tearDown() {
 
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+    }
+
+    @AfterMethod
+    protected void tearDownMethod() {
+
+        NotificationFunctionServiceHolder.getInstance().setIdentityEventService(null);
     }
 
     @BeforeMethod
@@ -130,18 +142,47 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
         };
     }
 
-    @DataProvider(name = "isUserInCurrentTenantDataProvider")
-    public Object[][] getIsUserInCurrentTenantData() {
+    /**
+     * Data provider for cross-tenant send-email scenarios.
+     *
+     * Columns: isSaas, isCrossTenantEnabled, isTenantQualified,
+     *          userTenantDomain, authContextTenantDomain, carbonContextTenantDomain, expected
+     *
+     * tenant-qualified=true  → user tenant must match PrivilegedCarbonContext (PCC) tenant.
+     * tenant-qualified=false → user tenant must match AuthenticationContext tenant.
+     */
+    @DataProvider(name = "crossTenantScenarioDataProvider")
+    public Object[][] getCrossTenantScenarioData() {
 
         return new Object[][]{
-                {true, "t2.com", "t1.com", "t2.com", false},
-                {false, "t2.com", "t1.com", "carbon.super", false},
+                // Non-SaaS, tenant-qualified=false: validated against authCtx tenant.
+                {false, false, false, "t2.com", "t2.com", "carbon.super", true},
+                {false, false, false, "t1.com", "t2.com", "carbon.super", false},
+                // Non-SaaS, tenant-qualified=true: validated against PCC tenant.
+                {false, false, true,  "t2.com", "t3.com", "t2.com", true},
+                {false, false, true,  "t1.com", "t3.com", "t2.com", false},
+                // SaaS + cross-tenant enabled: bypass tenant check.
+                {true,  true,  false, "t2.com", "t1.com", "carbon.super", true},
+                {true,  true,  false, "t1.com", "t1.com", "carbon.super", true},
+                // SaaS + cross-tenant disabled: falls through to normal check.
+                {true,  false, false, "t2.com", "t1.com", "carbon.super", false},
         };
     }
 
-    @Test(dataProvider = "isUserInCurrentTenantDataProvider")
-    public void testCrossTenantScenarioReturnsFalse(boolean isTenantQualified, String authContextTenantDomain,
-            String userTenantDomain, String carbonContextTenantDomain, boolean expected) throws Exception {
+    /**
+     * Verifies cross-tenant behaviour of {@link SendEmailFunctionImpl#sendMail} across non-SaaS
+     * and SaaS scenarios, covering:
+     * <ul>
+     *   <li>Non-SaaS + tenant-qualified=false: user tenant validated against AuthenticationContext tenant.</li>
+     *   <li>Non-SaaS + tenant-qualified=true: user tenant validated against PrivilegedCarbonContext tenant.</li>
+     *   <li>SaaS + cross-tenant enabled: tenant check bypassed; email is always dispatched.</li>
+     *   <li>SaaS + cross-tenant disabled: falls through to the standard per-tenant check.</li>
+     * </ul>
+     */
+    @Test(dataProvider = "crossTenantScenarioDataProvider")
+    public void testCrossTenantScenarioInSaaSApp(boolean isSaas, boolean isCrossTenantEnabled,
+            boolean isTenantQualified, String userTenantDomain, String authContextTenantDomain,
+            String carbonContextTenantDomain, boolean expected) throws Exception {
 
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
 
@@ -150,15 +191,35 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
         authenticatedUser.setTenantDomain(userTenantDomain);
         authenticatedUser.setUserStoreDomain("PRIMARY");
 
+        // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.isSaasApp()).thenReturn(isSaas);
+
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+
+        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+        when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
+
         AuthenticationContext context = new AuthenticationContext();
         context.setTenantDomain(authContextTenantDomain);
+        context.setSequenceConfig(sequenceConfig);
 
         JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+        // Provide a mock event service so that the send-path succeeds when the tenant check is bypassed.
+        IdentityEventService mockEventService = mock(IdentityEventService.class);
+        NotificationFunctionServiceHolder.getInstance().setIdentityEventService(mockEventService);
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+                MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
             identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+            identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
+                    .thenReturn(String.valueOf(isCrossTenantEnabled));
+
             SendEmailFunctionImpl sendEmailFunction = new SendEmailFunctionImpl();
-            boolean result = sendEmailFunction.sendMail(jsUser, "templateId", null);
+            boolean result = sendEmailFunction.sendMail(jsUser, "templateId", new HashMap<>());
             assertEquals(result, expected, "Cross-tenant send email check should return " + expected);
         }
     }

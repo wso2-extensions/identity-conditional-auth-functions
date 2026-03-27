@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -58,7 +59,7 @@ public class AssignUserRolesFunctionImpl implements AssignUserRolesFunction {
         }
         try {
             if (user.getWrapped() != null) {
-                if (!Utils.isUserInCurrentTenant(user.getWrapped().getTenantDomain(), user.getContext())) {
+                if (!AdaptiveAuthUtils.isUserInCurrentTenant(user.getWrapped().getTenantDomain(), user.getContext())) {
                     LOG.warn("Assigning roles in cross tenants is not allowed.");
                     return false;
                 }
