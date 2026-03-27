@@ -169,41 +169,46 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
             boolean isTenantQualified, String userTenantDomain, String authContextTenantDomain,
             String carbonContextTenantDomain, boolean expected) throws Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+        PrivilegedCarbonContext.startTenantFlow();
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
 
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setUserName("testUser");
-        authenticatedUser.setTenantDomain(userTenantDomain);
-        authenticatedUser.setUserStoreDomain("PRIMARY");
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setUserName("testUser");
+            authenticatedUser.setTenantDomain(userTenantDomain);
+            authenticatedUser.setUserStoreDomain("PRIMARY");
 
-        // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
-        ServiceProvider serviceProvider = mock(ServiceProvider.class);
-        when(serviceProvider.isSaasApp()).thenReturn(isSaas);
+            // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isSaasApp()).thenReturn(isSaas);
 
-        ApplicationConfig appConfig = mock(ApplicationConfig.class);
-        when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+            ApplicationConfig appConfig = mock(ApplicationConfig.class);
+            when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
 
-        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-        when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
 
-        AuthenticationContext context = new AuthenticationContext();
-        context.setTenantDomain(authContextTenantDomain);
-        context.setSequenceConfig(sequenceConfig);
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain(authContextTenantDomain);
+            context.setSequenceConfig(sequenceConfig);
 
-        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
-        List<String> groups = Arrays.asList("group1", "group2");
+            JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+            List<String> groups = Arrays.asList("group1", "group2");
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
-                MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+                    MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
 
-            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
-            identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
-                    .thenReturn(String.valueOf(isCrossTenantEnabled));
+                identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+                identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
+                        .thenReturn(String.valueOf(isCrossTenantEnabled));
 
-            IsMemberOfAnyOfGroupsFunctionImpl isMemberOfAnyOfGroupsFunction =
-                    new IsMemberOfAnyOfGroupsFunctionImpl();
-            boolean result = isMemberOfAnyOfGroupsFunction.isMemberOfAnyOfGroups(jsUser, groups);
-            Assert.assertEquals(result, expected, "Cross-tenant group membership check should return " + expected);
+                IsMemberOfAnyOfGroupsFunctionImpl isMemberOfAnyOfGroupsFunction =
+                        new IsMemberOfAnyOfGroupsFunctionImpl();
+                boolean result = isMemberOfAnyOfGroupsFunction.isMemberOfAnyOfGroups(jsUser, groups);
+                Assert.assertEquals(result, expected, "Cross-tenant group membership check should return " + expected);
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
     }
 }
