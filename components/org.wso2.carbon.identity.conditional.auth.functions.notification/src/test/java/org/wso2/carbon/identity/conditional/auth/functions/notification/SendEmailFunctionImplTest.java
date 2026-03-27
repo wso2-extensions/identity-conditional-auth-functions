@@ -184,43 +184,48 @@ public class SendEmailFunctionImplTest extends JsSequenceHandlerAbstractTest {
             boolean isTenantQualified, String userTenantDomain, String authContextTenantDomain,
             String carbonContextTenantDomain, boolean expected) throws Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+        PrivilegedCarbonContext.startTenantFlow();
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
 
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setUserName("testUser");
-        authenticatedUser.setTenantDomain(userTenantDomain);
-        authenticatedUser.setUserStoreDomain("PRIMARY");
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setUserName("testUser");
+            authenticatedUser.setTenantDomain(userTenantDomain);
+            authenticatedUser.setUserStoreDomain("PRIMARY");
 
-        // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
-        ServiceProvider serviceProvider = mock(ServiceProvider.class);
-        when(serviceProvider.isSaasApp()).thenReturn(isSaas);
+            // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isSaasApp()).thenReturn(isSaas);
 
-        ApplicationConfig appConfig = mock(ApplicationConfig.class);
-        when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+            ApplicationConfig appConfig = mock(ApplicationConfig.class);
+            when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
 
-        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-        when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
 
-        AuthenticationContext context = new AuthenticationContext();
-        context.setTenantDomain(authContextTenantDomain);
-        context.setSequenceConfig(sequenceConfig);
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain(authContextTenantDomain);
+            context.setSequenceConfig(sequenceConfig);
 
-        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+            JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
 
-        // Provide a mock event service so that the send-path succeeds when the tenant check is bypassed.
-        IdentityEventService mockEventService = mock(IdentityEventService.class);
-        NotificationFunctionServiceHolder.getInstance().setIdentityEventService(mockEventService);
+            // Provide a mock event service so that the send-path succeeds when the tenant check is bypassed.
+            IdentityEventService mockEventService = mock(IdentityEventService.class);
+            NotificationFunctionServiceHolder.getInstance().setIdentityEventService(mockEventService);
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
-                MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+                    MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
 
-            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
-            identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
-                    .thenReturn(String.valueOf(isCrossTenantEnabled));
+                identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+                identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
+                        .thenReturn(String.valueOf(isCrossTenantEnabled));
 
-            SendEmailFunctionImpl sendEmailFunction = new SendEmailFunctionImpl();
-            boolean result = sendEmailFunction.sendMail(jsUser, "templateId", new HashMap<>());
-            assertEquals(result, expected, "Cross-tenant send email check should return " + expected);
+                SendEmailFunctionImpl sendEmailFunction = new SendEmailFunctionImpl();
+                boolean result = sendEmailFunction.sendMail(jsUser, "templateId", new HashMap<>());
+                assertEquals(result, expected, "Cross-tenant send email check should return " + expected);
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
     }
 }

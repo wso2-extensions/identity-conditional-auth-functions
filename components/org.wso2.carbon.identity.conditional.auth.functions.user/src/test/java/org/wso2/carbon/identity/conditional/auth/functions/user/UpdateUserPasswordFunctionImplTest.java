@@ -288,48 +288,53 @@ public class UpdateUserPasswordFunctionImplTest extends JsSequenceHandlerAbstrac
             boolean isTenantQualified, String userTenantDomain, String authContextTenantDomain,
             String carbonContextTenantDomain, boolean shouldSucceed) throws Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+        PrivilegedCarbonContext.startTenantFlow();
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
 
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setUserName("testUser");
-        authenticatedUser.setTenantDomain(userTenantDomain);
-        authenticatedUser.setUserStoreDomain("PRIMARY");
-        authenticatedUser.setUserId("123456");
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setUserName("testUser");
+            authenticatedUser.setTenantDomain(userTenantDomain);
+            authenticatedUser.setUserStoreDomain("PRIMARY");
+            authenticatedUser.setUserId("123456");
 
-        // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
-        ServiceProvider serviceProvider = mock(ServiceProvider.class);
-        when(serviceProvider.isSaasApp()).thenReturn(isSaas);
+            // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isSaasApp()).thenReturn(isSaas);
 
-        ApplicationConfig appConfig = mock(ApplicationConfig.class);
-        when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+            ApplicationConfig appConfig = mock(ApplicationConfig.class);
+            when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
 
-        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-        when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
 
-        AuthenticationContext context = new AuthenticationContext();
-        context.setTenantDomain(authContextTenantDomain);
-        context.setSequenceConfig(sequenceConfig);
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain(authContextTenantDomain);
+            context.setSequenceConfig(sequenceConfig);
 
-        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+            JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
-                MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+                    MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
 
-            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
-            identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
-                    .thenReturn(String.valueOf(isCrossTenantEnabled));
+                identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+                identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
+                        .thenReturn(String.valueOf(isCrossTenantEnabled));
 
-            // Call updateUserPassword (exceptions are caught internally and not re-thrown)
-            testFunction.updateUserPassword(jsUser, "newPassword");
-            
-            // Verify whether updateCredentialByAdmin was called based on expected outcome
-            if (shouldSucceed) {
-                // For same-tenant or SaaS cross-tenant enabled scenarios, operation should succeed.
-                verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(anyString(), any());
-            } else {
-                // For cross-tenant operations without SaaS bypass, operation should be blocked.
-                verify(userStoreManagerMock, times(0)).updateCredentialByAdmin(anyString(), any());
+                // Call updateUserPassword (exceptions are caught internally and not re-thrown)
+                testFunction.updateUserPassword(jsUser, "newPassword");
+
+                // Verify whether updateCredentialByAdmin was called based on expected outcome
+                if (shouldSucceed) {
+                    // For same-tenant or SaaS cross-tenant enabled scenarios, operation should succeed.
+                    verify(userStoreManagerMock, times(1)).updateCredentialByAdmin(anyString(), any());
+                } else {
+                    // For cross-tenant operations without SaaS bypass, operation should be blocked.
+                    verify(userStoreManagerMock, times(0)).updateCredentialByAdmin(anyString(), any());
+                }
             }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
     }
 }

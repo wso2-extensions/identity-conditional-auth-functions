@@ -170,39 +170,44 @@ public class HasRoleFunctionImplTest extends JsSequenceHandlerAbstractTest {
             boolean isTenantQualified, String userTenantDomain, String authContextTenantDomain,
             String carbonContextTenantDomain, boolean expected) throws Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+        PrivilegedCarbonContext.startTenantFlow();
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
 
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setUserName("testUser");
-        authenticatedUser.setTenantDomain(userTenantDomain);
-        authenticatedUser.setUserStoreDomain("PRIMARY");
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setUserName("testUser");
+            authenticatedUser.setTenantDomain(userTenantDomain);
+            authenticatedUser.setUserStoreDomain("PRIMARY");
 
-        // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
-        ServiceProvider serviceProvider = mock(ServiceProvider.class);
-        when(serviceProvider.isSaasApp()).thenReturn(isSaas);
+            // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isSaasApp()).thenReturn(isSaas);
 
-        ApplicationConfig appConfig = mock(ApplicationConfig.class);
-        when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+            ApplicationConfig appConfig = mock(ApplicationConfig.class);
+            when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
 
-        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-        when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
 
-        AuthenticationContext context = new AuthenticationContext();
-        context.setTenantDomain(authContextTenantDomain);
-        context.setSequenceConfig(sequenceConfig);
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain(authContextTenantDomain);
+            context.setSequenceConfig(sequenceConfig);
 
-        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+            JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
-                MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+                    MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
 
-            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
-            identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
-                    .thenReturn(String.valueOf(isCrossTenantEnabled));
+                identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+                identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
+                        .thenReturn(String.valueOf(isCrossTenantEnabled));
 
-            HasRoleFunctionImpl hasRoleFunction = new HasRoleFunctionImpl();
-            boolean result = hasRoleFunction.hasRole(jsUser, "role1");
-            Assert.assertEquals(result, expected, "Cross-tenant role check should return " + expected);
+                HasRoleFunctionImpl hasRoleFunction = new HasRoleFunctionImpl();
+                boolean result = hasRoleFunction.hasRole(jsUser, "role1");
+                Assert.assertEquals(result, expected, "Cross-tenant role check should return " + expected);
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
     }
 
@@ -216,39 +221,44 @@ public class HasRoleFunctionImplTest extends JsSequenceHandlerAbstractTest {
     public void testSaaSBypassAllowsCrossTenantRoleCheck() throws Exception {
 
         // SP is in "t1.com"; user belongs to "carbon.super" — a genuine cross-tenant scenario.
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain("t1.com", true);
+        PrivilegedCarbonContext.startTenantFlow();
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain("t1.com", true);
 
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setUserName("test_user1"); // added to "admin" role in @BeforeMethod
-        authenticatedUser.setTenantDomain("carbon.super");
-        authenticatedUser.setUserStoreDomain("PRIMARY");
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setUserName("test_user1"); // added to "admin" role in @BeforeMethod
+            authenticatedUser.setTenantDomain("carbon.super");
+            authenticatedUser.setUserStoreDomain("PRIMARY");
 
-        ServiceProvider serviceProvider = mock(ServiceProvider.class);
-        when(serviceProvider.isSaasApp()).thenReturn(true);
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isSaasApp()).thenReturn(true);
 
-        ApplicationConfig appConfig = mock(ApplicationConfig.class);
-        when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+            ApplicationConfig appConfig = mock(ApplicationConfig.class);
+            when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
 
-        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-        when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
 
-        AuthenticationContext context = new AuthenticationContext();
-        context.setTenantDomain("t1.com"); // SP tenant — different from user's tenant
-        context.setSequenceConfig(sequenceConfig);
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain("t1.com"); // SP tenant — different from user's tenant
+            context.setSequenceConfig(sequenceConfig);
 
-        JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+            JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
-                MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+                    MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
 
-            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(false);
-            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId("carbon.super")).thenReturn(-1234);
-            identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
-                    .thenReturn("true");
+                identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(false);
+                identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId("carbon.super")).thenReturn(-1234);
+                identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
+                        .thenReturn("true");
 
-            HasRoleFunctionImpl hasRoleFunction = new HasRoleFunctionImpl();
-            Assert.assertTrue(hasRoleFunction.hasRole(jsUser, "admin"),
-                    "SaaS bypass should allow cross-tenant role check to reach the user store and return true");
+                HasRoleFunctionImpl hasRoleFunction = new HasRoleFunctionImpl();
+                Assert.assertTrue(hasRoleFunction.hasRole(jsUser, "admin"),
+                        "SaaS bypass should allow cross-tenant role check to reach the user store and return true");
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
     }
 }
