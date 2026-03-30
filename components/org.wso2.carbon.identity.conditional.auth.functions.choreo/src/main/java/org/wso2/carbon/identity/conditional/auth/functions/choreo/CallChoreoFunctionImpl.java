@@ -352,7 +352,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                             .fromJson(EntityUtils.toString(httpResponse.getEntity()), responseBodyType);
                     String accessToken = responseBody.get(ACCESS_TOKEN_KEY);
                     if (accessToken != null) {
-                        choreoAccessTokenCache.addToCache(this.consumerKey, accessToken,
+                        choreoAccessTokenCache.addToCacheOnRead(this.consumerKey, accessToken,
                                 this.authenticationContext.getTenantDomain());
                         callChoreoEndpoint(accessToken);
                     } else {

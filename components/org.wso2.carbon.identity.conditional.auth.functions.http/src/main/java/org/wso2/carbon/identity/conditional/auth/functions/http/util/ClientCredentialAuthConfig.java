@@ -466,7 +466,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             }
             LOG.info("Received access token from the token endpoint. Session data key: " +
                     authenticationContext.getContextIdentifier());
-            apiAccessTokenCache.addToCache(getConsumerKey(), accessToken,
+            apiAccessTokenCache.addToCacheOnRead(getConsumerKey(), accessToken,
                     this.authenticationContext.getTenantDomain());
             return Pair.of(RetryDecision.NO_RETRY, accessToken);
         }
