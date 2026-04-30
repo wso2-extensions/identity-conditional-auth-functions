@@ -192,6 +192,17 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     }
 
     /**
+     * Returns true if the given token appears to be a JWT (three Base64URL parts separated by dots).
+     *
+     * @param token Token string to inspect
+     * @return true if the token looks like a JWT
+     */
+    private boolean isJWT(String token) {
+
+        return token.split("\\.").length == 3;
+    }
+
+    /**
      * This method decodes access token and compare its expiry time with the current time to decide whether it's
      * expired.
      *
@@ -234,7 +245,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         String accessToken = apiAccessTokenCache.getValueFromCache(getConsumerKey(),
                 authenticationContext.getTenantDomain());
         try {
-            if (StringUtils.isNotEmpty(accessToken) && !isTokenExpired(accessToken)) {
+            if (StringUtils.isNotEmpty(accessToken) && isJWT(accessToken) && !isTokenExpired(accessToken)) {
                 LOG.debug("Unexpired access token available in cache.");
                 return accessToken;
             } else {
