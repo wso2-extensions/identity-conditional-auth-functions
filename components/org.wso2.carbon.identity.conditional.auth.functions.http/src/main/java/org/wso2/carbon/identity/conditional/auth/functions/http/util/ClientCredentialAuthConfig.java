@@ -29,10 +29,10 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
@@ -41,7 +41,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
-import org.wso2.carbon.identity.conditional.auth.functions.http.cache.APIAccessTokenCache;
+import org.wso2.carbon.identity.conditional.auth.functions.http.cache.APIAccessTokenExpiryCache;
+import org.wso2.carbon.identity.conditional.auth.functions.http.cache.CachedToken;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
@@ -49,8 +50,7 @@ import java.lang.reflect.Type;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -82,11 +82,12 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     private static final String TOKEN_ENDPOINT = "tokenEndpoint";
     private static final String SCOPES = "scope";
     private static final String ACCESS_TOKEN_KEY = "access_token";
+    private static final String EXPIRES_IN_KEY = "expires_in";
     private static final String JWT_EXP_CLAIM = "exp";
     private static final String BEARER = "Bearer ";
     private static final String BASIC = "Basic ";
     private int maxRequestAttemptsForAPIEndpointTimeout;
-    private APIAccessTokenCache apiAccessTokenCache;
+    private APIAccessTokenExpiryCache apiAccessTokenExpiryCache;
     private String consumerKey;
     private String consumerSecret;
     private String scopes;
@@ -159,7 +160,7 @@ public class ClientCredentialAuthConfig implements AuthConfig {
         setRequest(request);
         maxRequestAttemptsForAPIEndpointTimeout = ConfigProvider.getInstance().
                 getRequestRetryCount();
-        this.apiAccessTokenCache = APIAccessTokenCache.getInstance();
+        this.apiAccessTokenExpiryCache = APIAccessTokenExpiryCache.getInstance();
         Map<String, Object> properties = authConfigModel.getProperties();
         validateRequiredProperties(properties);
 
@@ -192,30 +193,15 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     }
 
     /**
-     * Returns true if the given token appears to be a JWT (three Base64URL parts separated by dots).
+     * Returns {@code true} if the given {@link CachedToken} has expired.
+     * Delegates to {@link CachedToken#isExpired()}.
      *
-     * @param token Token string to inspect
-     * @return true if the token looks like a JWT
+     * @param cachedToken The cache entry to evaluate
+     * @return {@code true} if the token has expired; {@code false} otherwise
      */
-    private boolean isJWT(String token) {
+    private boolean isTokenExpired(CachedToken cachedToken) {
 
-        return token.split("\\.").length == 3;
-    }
-
-    /**
-     * This method decodes access token and compare its expiry time with the current time to decide whether it's
-     * expired.
-     *
-     * @param accessToken Access token which needs to be evaluated
-     * @return A boolean value indicating whether the token is expired
-     * @throws ParseException {@link ParseException}
-     */
-    private boolean isTokenExpired(String accessToken) throws ParseException {
-
-        SignedJWT decodedToken = SignedJWT.parse(accessToken);
-        Date expiryDate = (Date) decodedToken.getJWTClaimsSet().getClaim(JWT_EXP_CLAIM);
-        LocalDateTime expiryTimestamp = LocalDateTime.ofInstant(expiryDate.toInstant(), ZoneId.systemDefault());
-        return LocalDateTime.now().isAfter(expiryTimestamp);
+        return cachedToken.isExpired();
     }
 
     /**
@@ -242,12 +228,13 @@ public class ClientCredentialAuthConfig implements AuthConfig {
      * @throws FrameworkException {@link FrameworkException}
      */
     private String getAccessToken() throws FrameworkException {
-        String accessToken = apiAccessTokenCache.getValueFromCache(getConsumerKey(),
+
+        CachedToken cachedToken = apiAccessTokenExpiryCache.getValueFromCache(getConsumerKey(),
                 authenticationContext.getTenantDomain());
         try {
-            if (StringUtils.isNotEmpty(accessToken) && isJWT(accessToken) && !isTokenExpired(accessToken)) {
+            if (cachedToken != null && !isTokenExpired(cachedToken)) {
                 LOG.debug("Unexpired access token available in cache.");
-                return accessToken;
+                return cachedToken.getAccessToken();
             } else {
                 // Attempt the first request for an access token
                 LOG.info("Attempting initial access token request for session data key: " +
@@ -259,20 +246,6 @@ public class ClientCredentialAuthConfig implements AuthConfig {
                     return retryDecision.getRight();
                 }
             }
-        } catch (ParseException e) {
-            LOG.error("Error parsing token expiry.", e);
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new
-                        DiagnosticLog.DiagnosticLogBuilder(Constants.LogConstants.ADAPTIVE_AUTH_SERVICE,
-                        getRequestTokenActionId(getRequest()));
-                diagnosticLogBuilder.inputParam(Constants.LogConstants.InputKeys.TOKEN_ENDPOINT, getTokenEndpoint())
-                        .resultMessage("Failed to parse token expiry.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
-            }
-            LOG.error("Error parsing token expiry.", e);
-            asyncReturn.accept(authenticationContext, Collections.emptyMap(), OUTCOME_FAIL);
         } catch (IOException e) {
             LOG.error("Error while calling token endpoint. ", e);
         }
@@ -451,10 +424,19 @@ public class ClientCredentialAuthConfig implements AuthConfig {
     }
 
     /**
-     * This method is used to process the successful response from the token endpoint.
+     * Processes a successful (2xx) token endpoint response.
+     * <p>
+     * Expiry handling follows this priority:
+     * <ol>
+     *   <li>If the token is a JWT the {@code exp} claim is used as the expiry epoch.</li>
+     *   <li>If the token is opaque and the response includes {@code expires_in}, the expiry
+     *       epoch is computed as {@code now + expires_in} seconds.</li>
+     *   <li>If the token is opaque and {@code expires_in} is absent, the token is <em>not</em>
+     *       cached; a fresh token will be fetched on the next call.</li>
+     * </ol>
      *
      * @param response {@link CloseableHttpResponse}
-     * @return Access token
+     * @return A pair of retry decision and the access token string
      * @throws IOException {@link IOException}
      */
     private Pair<RetryDecision, String> processSuccessfulResponse(CloseableHttpResponse response) throws IOException {
@@ -477,12 +459,55 @@ public class ClientCredentialAuthConfig implements AuthConfig {
             }
             LOG.info("Received access token from the token endpoint. Session data key: " +
                     authenticationContext.getContextIdentifier());
-            apiAccessTokenCache.addToCache(getConsumerKey(), accessToken,
-                    this.authenticationContext.getTenantDomain());
+
+            Long expiryEpoch = resolveTokenExpiryEpoch(accessToken, responseBody.get(EXPIRES_IN_KEY));
+            if (expiryEpoch != null) {
+                apiAccessTokenExpiryCache.addToCache(getConsumerKey(), new CachedToken(accessToken, expiryEpoch),
+                        this.authenticationContext.getTenantDomain());
+            } else {
+                LOG.debug("Opaque token received without expires_in; skipping token cache. " +
+                        "A fresh token will be requested on the next call.");
+            }
             return Pair.of(RetryDecision.NO_RETRY, accessToken);
         }
         LOG.error("Token response does not contain an access token. Session data key: " +
                 authenticationContext.getContextIdentifier());
         return Pair.of(RetryDecision.NO_RETRY, null);
+    }
+
+    /**
+     * Determines the expiry epoch (seconds since Unix epoch) for the received access token.
+     * <p>
+     * For JWT tokens the {@code exp} claim is authoritative. For opaque tokens the optional
+     * {@code expires_in} response parameter is used to compute an absolute expiry instant.
+     * Returns {@code null} when no expiry can be determined (opaque token, no {@code expires_in}),
+     * signalling that the token must not be cached.
+     *
+     * @param accessToken  The access token string returned by the token endpoint
+     * @param expiresInStr The raw {@code expires_in} string from the token response, may be {@code null}
+     * @return Expiry as epoch seconds, or {@code null} if expiry cannot be determined
+     */
+    private Long resolveTokenExpiryEpoch(String accessToken, String expiresInStr) {
+
+        try {
+            SignedJWT jwt = SignedJWT.parse(accessToken);
+            Date expiryDate = (Date) jwt.getJWTClaimsSet().getClaim(JWT_EXP_CLAIM);
+            if (expiryDate != null) {
+                return expiryDate.toInstant().getEpochSecond();
+            }
+        } catch (ParseException e) {
+            LOG.debug("Access token is not a JWT or could not be parsed; treating as opaque token.");
+        }
+
+        // Derive expiry from expires_in if present (RFC 6749 §4.2.2 — optional).
+        if (StringUtils.isNotEmpty(expiresInStr)) {
+            try {
+                long expiresInSeconds = Long.parseLong(expiresInStr);
+                return Instant.now().getEpochSecond() + expiresInSeconds;
+            } catch (NumberFormatException e) {
+                LOG.debug("Could not parse expires_in value '" + expiresInStr + "'; token will not be cached.");
+            }
+        }
+        return null;
     }
 }
