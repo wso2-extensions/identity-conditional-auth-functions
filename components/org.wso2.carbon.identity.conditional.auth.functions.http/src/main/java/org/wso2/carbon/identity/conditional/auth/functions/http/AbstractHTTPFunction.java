@@ -29,6 +29,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -81,7 +82,20 @@ public abstract class AbstractHTTPFunction {
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();
-        client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+        int httpFunctionsMaxConnections = ConfigProvider.getInstance().getHttpFunctionsMaxConnections();
+        int httpFunctionsMaxConnectionsPerRoute =
+                ConfigProvider.getInstance().getHttpFunctionsMaxConnectionsPerRoute();
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(httpFunctionsMaxConnections);
+        connectionManager.setDefaultMaxPerRoute(httpFunctionsMaxConnectionsPerRoute);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Initializing HTTP functions client with max connections: " +
+                    httpFunctionsMaxConnections + ", max per route: " + httpFunctionsMaxConnectionsPerRoute);
+        }
+        client = HttpClientBuilder.create()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(config)
+                .build();
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
 

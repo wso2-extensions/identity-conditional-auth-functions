@@ -39,6 +39,10 @@ public class Constants {
     public static final String CONNECTION_POOL_MAX_CONNECTIONS = "AdaptiveAuth.MaxTotalConnections";
     public static final String CONNECTION_POOL_MAX_CONNECTIONS_PER_ROUTE = "AdaptiveAuth.MaxTotalConnectionsPerRoute";
 
+    public static final String HTTP_FUNCTIONS_MAX_CONNECTIONS = "AdaptiveAuth.HTTPFunctions.MaxConnections";
+    public static final String HTTP_FUNCTIONS_MAX_CONNECTIONS_PER_ROUTE =
+            "AdaptiveAuth.HTTPFunctions.MaxConnectionsPerRoute";
+
     public static final String CALL_CHOREO_HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.CallChoreo.HTTPConnectionTimeout";
 
     public static final String CALL_CHOREO_HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.CallChoreo.HTTPConnectionRequestTimeout";
