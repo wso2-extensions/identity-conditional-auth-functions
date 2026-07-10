@@ -156,6 +156,7 @@
                             org.apache.http.client.methods,
                             org.apache.http.client.config,
                             org.apache.http.impl.client,
+                            org.apache.http.impl.conn,
                             org.apache.http.conn,
                             org.apache.http.message,
                             com.google.gson,
