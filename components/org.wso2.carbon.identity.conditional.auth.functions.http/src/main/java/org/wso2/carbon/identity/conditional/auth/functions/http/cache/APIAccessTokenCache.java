@@ -21,7 +21,9 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
  * The cache implementation which stores the access tokens received from API.
+ * @deprecated Use {@link APIAccessTokenExpiryCache} instead.
  */
+@Deprecated
 public class APIAccessTokenCache extends BaseCache<String, String> {
 
     private static final String ACCESS_TOKEN_CACHE_NAME = "APIAccessTokenCache";
