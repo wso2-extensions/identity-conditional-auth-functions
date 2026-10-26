@@ -51,6 +51,7 @@
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.choreo</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.session</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</module>
+        <module>components/org.wso2.carbon.identity.conditional.auth.functions.devicepolicy</module>
         <module>features/org.wso2.carbon.identity.conditional.auth.functions.server.feature</module>
         <module>components/org.wso2.carbon.identity.conditional.auth.functions.utils</module>
 
@@ -61,6 +62,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
                 <artifactId>org.wso2.carbon.identity.conditional.auth.functions.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+                <artifactId>org.wso2.carbon.identity.conditional.auth.functions.devicepolicy</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -300,9 +306,9 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.graalvm.sdk</groupId>
+                <groupId>org.wso2.orbit.graalvm.sdk</groupId>
                 <artifactId>graal-sdk</artifactId>
-                <version>${graalvm.version}</version>
+                <version>${graalvm.wso2.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -501,10 +507,10 @@
         </plugins>
     </build>
     <properties>
-        <carbon.kernel.version>4.10.113</carbon.kernel.version>
+        <carbon.kernel.version>4.12.22</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.user.package.import.version.range>[1.0.1, 2.0.0)</carbon.user.package.import.version.range>
-        <carbon.identity.framework.version>7.10.0</carbon.identity.framework.version>
+        <carbon.identity.framework.version>7.11.209</carbon.identity.framework.version>
         <identity.organization.management.core.version>1.1.60</identity.organization.management.core.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
@@ -553,7 +559,7 @@
         <org.osgi.framework.imp.pkg.version.range>[1.9.0,2.0.0)</org.osgi.framework.imp.pkg.version.range>
         <xml.apis.version>1.4.01</xml.apis.version>
         <nashorn.core.version>15.3</nashorn.core.version>
-        <graalvm.version>22.3.4</graalvm.version>
+        <graalvm.wso2.version>25.0.2.wso2v1</graalvm.wso2.version>
         <sonar.coverage.exclusions>
             **/*Exception.java,
             **/*Constants*.java,

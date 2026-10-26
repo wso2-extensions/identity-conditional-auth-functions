@@ -115,7 +115,7 @@ public class ResolveMultiAttributeLoginIdentifierFunctionImplTest extends JsSequ
         }
 
         when(multiAttributeLoginServiceMock.isEnabled(anyString())).thenReturn(multiAttributeLoginEnabled);
-        when(multiAttributeLoginServiceMock.resolveUser(loginIdentifier, "test_domain")).thenReturn(userResult);
+        when(multiAttributeLoginServiceMock.resolveUser(loginIdentifier, "test_domain", false)).thenReturn(userResult);
 
         AuthenticationContext context = getAuthenticationContextForSP(loginIdentifier);
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
