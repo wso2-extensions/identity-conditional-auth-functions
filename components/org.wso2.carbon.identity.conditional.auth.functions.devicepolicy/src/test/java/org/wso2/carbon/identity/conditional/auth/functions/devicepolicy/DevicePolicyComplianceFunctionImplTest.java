@@ -84,9 +84,9 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
     private static final String TENANT_DOMAIN = "test_domain";
     private static final String APP_RESOURCE_ID = "test-app-resource-id";
     private static final String TEST_USER = "test_user";
-    private static final String COMPLIANT = "COMPLIANT";
-    private static final String DEVICE_DATA_MISSING =
-            POLICY_NAME + ":device token is missing or validation failed";
+    private static final String COMPLIANT = "boolean|true|COMPLIANT|||";
+    private static final String DEVICE_DATA_MISSING = errorResult(
+            DevicePolicyComplianceFunctionImpl.ERROR_DEVICE_DATA_UNAVAILABLE);
 
     @Mock
     private DevicePolicyEvaluator devicePolicyEvaluator;
@@ -97,7 +97,7 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
 
         super.setUp(scriptEngine);
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
-        sequenceHandlerRunner.registerJsFunction("isDevicePolicyCompliant",
+        sequenceHandlerRunner.registerJsFunction("evaluateDevicePolicy",
                 new DevicePolicyComplianceFunctionImpl());
 
         initMocks(this);
@@ -123,23 +123,24 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
     public Object[][] evaluationResultProvider() {
 
         return new Object[][]{
-                // A compliant device yields no reason, which the script maps to "COMPLIANT".
+                // A compliant device is reported as compliant with no failed or missing fields.
                 {DevicePolicyEvaluationResult.compliant(POLICY_NAME), COMPLIANT},
-                // A non compliant device yields the comma separated list of failed fields.
+                // A non compliant device exposes the failed fields as an array.
                 {DevicePolicyEvaluationResult.nonCompliant(POLICY_NAME,
-                        Collections.singletonList("isRooted")), "isRooted"},
+                        Collections.singletonList("isRooted")), "boolean|false|NON_COMPLIANT|isRooted||"},
                 {DevicePolicyEvaluationResult.nonCompliant(POLICY_NAME,
-                        Arrays.asList("isRooted", "osVersion")), "isRooted, osVersion"},
-                // Incomplete device data yields the comma separated list of missing fields.
+                        Arrays.asList("isRooted", "osVersion")), "boolean|false|NON_COMPLIANT|isRooted,osVersion||"},
+                // Incomplete device data exposes the missing fields as an array.
                 {DevicePolicyEvaluationResult.incompleteDeviceData(POLICY_NAME,
-                        Collections.singletonList("osVersion")), "osVersion"},
+                        Collections.singletonList("osVersion")), "boolean|false|INCOMPLETE_DEVICE_DATA||osVersion|"},
                 {DevicePolicyEvaluationResult.incompleteDeviceData(POLICY_NAME,
-                        Arrays.asList("osVersion", "platform")), "osVersion, platform"},
+                        Arrays.asList("osVersion", "platform")),
+                        "boolean|false|INCOMPLETE_DEVICE_DATA||osVersion,platform|"},
         };
     }
 
     @Test(dataProvider = "evaluationResultProvider")
-    public void testIsCompliant(DevicePolicyEvaluationResult evaluationResult, String expectedAcr) throws Exception {
+    public void testEvaluate(DevicePolicyEvaluationResult evaluationResult, String expectedAcr) throws Exception {
 
         when(devicePolicyEvaluator.evaluate(anyString(), anyMap(), any(), anyString())).thenReturn(evaluationResult);
 
@@ -161,7 +162,7 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
     }
 
     @Test(dataProvider = "invalidDeviceDataProvider")
-    public void testIsCompliantWithInvalidDeviceData(Object deviceData) throws Exception {
+    public void testEvaluateWithInvalidDeviceData(Object deviceData) throws Exception {
 
         AuthenticationContext context = getAuthenticationContextForSP(POLICY_NAME, deviceData);
         handle(context);
@@ -171,7 +172,7 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
     }
 
     @Test
-    public void testIsCompliantWithEmptyDeviceData() throws Exception {
+    public void testEvaluateWithEmptyDeviceData() throws Exception {
 
         when(devicePolicyEvaluator.evaluate(anyString(), anyMap(), any(), anyString()))
                 .thenReturn(DevicePolicyEvaluationResult.incompleteDeviceData(POLICY_NAME,
@@ -181,7 +182,7 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
         AuthenticationContext context = getAuthenticationContextForSP(POLICY_NAME, new HashMap<String, Object>());
         handle(context);
 
-        Assert.assertEquals(context.getSelectedAcr(), "platform");
+        Assert.assertEquals(context.getSelectedAcr(), "boolean|false|INCOMPLETE_DEVICE_DATA||platform|");
     }
 
     @DataProvider(name = "evaluationFailureProvider")
@@ -191,18 +192,18 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
                 // A missing policy is distinguished by its error code.
                 {new DevicePolicyClientException("Device policy not found.", "Device policy not found.",
                         DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND.getCode()),
-                        POLICY_NAME + ":policy_not_found"},
+                        errorResult(DevicePolicyComplianceFunctionImpl.ERROR_POLICY_NOT_FOUND)},
                 // Any other client side failure is reported as a policy error.
                 {new DevicePolicyClientException("Invalid policy.", "Invalid policy.", "DP-60001"),
-                        POLICY_NAME + ":policy_error"},
+                        errorResult(DevicePolicyComplianceFunctionImpl.ERROR_POLICY_ERROR)},
                 // Any other device policy failure is reported as an evaluation error.
                 {new DevicePolicyServerException("Policy evaluation failed."),
-                        POLICY_NAME + ":evaluation_error"},
+                        errorResult(DevicePolicyComplianceFunctionImpl.ERROR_EVALUATION_ERROR)},
         };
     }
 
     @Test(dataProvider = "evaluationFailureProvider")
-    public void testIsCompliantWithEvaluationFailure(Exception exception, String expectedAcr) throws Exception {
+    public void testEvaluateWithEvaluationFailure(Exception exception, String expectedAcr) throws Exception {
 
         when(devicePolicyEvaluator.evaluate(anyString(), anyMap(), any(), anyString())).thenThrow(exception);
 
@@ -230,6 +231,11 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
         Assert.assertEquals(capturedDeviceData, deviceData);
         // The evaluator mutates the device data it receives, so the context copy must not be handed over as is.
         Assert.assertNotSame(capturedDeviceData, deviceData);
+    }
+
+    private static String errorResult(String errorCode) {
+
+        return "boolean|false|ERROR|||" + errorCode;
     }
 
     private Map<String, Object> deviceData() {

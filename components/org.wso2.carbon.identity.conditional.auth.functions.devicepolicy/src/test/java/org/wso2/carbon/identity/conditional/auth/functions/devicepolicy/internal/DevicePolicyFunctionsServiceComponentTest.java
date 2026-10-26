@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class DevicePolicyFunctionsServiceComponentTest {
 
-    private static final String FUNCTION_NAME = "isDevicePolicyCompliant";
+    private static final String FUNCTION_NAME = "evaluateDevicePolicy";
 
     @Mock
     private JsFunctionRegistry jsFunctionRegistry;

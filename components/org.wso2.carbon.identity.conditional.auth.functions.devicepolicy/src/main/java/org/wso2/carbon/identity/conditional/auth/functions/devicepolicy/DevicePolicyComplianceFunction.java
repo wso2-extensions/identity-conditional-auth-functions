@@ -19,10 +19,11 @@
 package org.wso2.carbon.identity.conditional.auth.functions.devicepolicy;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
 
 /**
- * JS function that checks device policy compliance for the current authentication context,
- * registered as {@code isDevicePolicyCompliant}.
+ * JS function that evaluates device policy compliance for the current authentication context,
+ * registered as {@code evaluateDevicePolicy}.
  */
 @FunctionalInterface
 public interface DevicePolicyComplianceFunction {
@@ -33,8 +34,9 @@ public interface DevicePolicyComplianceFunction {
      *
      * @param context    Authentication context wrapper exposed to the JS engine.
      * @param policyName Name of the device policy to evaluate.
-     * @return {@code null} if compliant; otherwise a {@code policyName:reason} or comma-separated
-     *         field-list string describing why evaluation did not pass.
+     * @return Evaluation result object exposed to the script, carrying {@code compliant}, {@code status},
+     *         {@code failedFields}, {@code missingFields} and, when evaluation could not be performed,
+     *         {@code errorCode}.
      */
-    String isCompliant(JsBaseAuthenticationContext context, String policyName);
+    JsBaseParameters evaluate(JsBaseAuthenticationContext context, String policyName);
 }

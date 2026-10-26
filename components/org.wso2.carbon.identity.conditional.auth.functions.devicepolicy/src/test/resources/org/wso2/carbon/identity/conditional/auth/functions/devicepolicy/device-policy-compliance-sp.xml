@@ -39,12 +39,12 @@
 var onLoginRequest = function(context) {
     executeStep(1, {
         onSuccess: function(context) {
-            var reason = isDevicePolicyCompliant(context, '%s');
-            if (reason === null || reason === undefined) {
-                context.selectedAcr = 'COMPLIANT';
-            } else {
-                context.selectedAcr = reason;
-            }
+            var result = evaluateDevicePolicy(context, '%s');
+            // Flatten the result so the test can assert on every field the script can read.
+            context.selectedAcr = [typeof result.compliant, result.compliant, result.status,
+                Array.prototype.join.call(result.failedFields, ','),
+                Array.prototype.join.call(result.missingFields, ','),
+                result.errorCode ? result.errorCode : ''].join('|');
         },
     });
 };

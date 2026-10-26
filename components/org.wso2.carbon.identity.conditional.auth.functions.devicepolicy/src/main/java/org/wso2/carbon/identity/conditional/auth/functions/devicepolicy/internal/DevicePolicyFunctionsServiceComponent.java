@@ -43,7 +43,7 @@ import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 public class DevicePolicyFunctionsServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(DevicePolicyFunctionsServiceComponent.class);
-    private static final String FUNCTION_NAME = "isDevicePolicyCompliant";
+    private static final String FUNCTION_NAME = "evaluateDevicePolicy";
 
     @Activate
     protected void activate(ComponentContext ctxt) {
