@@ -86,7 +86,7 @@ public class DevicePolicyComplianceFunctionImpl implements DevicePolicyComplianc
 
             DevicePolicyEvaluationResult result = DevicePolicyFunctionsServiceHolder.getInstance()
                     .getDevicePolicyEvaluator()
-                    .evaluate(policyName, deviceData, appId, tenantDomain);
+                    .evaluateByPolicyName(policyName, deviceData, appId, tenantDomain);
 
             return buildResult(result);
         } catch (DevicePolicyClientException e) {
