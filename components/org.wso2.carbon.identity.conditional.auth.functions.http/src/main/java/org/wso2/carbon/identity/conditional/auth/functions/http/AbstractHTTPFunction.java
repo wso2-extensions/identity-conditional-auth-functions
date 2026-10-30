@@ -92,9 +92,11 @@ public abstract class AbstractHTTPFunction {
             LOG.debug("Initializing HTTP functions client with max connections: " +
                     httpFunctionsMaxConnections + ", max per route: " + httpFunctionsMaxConnectionsPerRoute);
         }
+        // Each call should send only the headers given by the script, so cookies are not retained between calls.
         client = HttpClientBuilder.create()
                 .setConnectionManager(connectionManager)
                 .setDefaultRequestConfig(config)
+                .disableCookieManagement()
                 .build();
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
