@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.R
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
+import org.wso2.msf4j.Response;
 
 import java.util.Date;
 import java.time.Instant;
@@ -77,6 +78,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -108,6 +110,8 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String ALLOWED_DOMAIN = "abc";
     private static final String AUTHORIZATION = "Authorization";
     private static final String API_KEY_HEADER = "X-API-KEY";
+    private static final String SET_COOKIE = "Set-Cookie";
+    private static final String COOKIE = "Cookie";
     public static final String HTTP_POST_PAYLOAD = "http-post-payload.json";
     public static final String HTTP_POST_PAYLOAD_TEST_SP = "http-post-payload-test-sp.xml";
     private HTTPPostFunctionImpl httpPostFunction;
@@ -264,6 +268,22 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
+     * Test that cookies set by an endpoint are not sent with subsequent httpPost requests.
+     * The http client is shared across script executions, so a retained cookie would leak to unrelated requests.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostDoesNotReplayResponseCookies() throws JsTestException {
+
+        String result = executeHttpPostFunction("dummy-post-set-cookie", TEST_SP_CONFIG);
+        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: " + result);
+
+        result = executeHttpPostFunction("dummy-post-without-cookie", TEST_SP_CONFIG);
+        assertEquals(result, SUCCESS, "A cookie set by a previous response was sent with the http post request.");
+    }
+
+    /**
      * Tests the behavior of the httpPost function when provided with null headers.
      *
      * @throws IllegalArgumentException if the provided arguments are not valid.
@@ -343,6 +363,10 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 return String.format(script, getRequestUrl("dummy-post"));
             case "dummy-post-with-headers":
                 return String.format(script, getRequestUrl("dummy-post-with-headers"));
+            case "dummy-post-set-cookie":
+                return String.format(script, getRequestUrl("dummy-post-set-cookie"));
+            case "dummy-post-without-cookie":
+                return String.format(script, getRequestUrl("dummy-post-without-cookie"));
             case "dummy-post-with-basic-auth-config":
                 return String.format(script, getRequestUrl("dummy-post-with-basic-auth-config"));
             case "dummy-post-with-apikey-auth-config":
@@ -395,6 +419,47 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         Map<String, String> response = new HashMap<>();
         if (data.containsKey(EMAIL)) {
+            response.put(STATUS, SUCCESS);
+        } else {
+            response.put(STATUS, FAILED);
+        }
+        return response;
+    }
+
+    /**
+     * Dummy post method that sets a session cookie on the response.
+     *
+     * @param httpResponse Response to set the cookie header on.
+     * @param data         Request payload.
+     * @return Response.
+     */
+    @POST
+    @Path("/dummy-post-set-cookie")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public Map<String, String> dummyPostSetCookie(@Context Response httpResponse, Map<String, String> data) {
+
+        httpResponse.setHeader(SET_COOKIE, "session=dummy-session-id; Path=/");
+        Map<String, String> response = new HashMap<>();
+        response.put(STATUS, SUCCESS);
+        return response;
+    }
+
+    /**
+     * Dummy post method that fails if the request carries a cookie.
+     *
+     * @param cookie Cookie header value.
+     * @param data   Request payload.
+     * @return Response.
+     */
+    @POST
+    @Path("/dummy-post-without-cookie")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public Map<String, String> dummyPostWithoutCookie(@HeaderParam(COOKIE) String cookie, Map<String, String> data) {
+
+        Map<String, String> response = new HashMap<>();
+        if (cookie == null) {
             response.put(STATUS, SUCCESS);
         } else {
             response.put(STATUS, FAILED);
