@@ -269,7 +269,6 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     /**
      * Test that cookies set by an endpoint are not sent with subsequent httpPost requests.
-     * The http client is shared across script executions, so a retained cookie would leak to unrelated requests.
      *
      * @throws JsTestException
      */

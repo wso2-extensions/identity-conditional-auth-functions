@@ -92,8 +92,7 @@ public abstract class AbstractHTTPFunction {
             LOG.debug("Initializing HTTP functions client with max connections: " +
                     httpFunctionsMaxConnections + ", max per route: " + httpFunctionsMaxConnectionsPerRoute);
         }
-        // The client is shared by every script execution on the node, so cookie management is disabled to
-        // prevent cookies set by an external endpoint from being replayed on unrelated requests.
+        // Each call should send only the headers given by the script, so cookies are not retained between calls.
         client = HttpClientBuilder.create()
                 .setConnectionManager(connectionManager)
                 .setDefaultRequestConfig(config)
