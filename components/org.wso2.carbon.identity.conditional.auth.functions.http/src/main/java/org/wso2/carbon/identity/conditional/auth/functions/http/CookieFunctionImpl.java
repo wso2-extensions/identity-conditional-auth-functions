@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,33 +14,34 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.axiom.om.util.Base64;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.conditional.auth.functions.http.internal.HTTPFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.Cookie;
+
+import static org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants.KEY_STORE_CONTEXT;
 
 /**
  * Implementation of the setCookie and getCookieValue functions.
@@ -72,7 +73,12 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
             boolean encrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.ENCRYPT)).orElse(false);
             if (sign) {
                 try {
-                    signature = Base64.encode(SignatureUtil.doSignature(value));
+                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                    // getCookie, setCookie functionalities uses a functionality specific keystore.
+                    // The below code will create the keystore for this context on-demand if it does not exist.
+                    HTTPFunctionsServiceHolder.getInstance().getIdentityKeyStoreGenerator()
+                            .generateKeyStore(tenantDomain, KEY_STORE_CONTEXT);
+                    signature = Base64.encode(IdentityUtil.signWithTenantKey(value, tenantDomain, KEY_STORE_CONTEXT));
                 } catch (Exception e) {
                     log.error("Error occurred when signing the cookie value.", e);
                     return;
@@ -98,7 +104,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
 
         String cookieValue = cookieValueJson.toString();
 
-        cookieValue = Base64.encode((cookieValue.getBytes(Charsets.UTF_8)));
+        cookieValue = Base64.encode((cookieValue.getBytes(StandardCharsets.UTF_8)));
         ServletCookie cookie = new ServletCookie(name, cookieValue);
         if (properties != null) {
             Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN))
@@ -107,9 +113,15 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                     .ifPresent(cookie::setPath);
             Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT))
                     .ifPresent(cookie::setComment);
-            Optional.ofNullable((Integer) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE))
+            Optional.ofNullable(properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE))
+                    .filter(Number.class::isInstance)
+                    .map(Number.class::cast)
+                    .map(Number::intValue)
                     .ifPresent(cookie::setMaxAge);
-            Optional.ofNullable((Integer) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_VERSION))
+            Optional.ofNullable(properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_VERSION))
+                    .filter(Number.class::isInstance)
+                    .map(Number.class::cast)
+                    .map(Number::intValue)
                     .ifPresent(cookie::setVersion);
             Optional.ofNullable((Boolean) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY))
                     .ifPresent(cookie::setHttpOnly);
@@ -146,7 +158,7 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                 try {
                     JSONParser jsonParser = new JSONParser();
                     cookieValueJSON = (JSONObject) jsonParser.parse(new String(Base64.decode(cookie.getValue()),
-                            Charsets.UTF_8));
+                            StandardCharsets.UTF_8));
                 } catch (ParseException e) {
                     log.error("Error occurred when converting cookie value to JSON.", e);
                     return null;
@@ -175,7 +187,10 @@ public class CookieFunctionImpl implements SetCookieFunction, GetCookieFunction 
                     if (validateSignature) {
                         byte[] signature = Base64.decode((String) cookieValueJSON.get(HTTPConstants.SIGNATURE));
                         try {
-                            boolean isValid = SignatureUtil.validateSignature(valueString, signature);
+                            String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .getTenantDomain();
+                            boolean isValid = IdentityUtil.validateSignatureFromTenant(valueString, signature,
+                                    tenantDomain, KEY_STORE_CONTEXT);
                             if (!isValid) {
                                 log.error("Cookie signature didn't matched with the cookie value.");
                                 return null;

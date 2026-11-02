@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.conditional.auth.functions.user.model.JsWrapperFactoryProvider;
 

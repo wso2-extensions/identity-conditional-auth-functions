@@ -29,6 +29,8 @@ import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.C
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.CHOREO_TOKEN_ENDPOINT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_REQUEST_TIMEOUT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_TIMEOUT;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_FUNCTIONS_MAX_CONNECTIONS;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_FUNCTIONS_MAX_CONNECTIONS_PER_ROUTE;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_FUNCTION_ALLOWED_DOMAINS;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_READ_TIMEOUT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_REQUEST_RETRY_COUNT;
@@ -41,6 +43,8 @@ public class ConfigProvider {
     private int readTimeout;
     private int connectionRequestTimeout;
     private int requestRetryCount = 2;
+    private int httpFunctionsMaxConnections = 20;
+    private int httpFunctionsMaxConnectionsPerRoute = 20;
     private List<String> httpFunctionAllowedDomainList = new ArrayList<>();
     private List<String> choreoDomainList = new ArrayList<>();
     private final String choreoTokenEndpoint;
@@ -54,6 +58,9 @@ public class ConfigProvider {
         String readTimeoutString = IdentityUtil.getProperty(HTTP_READ_TIMEOUT);
         String connectionRequestTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_REQUEST_TIMEOUT);
         String requestRetryCountString = IdentityUtil.getProperty(HTTP_REQUEST_RETRY_COUNT);
+        String httpFunctionsMaxConnectionsString = IdentityUtil.getProperty(HTTP_FUNCTIONS_MAX_CONNECTIONS);
+        String httpFunctionsMaxConnectionsPerRouteString =
+                IdentityUtil.getProperty(HTTP_FUNCTIONS_MAX_CONNECTIONS_PER_ROUTE);
         List<String> httpFunctionAllowedDomainList = IdentityUtil.getPropertyAsList(HTTP_FUNCTION_ALLOWED_DOMAINS);
         List<String> choreoDomainList = IdentityUtil.getPropertyAsList(CHOREO_DOMAINS);
 
@@ -90,6 +97,23 @@ public class ConfigProvider {
             } catch (NumberFormatException e) {
                 LOG.error("Error while parsing max request attempts for api endpoint timeout : " +
                         requestRetryCountString, e);
+            }
+        }
+        if (httpFunctionsMaxConnectionsString != null) {
+            try {
+                httpFunctionsMaxConnections = Integer.parseInt(httpFunctionsMaxConnectionsString);
+            } catch (NumberFormatException e) {
+                LOG.error("Error while parsing http functions max total connections : " +
+                        httpFunctionsMaxConnectionsString, e);
+            }
+        }
+        if (httpFunctionsMaxConnectionsPerRouteString != null) {
+            try {
+                httpFunctionsMaxConnectionsPerRoute =
+                        Integer.parseInt(httpFunctionsMaxConnectionsPerRouteString);
+            } catch (NumberFormatException e) {
+                LOG.error("Error while parsing http functions max connections per route : " +
+                        httpFunctionsMaxConnectionsPerRouteString, e);
             }
         }
 
@@ -134,6 +158,16 @@ public class ConfigProvider {
     public int getRequestRetryCount() {
 
         return requestRetryCount;
+    }
+
+    public int getHttpFunctionsMaxConnections() {
+
+        return httpFunctionsMaxConnections;
+    }
+
+    public int getHttpFunctionsMaxConnectionsPerRoute() {
+
+        return httpFunctionsMaxConnectionsPerRoute;
     }
 
     public List<String> getAllowedDomainsForHttpFunctions() {

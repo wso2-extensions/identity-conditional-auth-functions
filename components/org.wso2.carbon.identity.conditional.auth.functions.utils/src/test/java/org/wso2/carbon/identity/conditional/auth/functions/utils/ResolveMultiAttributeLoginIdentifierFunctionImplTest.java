@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.utils;
 
 import org.mockito.Mock;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Parameters;
@@ -31,14 +32,17 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.user.core.common.User;
 
 import java.lang.reflect.Field;
@@ -47,17 +51,26 @@ import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @WithCarbonHome
-@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
+@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class,
+        OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 @WithH2Database(files = "dbscripts/h2.sql")
 public class ResolveMultiAttributeLoginIdentifierFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @Mock
     private MultiAttributeLoginService multiAttributeLoginServiceMock;
+
+    @AfterClass
+    protected void tearDown() {
+
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+    }
 
     @BeforeClass
     @Parameters({"scriptEngine"})
@@ -74,6 +87,8 @@ public class ResolveMultiAttributeLoginIdentifierFunctionImplTest extends JsSequ
         frameworkServiceDataHolder.setAccessible(true);
         FrameworkServiceDataHolder instance = (FrameworkServiceDataHolder) frameworkServiceDataHolder.get(null);
         instance.setMultiAttributeLoginService(multiAttributeLoginServiceMock);
+        IdentityEventService identityEventService = mock(IdentityEventService.class);
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @DataProvider(name = "loginIdentifierProvider")
@@ -100,7 +115,7 @@ public class ResolveMultiAttributeLoginIdentifierFunctionImplTest extends JsSequ
         }
 
         when(multiAttributeLoginServiceMock.isEnabled(anyString())).thenReturn(multiAttributeLoginEnabled);
-        when(multiAttributeLoginServiceMock.resolveUser(loginIdentifier, "test_domain")).thenReturn(userResult);
+        when(multiAttributeLoginServiceMock.resolveUser(loginIdentifier, "test_domain", false)).thenReturn(userResult);
 
         AuthenticationContext context = getAuthenticationContextForSP(loginIdentifier);
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();

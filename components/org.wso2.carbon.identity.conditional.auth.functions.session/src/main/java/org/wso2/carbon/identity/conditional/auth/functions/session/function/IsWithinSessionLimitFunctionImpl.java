@@ -47,7 +47,10 @@ import static java.lang.Integer.parseInt;
  * Represents javascript function provided in conditional authentication to check if the given user has valid number of
  * sessions.
  * The purpose is to perform dynamic authentication selection based on the active session count.
+ *
+ * @deprecated
  */
+@Deprecated
 public class IsWithinSessionLimitFunctionImpl implements IsWithinSessionLimitFunction {
 
     private static final Log log = LogFactory.getLog(IsWithinSessionLimitFunctionImpl.class);

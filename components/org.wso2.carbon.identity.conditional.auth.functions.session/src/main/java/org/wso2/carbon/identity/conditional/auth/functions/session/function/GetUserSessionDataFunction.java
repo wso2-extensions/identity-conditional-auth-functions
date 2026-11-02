@@ -26,8 +26,11 @@ import java.util.Map;
 
 /**
  * Function definition for retrieving data.
+ *
+ * @deprecated
  */
 @FunctionalInterface
+@Deprecated
 public interface GetUserSessionDataFunction {
 
     /**

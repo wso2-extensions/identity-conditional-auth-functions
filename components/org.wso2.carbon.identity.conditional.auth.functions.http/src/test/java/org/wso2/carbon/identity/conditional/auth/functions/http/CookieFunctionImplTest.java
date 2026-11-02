@@ -19,11 +19,12 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.axiom.om.util.Base64;
-import org.apache.commons.io.Charsets;
 import org.json.simple.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -33,13 +34,14 @@ import org.wso2.carbon.crypto.impl.DefaultCryptoService;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornServletRequest;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -47,14 +49,18 @@ import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstan
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerRunner;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -62,8 +68,22 @@ import static org.mockito.Mockito.verify;
  */
 @WithCarbonHome
 @WithH2Database(files = {"dbscripts/h2.sql"})
-@WithRealmService(injectToSingletons = FrameworkServiceDataHolder.class)
+@WithRealmService(injectToSingletons = {FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
+
+    @BeforeClass
+    protected void setUpMocks() {
+
+        IdentityEventService identityEventService = mock(IdentityEventService.class);
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+    }
+
+    @AfterClass
+    protected void tearDown() {
+
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+    }
 
     @BeforeMethod
     protected void setUp() throws Exception {
@@ -102,7 +122,8 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         ArgumentCaptor<Cookie> argumentCaptor = ArgumentCaptor.forClass(Cookie.class);
         verify(resp).addCookie(argumentCaptor.capture());
-        Assert.assertEquals(argumentCaptor.getValue().getValue(), Base64.encode(cookieValue.getBytes(Charsets.UTF_8)));
+        Assert.assertEquals(argumentCaptor.getValue().getValue(), 
+                Base64.encode(cookieValue.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
@@ -120,7 +141,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         cookieValueJson.put(HTTPConstants.VALUE, "test");
         cookieValueJson.put(HTTPConstants.SIGNATURE, null);
         String cookieValue = cookieValueJson.toString();
-        Cookie cookie = new Cookie("name", Base64.encode(cookieValue.getBytes(Charsets.UTF_8)));
+        Cookie cookie = new Cookie("name", Base64.encode(cookieValue.getBytes(StandardCharsets.UTF_8)));
         Cookie mockCookie = Mockito.spy(cookie);
         Cookie[] cookies = {mockCookie};
 
@@ -173,7 +194,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String name = "test";
 
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
-        JsServletResponse jsServletResponse = new JsNashornServletResponse(new TransientObjectWrapper(resp));
+        JsServletResponse jsServletResponse = new JsGraalServletResponse(new TransientObjectWrapper(resp));
         Map<String, Object> setCookieParams = new HashMap<>();
         setCookieParams.put(HTTPConstants.ENCRYPT, shouldEncrypt);
         setCookieParams.put(HTTPConstants.SIGN, shouldSign);
@@ -188,7 +209,7 @@ public class CookieFunctionImplTest extends JsSequenceHandlerAbstractTest {
         Cookie[] cookies = {mockCookie};
 
         HttpServletRequest req = new MockServletRequestWithCookie(cookies);
-        JsServletRequest jsServletRequest = new JsNashornServletRequest(new TransientObjectWrapper(req));
+        JsServletRequest jsServletRequest = new JsGraalServletRequest(new TransientObjectWrapper(req));
         Map<String, Object> getCookieParams = new HashMap<>();
         getCookieParams.put(HTTPConstants.DECRYPT, shouldDecrypt);
         // Get the cookie value

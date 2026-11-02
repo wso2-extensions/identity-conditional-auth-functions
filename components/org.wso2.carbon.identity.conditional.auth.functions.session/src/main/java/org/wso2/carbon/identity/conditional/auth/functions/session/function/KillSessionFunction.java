@@ -29,7 +29,10 @@ import java.util.Map;
 
 /**
  * Represents javascript function provided in conditional authentication to terminate a session with given sessionID.
+ *
+ * @deprecated
  */
+@Deprecated
 public class KillSessionFunction implements ExecuteActionFunction {
 
     private static final Log log = LogFactory.getLog(KillSessionFunction.class);

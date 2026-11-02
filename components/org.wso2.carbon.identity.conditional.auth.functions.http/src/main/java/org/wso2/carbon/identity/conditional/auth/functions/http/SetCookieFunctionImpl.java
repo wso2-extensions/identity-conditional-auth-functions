@@ -19,23 +19,26 @@
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
 import org.apache.axiom.om.util.Base64;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.json.simple.JSONObject;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.core.ServletCookie;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.conditional.auth.functions.http.internal.HTTPFunctionsServiceHolder;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
+
+import static org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants.KEY_STORE_CONTEXT;
 
 /**
  * Implementation of SetCookieFunction.
@@ -66,7 +69,12 @@ public class SetCookieFunctionImpl implements SetCookieFunction {
             boolean encrypt = Optional.ofNullable((Boolean) properties.get(HTTPConstants.ENCRYPT)).orElse(false);
             if (sign) {
                 try {
-                    signature = Base64.encode(SignatureUtil.doSignature(value));
+                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                    // getCookie, setCookie functionalities uses a functionality specific keystore.
+                    // The below code will create the keystore for this context on-demand if it does not exist.
+                    HTTPFunctionsServiceHolder.getInstance().getIdentityKeyStoreGenerator()
+                            .generateKeyStore(tenantDomain, KEY_STORE_CONTEXT);
+                    signature = Base64.encode(IdentityUtil.signWithTenantKey(value, tenantDomain, KEY_STORE_CONTEXT));
                 } catch (Exception e) {
                     log.error("Error occurred when signing the cookie value.", e);
                     return;
@@ -92,7 +100,7 @@ public class SetCookieFunctionImpl implements SetCookieFunction {
 
         String cookieValue = cookieValueJson.toString();
 
-        cookieValue = Base64.encode((cookieValue.getBytes(Charsets.UTF_8)));
+        cookieValue = Base64.encode((cookieValue.getBytes(StandardCharsets.UTF_8)));
         ServletCookie cookie = new ServletCookie(name, cookieValue);
         if (properties != null) {
             Optional.ofNullable((String) properties.get(FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN))

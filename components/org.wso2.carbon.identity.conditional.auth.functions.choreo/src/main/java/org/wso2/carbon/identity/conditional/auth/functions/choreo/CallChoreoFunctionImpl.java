@@ -71,6 +71,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.getPayloadDataMap;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_TIMEOUT;
 
@@ -135,7 +136,7 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
          * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
          */
         Map<String, String> connectionMetaDataMap = new HashMap<>(connectionMetaData);
-        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
+        Map<String, Object> payloadDataMap = getPayloadDataMap(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
             LOG.info("Starting the callChoreo function for session data key: " +
                     authenticationContext.getContextIdentifier());
@@ -342,7 +343,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
 
             boolean isFailure = false;
             try {
-                LOG.debug("Access token response received.");
+                LOG.info("Access token response received. Session data key: " +
+                        authenticationContext.getContextIdentifier());
                 int responseCode = httpResponse.getStatusLine().getStatusCode();
                 if (responseCode == HTTP_STATUS_OK) {
                     Type responseBodyType = new TypeToken<Map<String, String>>() { }.getType();
@@ -371,6 +373,8 @@ public class CallChoreoFunctionImpl implements CallChoreoFunction {
                 LOG.error("Error occurred while handling the token response from Choreo. Session data key: " +
                         authenticationContext.getContextIdentifier(), e);
                 isFailure = true;
+            } finally {
+                EntityUtils.consumeQuietly(httpResponse.getEntity());
             }
 
             if (isFailure) {

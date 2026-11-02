@@ -18,6 +18,12 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.logging.Log;
@@ -28,11 +34,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.buil
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalWrapperFactory;
@@ -41,10 +44,13 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.JsUtilsProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.model.graaljs.JsGraalUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.MockAuthenticator;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.api.SubjectCallback;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -56,12 +62,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,6 +78,7 @@ import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -104,6 +113,7 @@ public class JsSequenceHandlerRunner {
     private JsFunctionRegistryImpl jsFunctionRegistry;
     private URL applicationAuthenticatorConfigFileLocation;
 
+    protected static Gson gson = new GsonBuilder().create();
     public static final int THREAD_COUNT = 1;
     public static final long SUPERVISOR_TIMEOUT = 500000L;
 
@@ -115,9 +125,7 @@ public class JsSequenceHandlerRunner {
         this.applicationAuthenticatorConfigFileLocation = applicationAuthenticatorConfigFileLocation;
         configurationLoader = new UIBasedConfigurationLoader();
 
-        if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.NASHORN)) {
-            graphBuilderFactory = new JsGraphBuilderFactory();
-        } else if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
+        if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
             graphBuilderFactory = new JsGraalGraphBuilderFactory();
         }
         jsFunctionRegistry = new JsFunctionRegistryImpl();
@@ -130,11 +138,12 @@ public class JsSequenceHandlerRunner {
         FrameworkServiceDataHolder.getInstance().setJsGenericGraphBuilderFactory(graphBuilderFactory);
 
         Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
+        Field jsUtils = JsUtilsProvider.class.getDeclaredField("jsUtils");
         wrapperFactory.setAccessible(true);
-        if (graphBuilderFactory instanceof JsGraphBuilderFactory) {
-            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsWrapperFactory());
-        } else if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
+        jsUtils.setAccessible(true);
+        if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
             wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsGraalWrapperFactory());
+            jsUtils.set(JsUtilsProvider.getInstance(), new JsGraalUtils());
         }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
@@ -247,6 +256,26 @@ public class JsSequenceHandlerRunner {
         return ServiceProvider.build(documentElement);
     }
 
+    public JsonObject loadJson(String jsonFileName, Object loader) throws JsTestException {
+
+        try (InputStream inputStream = loader.getClass().getResourceAsStream(jsonFileName)) {
+            if (inputStream == null) {
+                throw new JsTestException("Resource not found: " + jsonFileName);
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                String jsonString = reader.lines().collect(Collectors.joining());
+                JsonElement jsonElement = JsonParser.parseString(jsonString);
+                if (jsonElement.isJsonObject()) {
+                    return jsonElement.getAsJsonObject();
+                } else {
+                    throw new JsTestException("The JSON file does not contain a valid JSON object: " + jsonFileName);
+                }
+            }
+        } catch (IOException | JsonSyntaxException e) {
+            throw new JsTestException("Error in reading or parsing JSON file at: " + jsonFileName, e);
+        }
+    }
+
     public AuthenticationContext createAuthenticationContext(ServiceProvider serviceProvider) {
 
         AuthenticationContext authenticationContext = new AuthenticationContext();
@@ -259,16 +288,20 @@ public class JsSequenceHandlerRunner {
 
     protected void resetAuthenticators() {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().clear();
-        FrameworkServiceDataHolder.getInstance().getAuthenticators()
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators().clear();
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()
                 .add(new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()
+                .add(new MockAuthenticator("HwkMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()
+                .add(new MockAuthenticator("FptMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()
+                .add(new MockAuthenticator("MockFallbackAuthenticator"));
     }
 
     public void addSubjectAuthenticator(String authenticatorName, String subject, Map<String, String> claims) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().removeIf(
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators().removeIf(
                 applicationAuthenticator -> applicationAuthenticator.getName().equals(authenticatorName));
         MockAuthenticator authenticator = new MockAuthenticator(authenticatorName,
                 (SubjectCallback) context1 -> {
@@ -281,8 +314,7 @@ public class JsSequenceHandlerRunner {
                     }
                     return user;
                 });
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
-
+        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators().add(authenticator);
     }
 
     private static AuthenticatedUser createLocalAuthenticatedUserFromSubjectIdentifier

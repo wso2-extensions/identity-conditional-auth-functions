@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>1.2.62-SNAPSHOT</version>
+        <version>1.3.9-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -54,6 +54,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
         <!--Test Dependencies-->
@@ -64,16 +68,6 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
             <artifactId>org.wso2.carbon.identity.conditional.auth.functions.test.utils</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -94,14 +88,19 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -126,20 +125,30 @@
                             org.wso2.carbon.core.util,
                             org.wso2.carbon.identity.application.authentication.framework;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.context;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.exception;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.model;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.services; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.handler.notification;
+                            version="${identity.event.handler.notification.version.range}",
                             org.wso2.carbon.identity.event.handler.notification.exception;
-                            version="${identity.event.handler.notification.version}",
+                            version="${identity.event.handler.notification.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.conditional.auth.functions.common.utils,
+                            org.wso2.carbon.utils*;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}"
                         </Import-Package>
+                        <DynamicImport-Package>
+                            org.graalvm.polyglot
+                        </DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>

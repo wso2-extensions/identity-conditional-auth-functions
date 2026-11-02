@@ -144,4 +144,124 @@ public class UserStoreFunctions implements GetUserWithClaimValues {
         return null;
     }
 
+    /**
+     * Get list of authenticated users list according to the values provided for the claim values.
+     *
+     * @param claimMap      Map of claims with its values.
+     * @param parameters    Additional parameters including AuthenticationContext object.
+     */
+    protected List<JsAuthenticatedUser> getUsersWithClaimValues(Map<String, String> claimMap, Object... parameters)
+            throws FrameworkException {
+
+        JsAuthenticationContext authenticationContext = null;
+        String tenantDomain = null;
+        String profile = "default";
+
+        if (claimMap == null || parameters == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Passed parameter to getUsersWithClaimValues method has null values.");
+            }
+            return null;
+        }
+
+        if (parameters.length == 2) {
+            if (parameters[0] instanceof JsAuthenticationContext) {
+                authenticationContext = (JsAuthenticationContext) parameters[0];
+                tenantDomain = authenticationContext.getContext().getTenantDomain();
+            }
+            if (parameters[1] instanceof String) {
+                profile = (String) parameters[1];
+            }
+        }
+
+        if (parameters.length == 1 && parameters[0] instanceof JsAuthenticationContext) {
+            authenticationContext = (JsAuthenticationContext) parameters[0];
+            tenantDomain = authenticationContext.getContext().getTenantDomain();
+        }
+
+        if (tenantDomain != null) {
+
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            try {
+                List<String> selectedUsers = new ArrayList<>();
+                UserRealm userRealm = UserStoreFunctionsServiceHolder.getInstance().getRealmService()
+                        .getTenantUserRealm(tenantId);
+
+                if (userRealm != null) {
+                    UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+                    // Get the user list using the first claim value.
+                    Map.Entry<String, String> claimEntry = claimMap.entrySet().iterator().next();
+                    String firstClaim = claimEntry.getKey();
+                    String firstClaimValue = claimEntry.getValue();
+                    claimMap.remove(firstClaim);
+                    String[] userList = userStoreManager.getUserList(firstClaim, firstClaimValue, profile);
+
+                    if (userList == null) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("No matching users identified for the first claim value provided.");
+                        }
+                        return null;
+                    }
+
+                    selectedUsers.addAll(Arrays.asList(userList));
+
+                    for (String username: userList) {
+                        for (Map.Entry<String, String> entry : claimMap.entrySet()) {
+                            String userClaimValue = userStoreManager.getUserClaimValue(username, entry.getKey(),
+                                    profile);
+                            if (userClaimValue == null || !userClaimValue.equals(entry.getValue())) {
+                                selectedUsers.remove(username);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (selectedUsers.isEmpty()) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("No matching users were identified with the provided claim values.");
+                        }
+                        return null;
+                    }
+
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(selectedUsers.size() +
+                                " users were identified matching to the provided claim values");
+                    }
+
+                    List<JsAuthenticatedUser> authenticatedUserList = new ArrayList<>();
+                    for (String username : selectedUsers) {
+
+                        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+                        if (username.indexOf(CarbonConstants.DOMAIN_SEPARATOR) > 0) {
+                            String[] subjectIdentifierSplits = username.split(CarbonConstants.DOMAIN_SEPARATOR, 2);
+                            authenticatedUser.setUserStoreDomain(subjectIdentifierSplits[0]);
+                            username = subjectIdentifierSplits[1];
+                        } else {
+                            authenticatedUser.setUserStoreDomain(IdentityUtil.getPrimaryDomainName());
+                        }
+
+                        authenticatedUser.setUserName(username);
+                        authenticatedUser.setTenantDomain(tenantDomain);
+                        authenticatedUserList.add((JsAuthenticatedUser) JsWrapperFactoryProvider.getInstance()
+                                .getWrapperFactory().createJsAuthenticatedUser(
+                                        authenticationContext.getWrapped(), authenticatedUser));
+                    }
+
+                    return authenticatedUserList;
+
+                } else {
+                    LOG.error("Cannot find the user realm for the given tenant: " + tenantId);
+                }
+            } catch (UserStoreException e) {
+                String msg = "getUsersWithClaimValues Function failed while getting user attributes ";
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(msg, e);
+                }
+                throw new FrameworkException(msg, e);
+            }
+        }
+
+        return null;
+    }
+
 }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.conditional.auth.functions.elk;
 import com.google.gson.Gson;
 import org.json.JSONObject;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithMicroService;
@@ -42,8 +44,10 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.internal.Funct
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.msf4j.Response;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,13 +60,16 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 @WithCarbonHome
 @WithMicroService
 @WithH2Database(files = {"dbscripts/h2_http.sql"})
-@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
+@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class,
+        OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 @Path("/")
 public class CallElasticFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
@@ -74,6 +81,12 @@ public class CallElasticFunctionImplTest extends JsSequenceHandlerAbstractTest {
     @InjectMicroservicePort
     private int microServicePort;
 
+    @AfterClass
+    protected void tearDown() {
+
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+    }
+
     @BeforeClass
     @Parameters({"scriptEngine"})
     protected void initClass(String scriptEngine) throws Exception {
@@ -81,6 +94,8 @@ public class CallElasticFunctionImplTest extends JsSequenceHandlerAbstractTest {
         super.setUp(scriptEngine);
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         sequenceHandlerRunner.registerJsFunction("callElastic", new CallElasticFunctionImpl());
+        IdentityEventService identityEventService = mock(IdentityEventService.class);
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @Test

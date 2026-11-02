@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -28,6 +31,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.graalvm.polyglot.HostAccess;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -35,6 +39,8 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -43,15 +49,20 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.InjectMicroservicePort;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithMicroService;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.serialize.JsGraalWritableParametersSerializer;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.ResponseValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import java.util.Date;
 import java.time.Instant;
@@ -68,7 +79,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.doNothing;
@@ -76,8 +88,10 @@ import static org.testng.Assert.assertEquals;
 
 @WithCarbonHome
 @WithMicroService
-@WithH2Database(files = {"dbscripts/h2_http.sql"})
-@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
+@WithH2Database(files = {"dbscripts/h2.sql"})
+@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class,
+        OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 @Path("/")
 public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
@@ -88,6 +102,9 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String TEST_AUTH_CONFIG_WITH_BEARER = "http-get-test-auth-config-with-bearer.xml";
     private static final String TEST_AUTH_CONFIG_WITH_CLIENTCREDENTIAL = "http-get-test-auth-config-with" +
             "-clientcredential.xml";
+    private static final String TEST_HTTP_GET_WITH_COMPLEX_RESPONSE = "http-get-test-complex-response.xml";
+    public static final String HTTP_GET_RESPONSE = "http-get-response.json";
+
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String STATUS = "status";
     private static final String SUCCESS = "SUCCESS";
@@ -119,12 +136,15 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         // Mocking the executeHttpMethod method to avoid actual http calls.
         httpGetFunction = spy(new HTTPGetFunctionImpl());
         doNothing().when(httpGetFunction).executeHttpMethod(any(), any(), any());
+        IdentityEventService identityEventService = mock(IdentityEventService.class);
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @AfterClass
     protected void tearDown() {
 
         unsetAllowedDomains();
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
     }
 
     @AfterMethod
@@ -253,6 +273,15 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 eventHandlers, eventHandlers, eventHandlers, eventHandlers);
     }
 
+    @Test
+    public void testHttpGetWithComplexResponse() throws JsTestException {
+
+        sequenceHandlerRunner.registerJsFunction("validateResponse", new ResponseValidatorImpl());
+        String result = executeHttpGetFunction("dummy-get-with-complex-response", TEST_HTTP_GET_WITH_COMPLEX_RESPONSE);
+        assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
+
+    }
+
     private void setAllowedDomain(String domain) {
 
         ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions().add(domain);
@@ -315,6 +344,8 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
             case "dummy-get-with-clientcredential-auth-config":
                 return String.format(script, getRequestUrl("dummy-get-with-clientcredential-auth-config"),
                         getRequestUrl("dummy-token-endpoint"));
+            case "dummy-get-with-complex-response":
+                return String.format(script, getRequestUrl("dummy-get-with-complex-response"));
             default:
                 return null;
         }
@@ -450,6 +481,19 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return response;
     }
 
+    @GET
+    @Path("/dummy-get-with-complex-response")
+    @Produces("application/json")
+    public Map<String, Object> dummyGetWithClientComplexResponse()
+            throws JsTestException {
+
+        Map<String, Object> response = new HashMap<>();
+        JsonObject responseObject = sequenceHandlerRunner.loadJson(HTTP_GET_RESPONSE, this);
+        response.put("data", responseObject);
+        response.put(STATUS, SUCCESS);
+        return response;
+    }
+
     /**
      * Dummy token endpoint to test the http get function with clientcredential auth config.
      *
@@ -475,4 +519,38 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         }
         return response;
     }
+
+    /**
+     * Response validator implementation.
+     */
+    public class ResponseValidatorImpl implements ResponseValidator {
+
+        /**
+         * Validate the response.
+         *
+         * @param response JSON Response.
+         * @return True if the JSON response matches the expected response.
+         */
+        @Override
+        @HostAccess.Export
+        public boolean validateResponse(JsParameters response) throws JsTestException {
+
+            if (response != null) {
+                JsonObject expectedResponse = sequenceHandlerRunner.loadJson(HTTP_GET_RESPONSE, this);
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(JsGraalWritableParameters.class, new JsGraalWritableParametersSerializer())
+                        .create();
+                String dataStr;
+                if (response instanceof JsGraalWritableParameters) {
+                    dataStr = gson.toJson(response);
+                } else {
+                    dataStr = gson.toJson(response.getWrapped());
+                }
+                JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                return actualResponse.equals(expectedResponse);
+            }
+            return false;
+        }
+    }
+
 }

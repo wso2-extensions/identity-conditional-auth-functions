@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.elk.ElasticAnalyticsE
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,7 +84,7 @@ public class ElasticFunctionsServiceComponent {
             String keyStoreType = config.getFirstProperty(SECURITY_TRUSTSTORE_TYPE);
             String password = config.getFirstProperty(SECURITY_TRUSTSTORE_PASSWORD);
             try (InputStream keyStoreStream = Files.newInputStream(Paths.get(filePath))) {
-                KeyStore keyStore = KeyStore.getInstance(keyStoreType); // or "PKCS12"
+                KeyStore keyStore = KeystoreUtils.getKeystoreInstance(keyStoreType); // or "PKCS12"
                 keyStore.load(keyStoreStream, password.toCharArray());
                 ElasticFunctionsServiceHolder.getInstance().setTrustStore(keyStore);
             } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {

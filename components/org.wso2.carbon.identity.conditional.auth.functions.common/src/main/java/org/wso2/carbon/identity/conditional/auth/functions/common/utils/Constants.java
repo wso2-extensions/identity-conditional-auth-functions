@@ -39,6 +39,10 @@ public class Constants {
     public static final String CONNECTION_POOL_MAX_CONNECTIONS = "AdaptiveAuth.MaxTotalConnections";
     public static final String CONNECTION_POOL_MAX_CONNECTIONS_PER_ROUTE = "AdaptiveAuth.MaxTotalConnectionsPerRoute";
 
+    public static final String HTTP_FUNCTIONS_MAX_CONNECTIONS = "AdaptiveAuth.HTTPFunctions.MaxConnections";
+    public static final String HTTP_FUNCTIONS_MAX_CONNECTIONS_PER_ROUTE =
+            "AdaptiveAuth.HTTPFunctions.MaxConnectionsPerRoute";
+
     public static final String CALL_CHOREO_HTTP_CONNECTION_TIMEOUT = "AdaptiveAuth.CallChoreo.HTTPConnectionTimeout";
 
     public static final String CALL_CHOREO_HTTP_CONNECTION_REQUEST_TIMEOUT = "AdaptiveAuth.CallChoreo.HTTPConnectionRequestTimeout";
@@ -49,6 +53,8 @@ public class Constants {
     public static final String HTTP_FUNCTION_ALLOWED_DOMAINS = "AdaptiveAuth.HTTPFunctionAllowedDomains.Domain";
     public static final String CHOREO_DOMAINS = "AdaptiveAuth.ChoreoDomains.Domain";
     public static final String CHOREO_TOKEN_ENDPOINT = "AdaptiveAuth.ChoreoTokenEndpoint";
+
+    public static final String SAAS_ENABLE_CROSS_TENANT_OPERATIONS = "SaaS.EnableCrossTenantOperations";
 
     /**
      * Define logging constants.

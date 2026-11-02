@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>1.2.62-SNAPSHOT</version>
+        <version>1.3.9-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -39,16 +39,6 @@
         <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -70,14 +60,20 @@
             <groupId>net.minidev</groupId>
             <artifactId>json-smart</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -95,12 +91,15 @@
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging,
-                            org.osgi.service.component;version="${org.osgi.service.imp.pkg.version}",
-                            org.wso2.carbon.identity.application.authentication.framework;version="${carbon.identity.framework.version}",
-                            org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.framework.version}",
+                            org.osgi.service.component;version="${org.osgi.service.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.exception;version="${carbon.identity.package.import.version.range}",
                             com.nimbusds.jose.*;version="${nimbusds.osgi.version.range}",
                             net.minidev.json; version="${net.minidev.json.imp.pkg.version.range}"
                         </Import-Package>
+                        <DynamicImport-Package>
+                            org.graalvm.polyglot
+                        </DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>

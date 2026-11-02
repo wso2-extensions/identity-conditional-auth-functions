@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,10 +19,15 @@
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -38,6 +43,7 @@ import java.util.Arrays;
  */
 public class Utils {
 
+    private static final Log LOG = LogFactory.getLog(Utils.class);
     private static final String USERNAME_LOCAL_CLAIM = "http://wso2.org/claims/username";
 
     /**
@@ -145,6 +151,22 @@ public class Utils {
             userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
         }
         return userIdClaimURI;
+    }
+
+    /**
+     * Check whether the user belongs to the current tenant domain.
+     *
+     * @param userTenantDomain Tenant domain of the user.
+     * @return true if the user belongs to the current tenant domain. Else false.
+     * @deprecated This method always checks against "carbon.super" when tenant-qualified URLs are disabled,
+     *             which returns an incorrect value. Use
+     *             {@link AdaptiveAuthUtils#isUserInCurrentTenant(String, AuthenticationContext)} instead.
+     */
+    @Deprecated
+    public static boolean isUserInCurrentTenant(String userTenantDomain) {
+
+        String tenantDomainFromContext = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return StringUtils.equals(userTenantDomain, tenantDomainFromContext);
     }
 
 }

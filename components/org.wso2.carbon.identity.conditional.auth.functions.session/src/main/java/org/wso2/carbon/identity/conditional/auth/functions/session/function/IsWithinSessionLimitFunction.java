@@ -25,8 +25,11 @@ import java.util.Map;
 
 /**
  * Function definition for verify some defined requirement is fulfilled.
+ *
+ * @deprecated
  */
 @FunctionalInterface
+@Deprecated
 public interface IsWithinSessionLimitFunction {
 
     /**

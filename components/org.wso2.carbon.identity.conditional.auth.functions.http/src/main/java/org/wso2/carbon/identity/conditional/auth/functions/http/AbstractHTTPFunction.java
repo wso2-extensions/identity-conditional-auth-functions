@@ -29,6 +29,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -75,8 +76,8 @@ public abstract class AbstractHTTPFunction implements Closeable {
 
     /**
      * One client (and connection pool) per tenant, so that a slow endpoint of one tenant cannot exhaust the
-     * connections of the others. Each tenant's pool uses the Apache HttpClient defaults, exactly as the previous
-     * deployment-wide client did, so the pool limits now apply per tenant.
+     * connections of the others. The configured max connections and max connections per route apply to each
+     * tenant's pool, not to the deployment as a whole.
      */
     private final TenantHttpClientManager tenantClients;
 
@@ -91,8 +92,23 @@ public abstract class AbstractHTTPFunction implements Closeable {
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();
-        tenantClients = new TenantHttpClientManager(
-                () -> HttpClientBuilder.create().setDefaultRequestConfig(config).build(),
+        int httpFunctionsMaxConnections = ConfigProvider.getInstance().getHttpFunctionsMaxConnections();
+        int httpFunctionsMaxConnectionsPerRoute =
+                ConfigProvider.getInstance().getHttpFunctionsMaxConnectionsPerRoute();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Initializing HTTP functions tenant clients with max connections: " +
+                    httpFunctionsMaxConnections + ", max per route: " + httpFunctionsMaxConnectionsPerRoute);
+        }
+        tenantClients = new TenantHttpClientManager(() -> {
+            // Every tenant gets its own pool, so the configured limits apply per tenant.
+            PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+            connectionManager.setMaxTotal(httpFunctionsMaxConnections);
+            connectionManager.setDefaultMaxPerRoute(httpFunctionsMaxConnectionsPerRoute);
+            return HttpClientBuilder.create()
+                    .setConnectionManager(connectionManager)
+                    .setDefaultRequestConfig(config)
+                    .build();
+        },
                 getPositiveIntProperty(HTTPConstants.MAX_TENANT_CLIENTS, HTTPConstants.DEFAULT_MAX_TENANT_CLIENTS),
                 TimeUnit.SECONDS.toMillis(getPositiveIntProperty(HTTPConstants.TENANT_CLIENT_IDLE_TIMEOUT_SECONDS,
                         HTTPConstants.DEFAULT_TENANT_CLIENT_IDLE_TIMEOUT_SECONDS)));

@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.CommonUtils.getPayloadDataMap;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_FAIL;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_SUCCESS;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.OUTCOME_TIMEOUT;
@@ -73,7 +74,7 @@ public class CallAnalyticsFunctionImpl extends AbstractAnalyticsFunction impleme
          * Eg: Polyglot Map (Map implementation from GraalJS) will be unavailable when the Polyglot Context is closed.
          */
         Map<String, String> metadataMap = new HashMap<>(metadata);
-        Map<String, Object> payloadDataMap = new HashMap<>(payloadData);
+        Map<String, Object> payloadDataMap = getPayloadDataMap(payloadData);
         AsyncProcess asyncProcess = new AsyncProcess((authenticationContext, asyncReturn) -> {
 
             String appName = metadataMap.get(PARAM_APP_NAME);

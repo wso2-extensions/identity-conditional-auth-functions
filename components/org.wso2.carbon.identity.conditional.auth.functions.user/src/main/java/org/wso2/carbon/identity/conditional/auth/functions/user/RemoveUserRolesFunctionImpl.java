@@ -1,7 +1,7 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License.
  *  You may obtain a copy of the License at
@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -63,6 +64,10 @@ public class RemoveUserRolesFunctionImpl implements RemoveUserRolesFunction {
                 String username = user.getWrapped().getUserName();
                 UserRealm userRealm = Utils.getUserRealm(tenantDomain);
                 if (userRealm != null) {
+                    if (!AdaptiveAuthUtils.isUserInCurrentTenant(user.getWrapped().getTenantDomain(), user.getContext())) {
+                        LOG.warn("Removing roles in cross tenants is not allowed.");
+                        return false;
+                    }
                     UserStoreManager userStore = Utils.getUserStoreManager(tenantDomain, userRealm, userStoreDomain);
                     userStore.updateRoleListOfUser(
                             username,

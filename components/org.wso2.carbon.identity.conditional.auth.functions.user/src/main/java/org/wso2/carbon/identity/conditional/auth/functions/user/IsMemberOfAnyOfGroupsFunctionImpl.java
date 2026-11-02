@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,8 +26,10 @@ import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -58,6 +60,10 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
 
         boolean result = false;
         String tenantDomain = user.getWrapped().getTenantDomain();
+        if (!AdaptiveAuthUtils.isUserInCurrentTenant(tenantDomain, user.getContext())) {
+            LOG.warn("Cross-tenant group membership checks are not allowed.");
+            return false;
+        }
         String userStoreDomain = user.getWrapped().getUserStoreDomain();
         String username = user.getWrapped().getUserName();
 
@@ -109,11 +115,38 @@ public class IsMemberOfAnyOfGroupsFunctionImpl implements IsMemberOfAnyOfGroupsF
     private String getGroupsClaimURI(JsAuthenticatedUser user) {
 
         String groupsClaimURI = getGroupsClaimURIByClaimMappings(user);
-        if (groupsClaimURI == null && user.getContext().getCurrentAuthenticator() != null &&
-                OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) {
+
+        if (groupsClaimURI == null && isUserAuthenticatedFromOpenIdConnectAuthenticator(user)) {
             groupsClaimURI = DEFAULT_OIDC_GROUPS_CLAIM_URI;
         }
         return groupsClaimURI;
+    }
+
+    /**
+     * Checks if the federated user is authenticated through OpenIDConnectAuthenticator.
+     *
+     * @param user The authenticated user.
+     * @return true if the federated user is authenticated through OpenIDConnectAuthenticator, false otherwise.
+     */
+    private boolean isUserAuthenticatedFromOpenIdConnectAuthenticator(JsAuthenticatedUser user) {
+
+        String federatedIdPName = user.getContext().getLastAuthenticatedUser().getFederatedIdPName();
+        Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = user.getContext().getPreviousAuthenticatedIdPs();
+
+        if (user.getContext().getCurrentAuthenticator() != null &&
+                OPENIDCONNECT_AUTHENTICATOR_NAME.equals(user.getContext().getCurrentAuthenticator())) {
+            return true;
+        }
+
+        // Upon SSO, the authenticator will persist in previousAuthenticatedIdPs.
+        if (user.getContext().getCurrentAuthenticator() == null &&
+                federatedIdPName != null && previousAuthenticatedIdPs != null &&
+                previousAuthenticatedIdPs.containsKey(federatedIdPName) &&
+                previousAuthenticatedIdPs.get(federatedIdPName).getAuthenticators().get(0).getName()
+                        .equals(OPENIDCONNECT_AUTHENTICATOR_NAME)) {
+            return true;
+        }
+        return false;
     }
 
     /**

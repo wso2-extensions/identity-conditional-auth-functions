@@ -30,6 +30,7 @@ public class HTTPConstants {
     public static final String DECRYPT = "decrypt";
     public static final String VALUE = "value";
     public static final String SIGNATURE = "signature";
+    public static final String KEY_STORE_CONTEXT = "cookie";
 
     // Per-tenant HTTP client pool settings (identity.xml, AdaptiveAuth section).
     public static final String MAX_TENANT_CLIENTS = "AdaptiveAuth.HTTPFunctions.MaxTenantClients";

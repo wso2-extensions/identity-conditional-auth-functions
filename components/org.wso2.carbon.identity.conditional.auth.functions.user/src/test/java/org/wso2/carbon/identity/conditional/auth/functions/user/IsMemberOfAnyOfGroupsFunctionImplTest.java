@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,39 +18,74 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.user;
 
-import org.testng.annotations.AfterMethod;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.user.internal.UserFunctionsServiceHolder;
+import org.mockito.MockedStatic;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 @WithCarbonHome
 @WithH2Database(files = "dbscripts/h2.sql")
 @WithRealmService(injectToSingletons = {UserFunctionsServiceHolder.class, IdentityTenantUtil.class,
-        FrameworkServiceDataHolder.class})
+        FrameworkServiceDataHolder.class, OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     @WithRealmService
     private RealmService realmService;
+
+    @BeforeClass
+    protected void setUpMocks() {
+
+        IdentityEventService identityEventService = mock(IdentityEventService.class);
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain("carbon.super", true);
+    }
+
+    @AfterClass
+    protected void tearDown() {
+
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+        PrivilegedCarbonContext.destroyCurrentContext();
+    }
 
     @BeforeMethod
     protected void setUp() throws Exception {
@@ -65,11 +100,6 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
                 new String[]{"user1", "user3"}, null);
     }
 
-    @AfterMethod
-    public void tearDown() {
-
-    }
-
     @Test(dataProvider = "isMemberOfAnyOfGroupsDataProvider")
     public void testHasAnyOfTheRoles(String user, boolean steppedUp) throws Exception {
 
@@ -79,6 +109,7 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
                 this);
 
         AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
+        context.setTenantDomain("carbon.super");
 
         SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, sp1);
@@ -103,5 +134,81 @@ public class IsMemberOfAnyOfGroupsFunctionImplTest extends JsSequenceHandlerAbst
                 {"user3", true},
                 {"user4", false}
         };
+    }
+
+    /**
+     * Data provider for cross-tenant group membership check scenarios.
+     *
+     * Columns: isSaas, isCrossTenantEnabled, isTenantQualified,
+     *          userTenantDomain, authContextTenantDomain, carbonContextTenantDomain, expected
+     */
+    @DataProvider(name = "crossTenantScenarioDataProvider")
+    public Object[][] getCrossTenantScenarioData() {
+
+        return new Object[][]{
+                // Non-SaaS, tenant-qualified=false: validated against authCtx tenant.
+                {false, false, false, "t2.com", "t2.com", "carbon.super", false},
+                {false, false, false, "t1.com", "t2.com", "carbon.super", false},
+                // Non-SaaS, tenant-qualified=true: validated against PCC tenant.
+                {false, false, true,  "t2.com", "t3.com", "t2.com", false},
+                {false, false, true,  "t1.com", "t3.com", "t2.com", false},
+                // SaaS + cross-tenant enabled: bypass tenant check.
+                {true,  true,  false, "t2.com", "t1.com", "carbon.super", false},
+                {true,  true,  false, "t1.com", "t1.com", "carbon.super", false},
+                // SaaS + cross-tenant disabled: falls through to normal check.
+                {true,  false, false, "t2.com", "t1.com", "carbon.super", false},
+        };
+    }
+
+    /**
+     * Verifies cross-tenant behaviour of {@link IsMemberOfAnyOfGroupsFunctionImpl#isMemberOfAnyOfGroups} across
+     * non-SaaS and SaaS scenarios, including the SaaS.EnableCrossTenantOperations config check.
+     */
+    @Test(dataProvider = "crossTenantScenarioDataProvider")
+    public void testCrossTenantScenarioInSaaSApp(boolean isSaas, boolean isCrossTenantEnabled,
+            boolean isTenantQualified, String userTenantDomain, String authContextTenantDomain,
+            String carbonContextTenantDomain, boolean expected) throws Exception {
+
+        PrivilegedCarbonContext.startTenantFlow();
+        try {
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(carbonContextTenantDomain, true);
+
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setUserName("testUser");
+            authenticatedUser.setTenantDomain(userTenantDomain);
+            authenticatedUser.setUserStoreDomain("PRIMARY");
+
+            // Wire up SequenceConfig -> ApplicationConfig -> ServiceProvider chain.
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isSaasApp()).thenReturn(isSaas);
+
+            ApplicationConfig appConfig = mock(ApplicationConfig.class);
+            when(appConfig.getServiceProvider()).thenReturn(serviceProvider);
+
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
+
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain(authContextTenantDomain);
+            context.setSequenceConfig(sequenceConfig);
+
+            JsAuthenticatedUser jsUser = new JsGraalAuthenticatedUser(context, authenticatedUser);
+            List<String> groups = Arrays.asList("group1", "group2");
+
+            try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+                    MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+                identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualified);
+                identityUtil.when(() -> IdentityUtil.getProperty(Constants.SAAS_ENABLE_CROSS_TENANT_OPERATIONS))
+                        .thenReturn(String.valueOf(isCrossTenantEnabled));
+
+                IsMemberOfAnyOfGroupsFunctionImpl isMemberOfAnyOfGroupsFunction =
+                        new IsMemberOfAnyOfGroupsFunctionImpl();
+                boolean result = isMemberOfAnyOfGroupsFunction.isMemberOfAnyOfGroups(jsUser, groups);
+                Assert.assertEquals(result, expected, "Cross-tenant group membership check should return " + expected);
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
     }
 }

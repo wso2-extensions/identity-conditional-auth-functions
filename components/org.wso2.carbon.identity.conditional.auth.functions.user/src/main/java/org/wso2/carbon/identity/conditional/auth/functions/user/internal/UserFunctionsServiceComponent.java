@@ -51,6 +51,8 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.HasRoleFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.IsAnyOfTheRolesAssignedToUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.PromptIdentifierFunctionImpl;
+import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveAssociatedLocalUserFunction;
+import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveAssociatedLocalUserFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesFunctionImpl;
 import org.wso2.carbon.identity.conditional.auth.functions.user.RemoveUserRolesV2Function;
@@ -60,6 +62,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssoci
 import org.wso2.carbon.identity.conditional.auth.functions.user.SetAccountAssociationToLocalUser;
 import org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunction;
 import org.wso2.carbon.identity.conditional.auth.functions.user.UpdateUserPasswordFunctionImpl;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -90,6 +93,7 @@ public class UserFunctionsServiceComponent {
             RemoveUserRolesFunction removeUserRolesFunctionImpl = new RemoveUserRolesFunctionImpl();
             GetAssociatedLocalUserFunction getAssociatedLocalUserFunctionImpl = new GetAssociatedLocalUserFunctionImpl();
             SetAccountAssociationToLocalUser setAccountAssociationToLocalUserImpl = new SetAccountAssociationToLocalUserImpl();
+            RemoveAssociatedLocalUserFunction removeAssociatedLocalUserFunctionImpl = new RemoveAssociatedLocalUserFunctionImpl();
             MicrosoftEmailVerificationFunction microsoftEmailVerificationFunction = new MicrosoftEmailVerificationFunctionImpl();
             UpdateUserPasswordFunction updateUserPasswordFunction = new UpdateUserPasswordFunctionImpl();
 
@@ -129,6 +133,8 @@ public class UserFunctionsServiceComponent {
                     microsoftEmailVerificationFunction);
             jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "updateUserPassword",
                     updateUserPasswordFunction);
+            jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "removeAssociatedLocalUser",
+                    removeAssociatedLocalUserFunctionImpl);
         } catch (Throwable e) {
             LOG.error("Error occurred during conditional authentication user functions bundle activation. ", e);
         }
@@ -284,5 +290,22 @@ public class UserFunctionsServiceComponent {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Role management service is unset in the conditional authentication user functions bundle");
         }
+    }
+
+    @Reference(name = "identity.organization.management.component",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        UserFunctionsServiceHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("Organization manager service is set in the conditional authentication user functions bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        UserFunctionsServiceHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("Organization manager service is unset in the conditional authentication user functions bundle.");
     }
 }

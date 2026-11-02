@@ -23,9 +23,7 @@ import org.apache.http.Header;
 import org.apache.http.client.methods.HttpPost;
 import org.mockito.Mock;
 import org.testng.Assert;
-import org.testng.IObjectFactory;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.conditional.auth.functions.session.util.SessionValidationConstants;
@@ -82,11 +80,5 @@ public class SessionValidationUtilTest {
         Header header = httpPost.getFirstHeader(HTTPConstants.HEADER_AUTHORIZATION);
 
         Assert.assertEquals("Basic " + authHeader, header.getValue());
-    }
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 }

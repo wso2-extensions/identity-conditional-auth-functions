@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
         <artifactId>identity-conditional-auth-functions</artifactId>
-        <version>1.2.62-SNAPSHOT</version>
+        <version>1.3.9-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -63,6 +63,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
             <artifactId>org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
+            <artifactId>org.wso2.carbon.identity.conditional.auth.functions.devicepolicy</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.conditional.auth.functions</groupId>
@@ -109,6 +113,7 @@
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.user.store</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.jwt.decode</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.devicepolicy</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.choreo</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.conditional.auth.functions:org.wso2.carbon.identity.conditional.auth.functions.utils</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpasyncclient</bundleDef>

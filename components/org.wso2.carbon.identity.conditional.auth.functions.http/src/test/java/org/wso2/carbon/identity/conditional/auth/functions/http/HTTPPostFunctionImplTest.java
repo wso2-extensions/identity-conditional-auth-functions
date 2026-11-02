@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.conditional.auth.functions.http;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -28,6 +31,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.graalvm.polyglot.HostAccess;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -35,6 +39,8 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -43,15 +49,20 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.InjectMicroservicePort;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithMicroService;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.conditional.auth.functions.common.utils.ConfigProvider;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.serialize.JsGraalWritableParametersSerializer;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsSequenceHandlerAbstractTest;
 import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.JsTestException;
+import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.ResponseValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import java.util.Date;
 import java.time.Instant;
@@ -67,7 +78,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.doNothing;
@@ -75,8 +87,10 @@ import static org.testng.Assert.assertEquals;
 
 @WithCarbonHome
 @WithMicroService
-@WithH2Database(files = {"dbscripts/h2_http.sql"})
-@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class})
+@WithH2Database(files = {"dbscripts/h2.sql"})
+@WithRealmService(injectToSingletons = {IdentityTenantUtil.class, FrameworkServiceDataHolder.class,
+        OrganizationManagementDataHolder.class},
+        injectUMDataSourceTo = OrganizationManagementDataHolder.class)
 @Path("/")
 public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
@@ -94,6 +108,8 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String ALLOWED_DOMAIN = "abc";
     private static final String AUTHORIZATION = "Authorization";
     private static final String API_KEY_HEADER = "X-API-KEY";
+    public static final String HTTP_POST_PAYLOAD = "http-post-payload.json";
+    public static final String HTTP_POST_PAYLOAD_TEST_SP = "http-post-payload-test-sp.xml";
     private HTTPPostFunctionImpl httpPostFunction;
 
     @InjectMicroservicePort
@@ -116,12 +132,15 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         // Mocking the executeHttpMethod method to avoid actual http calls.
         httpPostFunction = spy(new HTTPPostFunctionImpl());
         doNothing().when(httpPostFunction).executeHttpMethod(any(), any(), any());
+        IdentityEventService identityEventService = mock(IdentityEventService.class);
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @AfterClass
     protected void tearDown() {
 
         unsetAllowedDomains();
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
     }
 
     @AfterMethod
@@ -230,6 +249,21 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     }
 
     /**
+     * Test httpPost method with payload.
+     * Check if the payload data is sent with the request.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpPostMethodWithPayload() throws JsTestException {
+
+        sequenceHandlerRunner.registerJsFunction("validateResponse", new ResponseValidatorImpl());
+        String result = executeHttpPostFunction("dummy-post-with-payload", HTTP_POST_PAYLOAD_TEST_SP);
+        assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: "
+                + result);
+    }
+
+    /**
      * Tests the behavior of the httpPost function when provided with null headers.
      *
      * @throws IllegalArgumentException if the provided arguments are not valid.
@@ -291,7 +325,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return context.getSelectedAcr();
     }
 
-    private void updateSPAuthScriptRequestUrl(ServiceProvider sp, String path) {
+    private void updateSPAuthScriptRequestUrl(ServiceProvider sp, String path) throws JsTestException {
 
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
                 sp.getLocalAndOutBoundAuthenticationConfig();
@@ -303,7 +337,7 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         sp.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
     }
 
-    private String getFormattedScript(String script, String path) {
+    private String getFormattedScript(String script, String path) throws JsTestException {
         switch (path) {
             case "dummy-post":
                 return String.format(script, getRequestUrl("dummy-post"));
@@ -318,6 +352,10 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
             case "dummy-post-with-clientcredential-auth-config":
                 return String.format(script, getRequestUrl("dummy-post-with-clientcredential-auth-config"),
                         getRequestUrl("dummy-token-endpoint"));
+            case "dummy-post-with-payload":
+                JsonObject Payload = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
+                String requestUrl = getRequestUrl("dummy-post-with-payload");
+                return String.format(script, Payload.toString(), requestUrl, requestUrl);
             default:
                 return null;
         }
@@ -466,6 +504,28 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         return response;
     }
 
+    @POST
+    @Path("/dummy-post-with-payload")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Map<String, Object> dummyPostWithPayload(Map<String, Object> data) throws JsTestException {
+
+        JsonObject expectedPayload = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
+        Gson gson = new Gson();
+        String dataStr = gson.toJson(data);
+        JsonObject actualPayload = gson.fromJson(dataStr, JsonObject.class);
+        Map<String, Object> response = new HashMap<>();
+        response.put(STATUS, SUCCESS);
+        response.put("data", expectedPayload);
+
+        if (expectedPayload.equals(actualPayload)) {
+            return response;
+        } else {
+            throw new JsTestException("Payloads do not match. " +
+                    String.format("Expected payload: %s, Actual payload: %s", expectedPayload, actualPayload));
+        }
+    }
+
     /**
      * Dummy token endpoint to test the http post function with clientcredential auth config.
      *
@@ -490,5 +550,38 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
             response.put(STATUS, FAILED);
         }
         return response;
+    }
+
+    /**
+     * Response validator implementation.
+     */
+    public class ResponseValidatorImpl implements ResponseValidator {
+
+        /**
+         * Validate the response.
+         *
+         * @param response Response.
+         * @return True if the JSON response matches the expected response.
+         */
+        @Override
+        @HostAccess.Export
+        public boolean validateResponse(JsParameters response) throws JsTestException {
+
+            if (response != null) {
+                JsonObject expectedResponse = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(JsGraalWritableParameters.class, new JsGraalWritableParametersSerializer())
+                        .create();
+                String dataStr;
+                if (response instanceof JsGraalWritableParameters) {
+                    dataStr = gson.toJson(response);
+                } else {
+                    dataStr = gson.toJson(response.getWrapped());
+                }
+                JsonObject actualResponse = gson.fromJson(dataStr, JsonObject.class);
+                return actualResponse.equals(expectedResponse);
+            }
+            return false;
+        }
     }
 }

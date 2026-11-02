@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2018-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.conditional.auth.functions.common.utils.AdaptiveAuthUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.notification.internal.NotificationFunctionServiceHolder;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.notification.NotificationConstants;
 import org.wso2.carbon.identity.event.handler.notification.exception.NotificationRuntimeException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,9 +48,14 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
     @HostAccess.Export
     public boolean sendMail(JsAuthenticatedUser user, String templateId, Map<String, String> paramMap) {
 
+        if (!AdaptiveAuthUtils.isUserInCurrentTenant(user.getWrapped().getTenantDomain(), user.getContext())) {
+            LOG.warn("Send Emails in cross tenants is not allowed.");
+            return false;
+        }
+
         String eventName = IdentityEventConstants.Event.TRIGGER_NOTIFICATION;
 
-        HashMap<String, Object> properties = new HashMap<>(paramMap);
+        HashMap<String, Object> properties = new HashMap<>(paramMap != null ? paramMap : Collections.emptyMap());
         properties.put(IdentityEventConstants.EventProperty.USER_NAME, user.getWrapped().getUserName());
         properties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, user.getWrapped().getTenantDomain());
         properties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, user.getWrapped().getUserStoreDomain());
@@ -71,4 +78,5 @@ public class SendEmailFunctionImpl implements SendEmailFunction {
         }
         return true;
     }
+
 }
