@@ -92,9 +92,12 @@ public abstract class AbstractHTTPFunction {
             LOG.debug("Initializing HTTP functions client with max connections: " +
                     httpFunctionsMaxConnections + ", max per route: " + httpFunctionsMaxConnectionsPerRoute);
         }
+        // The client is shared by every tenant, so it must not keep cookies: a cookie set by an endpoint called
+        // for one tenant would otherwise be sent on later requests made for any tenant.
         client = HttpClientBuilder.create()
                 .setConnectionManager(connectionManager)
                 .setDefaultRequestConfig(config)
+                .disableCookieManagement()
                 .build();
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
