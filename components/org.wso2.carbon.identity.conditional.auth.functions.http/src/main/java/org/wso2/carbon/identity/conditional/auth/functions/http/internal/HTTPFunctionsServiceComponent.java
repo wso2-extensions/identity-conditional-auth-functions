@@ -53,6 +53,9 @@ public class HTTPFunctionsServiceComponent {
     public static final String FUNC_SET_COOKIE = "setCookie";
     public static final String FUNC_GET_COOKIE_VALUE = "getCookieValue";
 
+    private HTTPPostFunctionImpl httpPostFunction;
+    private HTTPGetFunctionImpl httpGetFunction;
+
     @Activate
     protected void activate(ComponentContext ctxt) {
 
@@ -61,10 +64,12 @@ public class HTTPFunctionsServiceComponent {
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
                 FUNC_SET_COOKIE, new SetCookieFunctionImpl());
 
-        HTTPPostFunction httpPost = new HTTPPostFunctionImpl();
+        HTTPPostFunctionImpl httpPost = new HTTPPostFunctionImpl();
+        httpPostFunction = httpPost;
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST, httpPost);
 
-        HTTPGetFunction httpGet = new HTTPGetFunctionImpl();
+        HTTPGetFunctionImpl httpGet = new HTTPGetFunctionImpl();
+        httpGetFunction = httpGet;
         jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_GET, httpGet);
     }
 
@@ -76,6 +81,16 @@ public class HTTPFunctionsServiceComponent {
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_SET_COOKIE);
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_GET_COOKIE_VALUE);
             jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_POST);
+            jsFunctionRegistry.deRegister(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, FUNC_HTTP_GET);
+        }
+        // Release the per-tenant connection pools.
+        if (httpPostFunction != null) {
+            httpPostFunction.close();
+            httpPostFunction = null;
+        }
+        if (httpGetFunction != null) {
+            httpGetFunction.close();
+            httpGetFunction = null;
         }
     }
 

@@ -26,6 +26,8 @@
             <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPGetFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.http.HTTPPostFunctionImplTest"/>
             <class name="org.wso2.carbon.identity.conditional.auth.functions.http.SimpleCryptoProviderTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.TenantHttpClientManagerTest"/>
+            <class name="org.wso2.carbon.identity.conditional.auth.functions.http.internal.HTTPFunctionsServiceComponentTest"/>
         </classes>
     </test>
     <test name="http-functions-graaljs" parallel="false">

@@ -41,8 +41,12 @@ import org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constant
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfig;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigFactory;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.TenantHttpClientManager;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
@@ -50,6 +54,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.wso2.carbon.identity.conditional.auth.functions.http.util.HttpUtil.getInvokeApiActionId;
@@ -57,7 +62,7 @@ import static org.wso2.carbon.identity.conditional.auth.functions.http.util.Http
 /**
  * Abstract class for handling http calls.
  */
-public abstract class AbstractHTTPFunction {
+public abstract class AbstractHTTPFunction implements Closeable {
 
     private static final Log LOG = LogFactory.getLog(AbstractHTTPFunction.class);
     protected static final String TYPE_APPLICATION_JSON = "application/json";
@@ -68,7 +73,12 @@ public abstract class AbstractHTTPFunction {
     private final int requestRetryCount;
     private final List<String> allowedDomains;
 
-    private CloseableHttpClient client;
+    /**
+     * One client (and connection pool) per tenant, so that a slow endpoint of one tenant cannot exhaust the
+     * connections of the others. Each tenant's pool uses the Apache HttpClient defaults, exactly as the previous
+     * deployment-wide client did, so the pool limits now apply per tenant.
+     */
+    private final TenantHttpClientManager tenantClients;
 
     public AbstractHTTPFunction() {
 
@@ -81,8 +91,38 @@ public abstract class AbstractHTTPFunction {
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();
-        client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+        tenantClients = new TenantHttpClientManager(
+                () -> HttpClientBuilder.create().setDefaultRequestConfig(config).build(),
+                getPositiveIntProperty(HTTPConstants.MAX_TENANT_CLIENTS, HTTPConstants.DEFAULT_MAX_TENANT_CLIENTS),
+                TimeUnit.SECONDS.toMillis(getPositiveIntProperty(HTTPConstants.TENANT_CLIENT_IDLE_TIMEOUT_SECONDS,
+                        HTTPConstants.DEFAULT_TENANT_CLIENT_IDLE_TIMEOUT_SECONDS)));
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
+    }
+
+    private static int getPositiveIntProperty(String key, int defaultValue) {
+
+        String value = IdentityUtil.getProperty(key);
+        if (value != null) {
+            try {
+                int parsed = Integer.parseInt(value.trim());
+                if (parsed > 0) {
+                    return parsed;
+                }
+            } catch (NumberFormatException e) {
+                // Fall through to the default.
+            }
+            LOG.warn("Invalid value '" + value + "' for " + key + ". Using the default: " + defaultValue);
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Close the HTTP clients of all tenants. Requests still running are allowed to finish first.
+     */
+    @Override
+    public void close() {
+
+        tenantClients.close();
     }
 
     private enum RetryDecision {
@@ -104,6 +144,7 @@ public abstract class AbstractHTTPFunction {
         AsyncProcess asyncProcess = new AsyncProcess((context, asyncReturn) -> {
             String outcome;
             String endpointURL = null;
+            String tenantDomain = context.getTenantDomain();
 
             HttpUriRequest request;
             try {
@@ -123,10 +164,11 @@ public abstract class AbstractHTTPFunction {
                             endpointURL);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 } else {
-                    Pair<RetryDecision, Pair<String, JSONObject>> result = executeRequest(request, endpointURL);
+                    Pair<RetryDecision, Pair<String, JSONObject>> result = executeRequest(request, endpointURL, tenantDomain);
                     if (result.getLeft().shouldRetry()) {
                         LOG.info("Failed to invoke the endpoint. Url: " + endpointURL + ". Retrying the request.");
-                        result = executeRequestWithRetries(request, endpointURL, requestRetryCount);
+                        result = executeRequestWithRetries(request, endpointURL, requestRetryCount,
+                                tenantDomain);
                     }
                     outcome = result.getRight().getLeft();
                     JSONObject json = result.getRight().getRight();
@@ -146,10 +188,11 @@ public abstract class AbstractHTTPFunction {
      * @param request     HttpUriRequest.
      * @param endpointURL Endpoint URL.
      * @param maxRetries  Maximum number of retries.
+     * @param tenantDomain Tenant domain whose client executes the request.
      * @return Pair of outcome and json.
      */
     private Pair<RetryDecision, Pair<String, JSONObject>> executeRequestWithRetries
-    (HttpUriRequest request, String endpointURL, int maxRetries) {
+    (HttpUriRequest request, String endpointURL, int maxRetries, String tenantDomain) {
 
         Pair<RetryDecision, Pair<String, JSONObject>> result;
         String outcome = Constants.OUTCOME_FAIL;
@@ -170,7 +213,7 @@ public abstract class AbstractHTTPFunction {
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
-            result = executeRequest(request, endpointURL);
+            result = executeRequest(request, endpointURL, tenantDomain);
             isRetry = result.getLeft();
             if (!isRetry.shouldRetry()) {
                 return result;
@@ -185,15 +228,18 @@ public abstract class AbstractHTTPFunction {
      *
      * @param request     HttpUriRequest.
      * @param endpointURL Endpoint URL.
+     * @param tenantDomain Tenant domain whose client executes the request.
      * @return Pair of outcome and json.
      */
-    private Pair<RetryDecision, Pair<String, JSONObject>> executeRequest(HttpUriRequest request, String endpointURL) {
+    private Pair<RetryDecision, Pair<String, JSONObject>> executeRequest(HttpUriRequest request, String endpointURL,
+                                                                         String tenantDomain) {
 
         JSONObject json = null;
         String outcome;
         RetryDecision isRetry = RetryDecision.NO_RETRY;
 
-        try (CloseableHttpResponse response = client.execute(request)) {
+        try (TenantHttpClientManager.Lease lease = tenantClients.acquire(tenantDomain);
+             CloseableHttpResponse response = lease.getClient().execute(request)) {
             int responseCode = response.getStatusLine().getStatusCode();
             if (responseCode >= 200 && responseCode < 300) {
                 if (response.getEntity() != null) {

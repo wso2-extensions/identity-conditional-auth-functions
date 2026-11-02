@@ -30,4 +30,11 @@ public class HTTPConstants {
     public static final String DECRYPT = "decrypt";
     public static final String VALUE = "value";
     public static final String SIGNATURE = "signature";
+
+    // Per-tenant HTTP client pool settings (identity.xml, AdaptiveAuth section).
+    public static final String MAX_TENANT_CLIENTS = "AdaptiveAuth.HTTPFunctions.MaxTenantClients";
+    public static final String TENANT_CLIENT_IDLE_TIMEOUT_SECONDS =
+            "AdaptiveAuth.HTTPFunctions.TenantClientIdleTimeoutSeconds";
+    public static final int DEFAULT_MAX_TENANT_CLIENTS = 200;
+    public static final int DEFAULT_TENANT_CLIENT_IDLE_TIMEOUT_SECONDS = 300;
 }
