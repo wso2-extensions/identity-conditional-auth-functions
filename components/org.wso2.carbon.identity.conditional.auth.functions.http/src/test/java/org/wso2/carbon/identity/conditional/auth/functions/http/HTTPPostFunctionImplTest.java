@@ -64,6 +64,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
+import org.wso2.msf4j.Response;
+
 import java.util.Date;
 import java.time.Instant;
 import java.util.HashMap;
@@ -77,6 +79,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -108,6 +111,9 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String ALLOWED_DOMAIN = "abc";
     private static final String AUTHORIZATION = "Authorization";
     private static final String API_KEY_HEADER = "X-API-KEY";
+    private static final String TEST_COOKIE_NAME = "tenantCookie";
+    private static final String HAS_COOKIE = "HAS_COOKIE";
+    private static final String NO_COOKIE = "NO_COOKIE";
     public static final String HTTP_POST_PAYLOAD = "http-post-payload.json";
     public static final String HTTP_POST_PAYLOAD_TEST_SP = "http-post-payload-test-sp.xml";
     private HTTPPostFunctionImpl httpPostFunction;
@@ -155,6 +161,16 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String result = executeHttpPostFunction("dummy-post", TEST_SP_CONFIG);
 
         assertEquals(result, SUCCESS, "The http post request was not successful. Result from request: " + result);
+    }
+
+    @Test
+    public void testCookiesAreIsolatedPerTenant() throws JsTestException {
+
+        assertEquals(executeHttpPostFunction("cookie-set", TEST_SP_CONFIG, "tenant-a.com"), SUCCESS);
+        assertEquals(executeHttpPostFunction("cookie-echo", TEST_SP_CONFIG, "tenant-b.com"), NO_COOKIE,
+                "A cookie received for tenant-a.com must not be sent for tenant-b.com.");
+        assertEquals(executeHttpPostFunction("cookie-echo", TEST_SP_CONFIG, "tenant-a.com"), HAS_COOKIE,
+                "A cookie received for tenant-a.com should still be sent for tenant-a.com.");
     }
 
     @Test(dependsOnMethods = {"testHttpPostMethod"})
@@ -307,6 +323,12 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
     private String executeHttpPostFunction(String path, String adaptiveAuthScript) throws JsTestException {
 
+        return executeHttpPostFunction(path, adaptiveAuthScript, null);
+    }
+
+    private String executeHttpPostFunction(String path, String adaptiveAuthScript, String contextTenantDomain)
+            throws JsTestException {
+
         ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(adaptiveAuthScript, this);
         updateSPAuthScriptRequestUrl(sp, path);
 
@@ -314,6 +336,9 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         SequenceConfig sequenceConfig = sequenceHandlerRunner.getSequenceConfig(context, sp);
         context.setSequenceConfig(sequenceConfig);
         context.initializeAnalyticsData();
+        if (contextTenantDomain != null) {
+            context.setTenantDomain(contextTenantDomain);
+        }
 
         HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
         HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
@@ -356,6 +381,9 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
                 JsonObject Payload = sequenceHandlerRunner.loadJson(HTTP_POST_PAYLOAD, this);
                 String requestUrl = getRequestUrl("dummy-post-with-payload");
                 return String.format(script, Payload.toString(), requestUrl, requestUrl);
+            case "cookie-set":
+            case "cookie-echo":
+                return String.format(script, getRequestUrl(path));
             default:
                 return null;
         }
@@ -385,6 +413,30 @@ public class HTTPPostFunctionImplTest extends JsSequenceHandlerAbstractTest {
         SignedJWT signedJWT = new SignedJWT(header, payload);
         signedJWT.sign(new RSASSASigner(senderJWK));
         return signedJWT.serialize();
+    }
+
+    @POST
+    @Path("/cookie-set")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public Map<String, String> cookieSet(@Context Response httpResponse, Map<String, String> data) {
+
+        httpResponse.setHeader("Set-Cookie", TEST_COOKIE_NAME + "=value; Path=/");
+        Map<String, String> response = new HashMap<>();
+        response.put(STATUS, SUCCESS);
+        return response;
+    }
+
+    @POST
+    @Path("/cookie-echo")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public Map<String, String> cookieEcho(@HeaderParam("Cookie") String cookie, Map<String, String> data) {
+
+        Map<String, String> response = new HashMap<>();
+        boolean hasCookie = cookie != null && cookie.contains(TEST_COOKIE_NAME + "=");
+        response.put(STATUS, hasCookie ? HAS_COOKIE : NO_COOKIE);
+        return response;
     }
 
     @POST

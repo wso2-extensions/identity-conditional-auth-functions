@@ -32,10 +32,10 @@ public class HTTPConstants {
     public static final String SIGNATURE = "signature";
     public static final String KEY_STORE_CONTEXT = "cookie";
 
-    // Per-tenant HTTP client pool settings (identity.xml, AdaptiveAuth section).
-    public static final String MAX_TENANT_CLIENTS = "AdaptiveAuth.HTTPFunctions.MaxTenantClients";
-    public static final String TENANT_CLIENT_IDLE_TIMEOUT_SECONDS =
-            "AdaptiveAuth.HTTPFunctions.TenantClientIdleTimeoutSeconds";
-    public static final int DEFAULT_MAX_TENANT_CLIENTS = 200;
-    public static final int DEFAULT_TENANT_CLIENT_IDLE_TIMEOUT_SECONDS = 300;
+    // Per-tenant cookie store settings for httpGet/httpPost (identity.xml, AdaptiveAuth section).
+    public static final String MAX_TENANT_COOKIE_STORES = "AdaptiveAuth.HTTPFunctions.MaxTenantCookieStores";
+    public static final String TENANT_COOKIE_STORE_IDLE_TIMEOUT_SECONDS =
+            "AdaptiveAuth.HTTPFunctions.TenantCookieStoreIdleTimeoutSeconds";
+    public static final int DEFAULT_MAX_TENANT_COOKIE_STORES = 1000;
+    public static final int DEFAULT_TENANT_COOKIE_STORE_IDLE_TIMEOUT_SECONDS = 1800;
 }

@@ -26,6 +26,7 @@ import org.apache.http.Header;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -43,7 +44,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfig;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigFactory;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.AuthConfigModel;
 import org.wso2.carbon.identity.conditional.auth.functions.http.util.HTTPConstants;
-import org.wso2.carbon.identity.conditional.auth.functions.http.util.TenantHttpClientManager;
+import org.wso2.carbon.identity.conditional.auth.functions.http.util.TenantCookieStores;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
@@ -74,12 +75,13 @@ public abstract class AbstractHTTPFunction implements Closeable {
     private final int requestRetryCount;
     private final List<String> allowedDomains;
 
+    private final CloseableHttpClient client;
+
     /**
-     * One client (and connection pool) per tenant, so that a slow endpoint of one tenant cannot exhaust the
-     * connections of the others. The configured max connections and max connections per route apply to each
-     * tenant's pool, not to the deployment as a whole.
+     * Cookies are kept per tenant instead of in the client's single shared store, so that a cookie set by an
+     * endpoint called for one tenant is never sent on a request made for another tenant.
      */
-    private final TenantHttpClientManager tenantClients;
+    private final TenantCookieStores tenantCookieStores;
 
     public AbstractHTTPFunction() {
 
@@ -95,23 +97,23 @@ public abstract class AbstractHTTPFunction implements Closeable {
         int httpFunctionsMaxConnections = ConfigProvider.getInstance().getHttpFunctionsMaxConnections();
         int httpFunctionsMaxConnectionsPerRoute =
                 ConfigProvider.getInstance().getHttpFunctionsMaxConnectionsPerRoute();
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(httpFunctionsMaxConnections);
+        connectionManager.setDefaultMaxPerRoute(httpFunctionsMaxConnectionsPerRoute);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Initializing HTTP functions tenant clients with max connections: " +
+            LOG.debug("Initializing HTTP functions client with max connections: " +
                     httpFunctionsMaxConnections + ", max per route: " + httpFunctionsMaxConnectionsPerRoute);
         }
-        tenantClients = new TenantHttpClientManager(() -> {
-            // Every tenant gets its own pool, so the configured limits apply per tenant.
-            PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-            connectionManager.setMaxTotal(httpFunctionsMaxConnections);
-            connectionManager.setDefaultMaxPerRoute(httpFunctionsMaxConnectionsPerRoute);
-            return HttpClientBuilder.create()
-                    .setConnectionManager(connectionManager)
-                    .setDefaultRequestConfig(config)
-                    .build();
-        },
-                getPositiveIntProperty(HTTPConstants.MAX_TENANT_CLIENTS, HTTPConstants.DEFAULT_MAX_TENANT_CLIENTS),
-                TimeUnit.SECONDS.toMillis(getPositiveIntProperty(HTTPConstants.TENANT_CLIENT_IDLE_TIMEOUT_SECONDS,
-                        HTTPConstants.DEFAULT_TENANT_CLIENT_IDLE_TIMEOUT_SECONDS)));
+        client = HttpClientBuilder.create()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(config)
+                .build();
+        tenantCookieStores = new TenantCookieStores(
+                getPositiveIntProperty(HTTPConstants.MAX_TENANT_COOKIE_STORES,
+                        HTTPConstants.DEFAULT_MAX_TENANT_COOKIE_STORES),
+                TimeUnit.SECONDS.toMillis(getPositiveIntProperty(
+                        HTTPConstants.TENANT_COOKIE_STORE_IDLE_TIMEOUT_SECONDS,
+                        HTTPConstants.DEFAULT_TENANT_COOKIE_STORE_IDLE_TIMEOUT_SECONDS)));
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
 
@@ -133,12 +135,17 @@ public abstract class AbstractHTTPFunction implements Closeable {
     }
 
     /**
-     * Close the HTTP clients of all tenants. Requests still running are allowed to finish first.
+     * Close the HTTP client, releasing its connection pool, and drop the cookies of all tenants.
      */
     @Override
     public void close() {
 
-        tenantClients.close();
+        tenantCookieStores.clear();
+        try {
+            client.close();
+        } catch (IOException e) {
+            LOG.warn("Error while closing the HTTP functions client.", e);
+        }
     }
 
     private enum RetryDecision {
@@ -180,7 +187,8 @@ public abstract class AbstractHTTPFunction implements Closeable {
                             endpointURL);
                     asyncReturn.accept(context, Collections.emptyMap(), Constants.OUTCOME_FAIL);
                 } else {
-                    Pair<RetryDecision, Pair<String, JSONObject>> result = executeRequest(request, endpointURL, tenantDomain);
+                    Pair<RetryDecision, Pair<String, JSONObject>> result =
+                            executeRequest(request, endpointURL, tenantDomain);
                     if (result.getLeft().shouldRetry()) {
                         LOG.info("Failed to invoke the endpoint. Url: " + endpointURL + ". Retrying the request.");
                         result = executeRequestWithRetries(request, endpointURL, requestRetryCount,
@@ -204,7 +212,7 @@ public abstract class AbstractHTTPFunction implements Closeable {
      * @param request     HttpUriRequest.
      * @param endpointURL Endpoint URL.
      * @param maxRetries  Maximum number of retries.
-     * @param tenantDomain Tenant domain whose client executes the request.
+     * @param tenantDomain Tenant domain whose cookie store is used for the request.
      * @return Pair of outcome and json.
      */
     private Pair<RetryDecision, Pair<String, JSONObject>> executeRequestWithRetries
@@ -244,7 +252,7 @@ public abstract class AbstractHTTPFunction implements Closeable {
      *
      * @param request     HttpUriRequest.
      * @param endpointURL Endpoint URL.
-     * @param tenantDomain Tenant domain whose client executes the request.
+     * @param tenantDomain Tenant domain whose cookie store is used for the request.
      * @return Pair of outcome and json.
      */
     private Pair<RetryDecision, Pair<String, JSONObject>> executeRequest(HttpUriRequest request, String endpointURL,
@@ -254,8 +262,9 @@ public abstract class AbstractHTTPFunction implements Closeable {
         String outcome;
         RetryDecision isRetry = RetryDecision.NO_RETRY;
 
-        try (TenantHttpClientManager.Lease lease = tenantClients.acquire(tenantDomain);
-             CloseableHttpResponse response = lease.getClient().execute(request)) {
+        HttpClientContext clientContext = HttpClientContext.create();
+        clientContext.setCookieStore(tenantCookieStores.get(tenantDomain));
+        try (CloseableHttpResponse response = client.execute(request, clientContext)) {
             int responseCode = response.getStatusLine().getStatusCode();
             if (responseCode >= 200 && responseCode < 300) {
                 if (response.getEntity() != null) {

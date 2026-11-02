@@ -155,6 +155,7 @@
                             org.apache.http.client.entity,
                             org.apache.http.client.methods,
                             org.apache.http.client.config,
+                            org.apache.http.client.protocol,
                             org.apache.http.impl.client,
                             org.apache.http.impl.conn,
                             org.apache.http.conn,
