@@ -24,7 +24,13 @@ import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.conditional.auth.functions.devicepolicy.internal.DevicePolicyFunctionsServiceHolder;
 import org.wso2.carbon.identity.device.policy.api.constant.DevicePolicyErrorMessage;
@@ -41,7 +47,8 @@ import java.util.Map;
  * Default implementation of {@link DevicePolicyComplianceFunction}. The verified device payload
  * is captured and stored on the authentication context at initiation (see the device.policy
  * component's {@code DeviceDataResolverImpl}); this function reads it from the context under
- * {@link FrameworkConstants#DEVICE_DATA}.
+ * {@link FrameworkConstants#DEVICE_DATA}. The policy is evaluated only if the device belongs to the
+ * last authenticated user in the resident tenant of the user.
  */
 public class DevicePolicyComplianceFunctionImpl implements DevicePolicyComplianceFunction {
 
@@ -69,26 +76,25 @@ public class DevicePolicyComplianceFunctionImpl implements DevicePolicyComplianc
     public JsBaseParameters evaluate(JsBaseAuthenticationContext context, String policyName) {
 
         try {
-            String tenantDomain = context.getWrapped().getTenantDomain();
-
-            Object data = context.getWrapped().getProperty(FrameworkConstants.DEVICE_DATA);
-            if (!(data instanceof Map)) {
+            Map<String, Object> deviceData = getDeviceDataOfUser(context.getWrapped());
+            if (deviceData == null) {
                 logMissingDeviceData(policyName);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("No device data on the authentication context for policy: " + policyName);
+                    LOG.debug("No device data of the authenticated user for policy: " + policyName);
                 }
                 return buildErrorResult(ERROR_DEVICE_DATA_UNAVAILABLE);
             }
-            @SuppressWarnings("unchecked")
-            Map<String, Object> deviceData = new HashMap<>((Map<String, Object>) data);
 
             String appId = context.getWrapped().getServiceProviderResourceId();
-
             DevicePolicyEvaluationResult result = DevicePolicyFunctionsServiceHolder.getInstance()
                     .getDevicePolicyEvaluator()
-                    .evaluateByPolicyName(policyName, deviceData, appId, tenantDomain);
+                    .evaluateByPolicyName(policyName, new HashMap<>(deviceData), appId,
+                            context.getWrapped().getTenantDomain());
 
             return buildResult(result);
+        } catch (FrameworkException e) {
+            LOG.error("Error while resolving the resident tenant of the user for device policy: " + policyName, e);
+            return buildErrorResult(ERROR_EVALUATION_ERROR);
         } catch (DevicePolicyClientException e) {
             if (DevicePolicyErrorMessage.ERROR_DEVICE_POLICY_NOT_FOUND.getCode().equals(e.getErrorCode())) {
                 LOG.warn("Device policy not found: " + policyName);
@@ -99,6 +105,31 @@ public class DevicePolicyComplianceFunctionImpl implements DevicePolicyComplianc
         } catch (DevicePolicyException e) {
             LOG.error("Error while evaluating device policy: " + policyName, e);
             return buildErrorResult(ERROR_EVALUATION_ERROR);
+        }
+    }
+
+    /**
+     * Returns the device data bound to the last authenticated user, in the resident tenant of the user.
+     *
+     * @param context Authentication context.
+     * @return Device data, or null if not available for the user.
+     * @throws FrameworkException If the resident tenant of the user cannot be resolved.
+     */
+    private Map<String, Object> getDeviceDataOfUser(AuthenticationContext context) throws FrameworkException {
+
+        Object deviceData = context.getProperty(FrameworkConstants.DEVICE_DATA);
+        AuthenticatedUser user = context.getLastAuthenticatedUser();
+        if (!(deviceData instanceof ResolvedDeviceData) || user == null) {
+            return null;
+        }
+        try {
+            return ((ResolvedDeviceData) deviceData).getDeviceData(user.getUserId(),
+                    FrameworkUtils.resolveUserResidentTenantDomain(user));
+        } catch (UserIdNotFoundException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("User ID is not available to bind the device data.", e);
+            }
+            return null;
         }
     }
 
@@ -143,7 +174,7 @@ public class DevicePolicyComplianceFunctionImpl implements DevicePolicyComplianc
     }
 
     /**
-     * Log that no verified device data was present on the authentication context for a policy check.
+     * Log that no verified device data of the authenticated user was found for a policy check.
      *
      * @param policyName Policy that could not be evaluated.
      */
@@ -154,7 +185,7 @@ public class DevicePolicyComplianceFunctionImpl implements DevicePolicyComplianc
         }
         DiagnosticLog.DiagnosticLogBuilder builder =
                 new DiagnosticLog.DiagnosticLogBuilder(COMPONENT_ID, ACTION_EVALUATE_POLICY);
-        builder.resultMessage("No verified device data on the authentication context; device policy cannot be "
+        builder.resultMessage("No verified device data of the authenticated user; device policy cannot be "
                         + "evaluated.")
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                 .resultStatus(DiagnosticLog.ResultStatus.FAILED)

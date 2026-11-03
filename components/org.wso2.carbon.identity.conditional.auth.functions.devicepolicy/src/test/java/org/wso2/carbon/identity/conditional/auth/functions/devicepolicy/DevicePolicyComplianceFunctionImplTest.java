@@ -30,6 +30,8 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.DeviceDataResolver;
+import org.wso2.carbon.identity.application.authentication.framework.handler.device.ResolvedDeviceData;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -69,6 +71,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -85,6 +88,7 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
     private static final String TENANT_DOMAIN = "test_domain";
     private static final String APP_RESOURCE_ID = "test-app-resource-id";
     private static final String TEST_USER = "test_user";
+    private static final String USER_TENANT_DOMAIN = "carbon.super";
     private static final String COMPLIANT = "boolean|true|COMPLIANT|||";
     private static final String DEVICE_DATA_MISSING = errorResult(
             DevicePolicyComplianceFunctionImpl.ERROR_DEVICE_DATA_UNAVAILABLE);
@@ -92,6 +96,8 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
     @Mock
     private DevicePolicyEvaluator devicePolicyEvaluator;
 
+    @Mock
+    private DeviceDataResolver deviceDataResolver;
     @BeforeClass
     @Parameters({"scriptEngine"})
     public void setUp(String scriptEngine) throws Exception {
@@ -103,6 +109,7 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
 
         initMocks(this);
         DevicePolicyFunctionsServiceHolder.getInstance().setDevicePolicyEvaluator(devicePolicyEvaluator);
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(deviceDataResolver);
         IdentityEventService identityEventService = mock(IdentityEventService.class);
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
@@ -110,13 +117,15 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
     @BeforeMethod
     public void resetEvaluator() {
 
-        reset(devicePolicyEvaluator);
+        reset(devicePolicyEvaluator, deviceDataResolver);
+        when(deviceDataResolver.isValidDevice(anyString(), anyString(), anyString())).thenReturn(true);
     }
 
     @AfterClass
     protected void tearDown() {
 
         DevicePolicyFunctionsServiceHolder.getInstance().setDevicePolicyEvaluator(null);
+        FrameworkServiceDataHolder.getInstance().setDeviceDataResolver(null);
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
     }
 
@@ -157,8 +166,9 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
         return new Object[][]{
                 // The device data resolver did not put anything on the context.
                 {null},
-                // The context carries something that is not a device data map.
                 {"not-a-map"},
+                // A raw map is not resolved device data.
+                {Collections.singletonMap("platform", "android")},
         };
     }
 
@@ -179,8 +189,8 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
                 .thenReturn(DevicePolicyEvaluationResult.incompleteDeviceData(POLICY_NAME,
                         Collections.singletonList("platform")));
 
-        // An empty map is still a map, so evaluation is delegated rather than short circuited.
-        AuthenticationContext context = getAuthenticationContextForSP(POLICY_NAME, new HashMap<String, Object>());
+        AuthenticationContext context = getAuthenticationContextForSP(POLICY_NAME,
+                boundDeviceData(new HashMap<>()));
         handle(context);
 
         Assert.assertEquals(context.getSelectedAcr(), "boolean|false|INCOMPLETE_DEVICE_DATA||platform|");
@@ -220,20 +230,56 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
         when(devicePolicyEvaluator.evaluateByPolicyName(anyString(), anyMap(), any(), anyString()))
                 .thenReturn(DevicePolicyEvaluationResult.compliant(POLICY_NAME));
 
-        Map<String, Object> deviceData = deviceData();
+        ResolvedDeviceData deviceData = deviceData();
         AuthenticationContext context = getAuthenticationContextForSP(POLICY_NAME, deviceData);
         handle(context);
 
-        ArgumentCaptor<Map<String, Object>> deviceDataCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(devicePolicyEvaluator).evaluateByPolicyName(eq(POLICY_NAME), deviceDataCaptor.capture(), eq(APP_RESOURCE_ID),
-                eq(TENANT_DOMAIN));
-        // The script passes a policy name, so the policy must be resolved by name rather than by id.
+        // The device data is read for the current user in the resident tenant of the user.
+        ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
+        verify(deviceData).getDeviceData(userIdCaptor.capture(), eq(USER_TENANT_DOMAIN));
+        Assert.assertEquals(userIdCaptor.getValue(), context.getLastAuthenticatedUser().getUserId());
+        verify(devicePolicyEvaluator).evaluateByPolicyName(eq(POLICY_NAME), eq(deviceClaims()),
+                eq(APP_RESOURCE_ID), eq(TENANT_DOMAIN));
         verify(devicePolicyEvaluator, never()).evaluate(anyString(), anyMap(), any(), anyString());
+    }
 
-        Map<String, Object> capturedDeviceData = deviceDataCaptor.getValue();
-        Assert.assertEquals(capturedDeviceData, deviceData);
-        // The evaluator mutates the device data it receives, so the context copy must not be handed over as is.
-        Assert.assertNotSame(capturedDeviceData, deviceData);
+    @Test
+    public void testEvaluateWhenDeviceDataIsNotAvailableForTheUser() throws Exception {
+
+        // Another user, another tenant, an inactive device or no resolver.
+        ResolvedDeviceData deviceData = mock(ResolvedDeviceData.class, withSettings().serializable());
+        when(deviceData.getDeviceData(anyString(), anyString())).thenReturn(null);
+
+        AuthenticationContext context = getAuthenticationContextForSP(POLICY_NAME, deviceData);
+        handle(context);
+
+        Assert.assertEquals(context.getSelectedAcr(), DEVICE_DATA_MISSING);
+        verifyNoInteractions(devicePolicyEvaluator);
+    }
+
+    @Test
+    public void testEvaluateWithDeviceOfAnotherUser() throws Exception {
+
+        AuthenticationContext context = getAuthenticationContextForSP(POLICY_NAME,
+                new ResolvedDeviceData("device-id", "another-user-id", USER_TENANT_DOMAIN, deviceClaims()));
+        handle(context);
+
+        Assert.assertEquals(context.getSelectedAcr(), DEVICE_DATA_MISSING);
+        verifyNoInteractions(devicePolicyEvaluator);
+        verify(deviceDataResolver, never()).isValidDevice(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    public void testEvaluateWithoutAuthenticatedUser() throws Exception {
+
+        ResolvedDeviceData deviceData = deviceData();
+        AuthenticationContext context = getAuthenticationContextForSP(
+                "device-policy-compliance-before-login-sp.xml", POLICY_NAME, deviceData);
+        handle(context);
+
+        Assert.assertEquals(context.getSelectedAcr(), DEVICE_DATA_MISSING);
+        verify(deviceData, never()).getDeviceData(any(), any());
+        verifyNoInteractions(devicePolicyEvaluator);
     }
 
     private static String errorResult(String errorCode) {
@@ -241,13 +287,29 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
         return "boolean|false|ERROR|||" + errorCode;
     }
 
-    private Map<String, Object> deviceData() {
+    private Map<String, Object> deviceClaims() {
 
         Map<String, Object> deviceData = new HashMap<>();
         deviceData.put("platform", "android");
         deviceData.put("osVersion", "14");
         deviceData.put("isRooted", false);
         return deviceData;
+    }
+
+    private ResolvedDeviceData deviceData() {
+
+        return boundDeviceData(deviceClaims());
+    }
+
+    /**
+     * Device data that is available for any user, since the user ID of the mock authenticator is random.
+     */
+    private ResolvedDeviceData boundDeviceData(Map<String, Object> deviceData) {
+
+        ResolvedDeviceData resolvedDeviceData = mock(ResolvedDeviceData.class, withSettings().serializable());
+        when(resolvedDeviceData.getDeviceData(anyString(), anyString()))
+                .thenReturn(Collections.unmodifiableMap(deviceData));
+        return resolvedDeviceData;
     }
 
     private void handle(AuthenticationContext context) throws JsTestException {
@@ -260,9 +322,14 @@ public class DevicePolicyComplianceFunctionImplTest extends JsSequenceHandlerAbs
     private AuthenticationContext getAuthenticationContextForSP(String policyName, Object deviceData)
             throws JsTestException {
 
+        return getAuthenticationContextForSP("device-policy-compliance-sp.xml", policyName, deviceData);
+    }
+
+    private AuthenticationContext getAuthenticationContextForSP(String spResource, String policyName,
+                                                                Object deviceData) throws JsTestException {
+
         sequenceHandlerRunner.addSubjectAuthenticator("BasicMockAuthenticator", TEST_USER, Collections.emptyMap());
-        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(
-                "device-policy-compliance-sp.xml", this);
+        ServiceProvider sp = sequenceHandlerRunner.loadServiceProviderFromResource(spResource, this);
 
         LocalAndOutboundAuthenticationConfig authConfig = sp.getLocalAndOutBoundAuthenticationConfig();
         AuthenticationScriptConfig scriptConfig = authConfig.getAuthenticationScriptConfig();
