@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.conditional.auth.functions.test.utils.sequence.R
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
+import org.wso2.msf4j.Response;
 
 import java.util.Date;
 import java.time.Instant;
@@ -78,6 +79,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -112,6 +114,8 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
     private static final String TOKEN_ENDPOINT_SUCCESS = "success";
     private static final String TOKEN_ENDPOINT_FAILURE = "failure";
     private static final String ALLOWED_DOMAIN = "abc";
+    private static final String SET_COOKIE = "Set-Cookie";
+    private static final String COOKIE = "Cookie";
     private static final String AUTHORIZATION = "Authorization";
     private static final String API_KEY_HEADER = "X-API-KEY";
     private HTTPGetFunctionImpl httpGetFunction;
@@ -159,6 +163,21 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         String result = executeHttpGetFunction("dummy-get", TEST_SP_CONFIG);
 
         assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
+    }
+
+    /**
+     * Test that cookies set by an endpoint are not sent with subsequent httpGet requests.
+     *
+     * @throws JsTestException
+     */
+    @Test
+    public void testHttpGetDoesNotReplayResponseCookies() throws JsTestException {
+
+        String result = executeHttpGetFunction("dummy-get-set-cookie", TEST_SP_CONFIG);
+        assertEquals(result, SUCCESS, "The http get request was not successful. Result from request: " + result);
+
+        result = executeHttpGetFunction("dummy-get-without-cookie", TEST_SP_CONFIG);
+        assertEquals(result, SUCCESS, "A cookie set by a previous response was sent with the http get request.");
     }
 
     @Test(dependsOnMethods = {"testHttpGetMethod"})
@@ -333,6 +352,10 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
         switch (path) {
             case "dummy-get":
                 return String.format(script, getRequestUrl("dummy-get"));
+            case "dummy-get-set-cookie":
+                return String.format(script, getRequestUrl("dummy-get-set-cookie"));
+            case "dummy-get-without-cookie":
+                return String.format(script, getRequestUrl("dummy-get-without-cookie"));
             case "dummy-get-with-headers":
                 return String.format(script, getRequestUrl("dummy-get-with-headers"));
             case "dummy-get-with-basic-auth-config":
@@ -384,6 +407,27 @@ public class HTTPGetFunctionImplTest extends JsSequenceHandlerAbstractTest {
 
         Map<String, String> response = new HashMap<>();
         response.put(STATUS, SUCCESS);
+        return response;
+    }
+
+    @GET
+    @Path("/dummy-get-set-cookie")
+    @Produces("application/json")
+    public Map<String, String> dummyGetSetCookie(@Context Response httpResponse) {
+
+        httpResponse.setHeader(SET_COOKIE, "session=dummy-session-id; Path=/");
+        Map<String, String> response = new HashMap<>();
+        response.put(STATUS, SUCCESS);
+        return response;
+    }
+
+    @GET
+    @Path("/dummy-get-without-cookie")
+    @Produces("application/json")
+    public Map<String, String> dummyGetWithoutCookie(@HeaderParam(COOKIE) String cookie) {
+
+        Map<String, String> response = new HashMap<>();
+        response.put(STATUS, cookie == null ? SUCCESS : FAILED);
         return response;
     }
 
